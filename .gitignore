@@ -1,15 +1,32 @@
+# ========================================
+# Android Studio / IntelliJ IDEA 配置
+# ========================================
+# 彻底忽略整个 .idea 文件夹（最省心，避免各种 xml 跑出来）
+.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+
+# ========================================
+# Gradle 构建系统
+# ========================================
+.gradle/
+build/
 /captures
 .externalNativeBuild
 .cxx
+
+# ========================================
+# 本地环境配置（包含你的电脑密码、SDK路径等，绝对不能传）
+# ========================================
 local.properties
+
+# ========================================
+# 系统文件（Mac / Windows）
+# ========================================
+.DS_Store
+Thumbs.db
+
+# ========================================
+# 其他常见无关文件
+# ========================================
+*.hprof
+.kotlin/

@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.hxb.myandroidapp_1021.components.NetworkImageWithPlaceholderDemo
+import com.hxb.myandroidapp_1021.components.HorizontalPagerDemoAutoScrollImprove
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -139,7 +139,7 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            NetworkImageWithPlaceholderDemo()
+            HorizontalPagerDemoAutoScrollImprove()
         }
     }
 }

@@ -2,10 +2,11 @@ package com.hxb.myandroidapp_1021
 
 // 导入需要用到的工具类，组件/颜色/尺寸
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.hxb.myandroidapp_1021.components.HorizontalPagerDemoAutoScrollImprove
+import com.hxb.myandroidapp_1021.components.ToolInspectionScreen
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -128,6 +129,7 @@ class MainActivity : ComponentActivity() {
         // }
 
         // 设置页面的内容，写ComposeUI
+        Log.d("ScreenSize", "宽: ${resources.displayMetrics.widthPixels}, 高: ${resources.displayMetrics.heightPixels}, 密度: ${resources.displayMetrics.densityDpi}")
         setContent {
             // 脚手架，现在先不用
             // MyAndroidApp1021Theme {
@@ -139,7 +141,7 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            HorizontalPagerDemoAutoScrollImprove()
+            ToolInspectionScreen()
         }
     }
 }

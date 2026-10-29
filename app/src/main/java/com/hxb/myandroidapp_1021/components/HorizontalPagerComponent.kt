@@ -32,7 +32,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * HorizontalPager轮播图
  *  pagerState常用属性：
  *      pageCount：总页数
- *      currentPage：当前页
+ *      currentPage：当前页的索引
  *      targetPage：滚动目标页
  *      isScrollInProgress：用户是否正在滚动
  *  pagerState两个挂起函数：
@@ -65,8 +65,9 @@ fun HorizontalPagerDemoAutoScrollImprove() {
         initialPage = startIndex,
         pageCount = { virtualCount }
     )
-    // 获取真实的下标
+    // 获取真实的下标，虚拟页号取模映射到真实索引
     val realIndex = pagerState.currentPage % realCount
+    println("666-realIndex:${realIndex}")
     // 开启副作用
     LaunchedEffect(pagerState) {
         while (true) {
@@ -86,7 +87,9 @@ fun HorizontalPagerDemoAutoScrollImprove() {
     Box(modifier = Modifier.fillMaxSize()) {
         HorizontalPager(
             state = pagerState
+            // page是虚拟页的索引
         ) { page ->
+            // 获取真正的索引，这里的索引还包含了前后的虚拟页，会保证滑动时丝滑的过渡，因此不能用上面的realIndex代替
             val currentPageIndex = page % realCount
             Box(
                 modifier = Modifier

@@ -9,3 +9,10 @@ data class TabItem(
     val unselectedIcon: ImageVector,  // 未选中时图标
     val route: String                 // 路由名称，如"home"
 )
+
+data class QuestionItem(
+    val id: String,
+    val stem: String,
+    val difficulty: Int,
+    val views: Int
+)

@@ -37,7 +37,9 @@ android {
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(files("libs/uhf.jar"))
+    implementation(files("libs/scankey.jar"))
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.navigation.compose)

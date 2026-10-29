@@ -130,6 +130,17 @@ class MainActivity : ComponentActivity() {
 
         // 设置页面的内容，写ComposeUI
         Log.d("ScreenSize", "宽: ${resources.displayMetrics.widthPixels}, 高: ${resources.displayMetrics.heightPixels}, 密度: ${resources.displayMetrics.densityDpi}")
+
+        // 不会阻塞主线程
+        // lifecycleScope.launch {
+        //     delay(6000.milliseconds)
+        //     Log.d("ccc", "不会阻塞主线程")
+        // }
+        // 阻塞主线程
+        // runBlocking {
+        //     delay(6000.milliseconds)
+        //     Log.d("ccc", "会阻塞主线程")
+        // }
         setContent {
             // 脚手架，现在先不用
             // MyAndroidApp1021Theme {

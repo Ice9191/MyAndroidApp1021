@@ -3,6 +3,7 @@ package com.hxb.myandroidapp_1021.view_model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.models.QuestionItem
+import com.hxb.myandroidapp_1021.models.TodoItem
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,55 @@ import kotlin.time.Duration.Companion.milliseconds
  *  StateFlow → 用 collectAsState() 收集，转成 Compose State，界面自动更新
  *  SharedFlow → 用 LaunchedEffect { flow.collect { } } 收集，处理一次性事件
  */
+
+/**
+ * 开发过程中，把所有的ViewModel都放在这里是没问题的
+ */
+class TodoListViewModel: ViewModel(){
+    /**
+     * 这两行代码是“单向数据流(UDF)”状态封装模式
+     *  核心：把数据的“读写权限”分开：让ViewModel内部可以随意修改数据，但让外部(UI)只能看，不能改
+     */
+    // 列表数据 -> 持续性
+    private val _todos = MutableStateFlow<List<TodoItem>>(emptyList())
+    val todos = _todos.asStateFlow()
+
+    /**
+     * 这两行代码是封装的是事件
+     */
+    // Toast提示 -> 一次性
+    private val _toast = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val toast = _toast.asSharedFlow()
+    // 自增Id
+    private var nextId = 1
+    // 提供方法
+    // 增加
+    fun addTodo(title: String){
+        if(title.isBlank()){
+            viewModelScope.launch {
+                _toast.emit("标题不能为空")
+            }
+            return
+        }
+        // 列表追加
+        _todos.value += TodoItem(nextId++, title, false)
+    }
+    // 切换完成状态
+    fun toggleTodo(todo: TodoItem){
+        _todos.value = _todos.value.map {
+            if(it.id == todo.id) it.copy(isDone = !it.isDone) else it
+        }
+    }
+    // 删除
+    fun deleteTodo(todo: TodoItem){
+        _todos.value = _todos.value.filter { it.id != todo.id }
+        viewModelScope.launch {
+            _toast.emit("删除成功：${todo.title}")
+        }
+        return
+    }
+}
+
 class LoginViewModel : ViewModel() {
     private val _loading = MutableStateFlow(false)
     val loading = _loading.asStateFlow()

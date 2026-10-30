@@ -38,8 +38,8 @@ android {
 
 dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(files("libs/uhf.jar"))
-    implementation(files("libs/scankey.jar"))
+    compileOnly(files("libs/uhf.jar"))
+    compileOnly(files("libs/scankey.jar"))
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.navigation.compose)

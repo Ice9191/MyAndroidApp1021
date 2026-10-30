@@ -1,6 +1,10 @@
 package com.hxb.myandroidapp_1021.components
 
 import android.widget.Toast
+import androidx.compose.runtime.DisposableEffect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -74,14 +78,29 @@ fun ToolInspectionScreen(viewModel: RfidViewModel = viewModel()) {
     val isScanning by viewModel.isScanning.collectAsState()
     val scannedTags by viewModel.scannedTags.collectAsState()
     val power by viewModel.power.collectAsState()
-    // 初始化硬件
-    LaunchedEffect(Unit) {
-        viewModel.initHardware()
+    val status by viewModel.status.collectAsState()
+    val triggerStatus by viewModel.triggerStatus.collectAsState()
+    val error by viewModel.errorMessage.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, viewModel) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> viewModel.initHardware()
+                Lifecycle.Event.ON_PAUSE -> viewModel.releaseHardware()
+                else -> Unit
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) viewModel.initHardware()
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.releaseHardware()
+        }
     }
-    // 监听SharedFlow错误提示并弹Toast
+    // 错误状态保留在页面上，并弹出提示
     LaunchedEffect(Unit) {
         viewModel.errorMessage.collect {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            if (it != null) Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -115,7 +134,10 @@ fun ToolInspectionScreen(viewModel: RfidViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // ================= 新增：开始RFID扫描按钮 =================
+            Text(text = "AUTOID UTouch · $status", color = PrimaryBlue)
+            Text(text = triggerStatus, color = Color.DarkGray, fontSize = 13.sp)
+            error?.let { Text(text = it, color = Color(0xFFE53935)) }
+            // 开始 / 停止 RFID 盘点
             Button(
                 onClick = {
                     if (isScanning) viewModel.stopScan() else viewModel.startScan()

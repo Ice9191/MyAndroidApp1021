@@ -1,248 +1,229 @@
 package com.hxb.myandroidapp_1021.view_model
 
+import android.annotation.SuppressLint
+import android.os.IBinder
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.seuic.scankey.IKeyEventCallback
+import com.seuic.scankey.ScanKeyService
 import com.seuic.uhf.UHFService
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.Executors
 import kotlin.time.Duration.Companion.milliseconds
 
+/** 所有 SDK 调用在同一个线程执行，避免打开、盘点、关闭相互竞争。 */
 class RfidViewModel : ViewModel() {
-
-    @Volatile
-    private var uhfService: UHFService? = null
-
-    // 硬件初始化任务：多个入口同时调用 initHardware() 时只会 open 一次
-    private var initTask: Deferred<Boolean>? = null
+    private val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    private val scope = CoroutineScope(SupervisorJob() + dispatcher)
+    private var service: UHFService? = null
     private var pollJob: Job? = null
+    private var foreground = false
+    private var keyService: ScanKeyService? = null
+    private var keyCallback: IKeyEventCallback? = null
+    private val heldKeys = mutableSetOf<Int>()
+    private val _triggerStatus = MutableStateFlow("实体扫描键未连接")
+    val triggerStatus = _triggerStatus.asStateFlow()
 
-    @Volatile
-    private var startInProgress = false
+    private fun registerKeys() {
+        if (keyCallback != null) return
+        try {
+            val keys = ScanKeyService.getInstance()
+            val callback = object : IKeyEventCallback.Stub() {
+                override fun onKeyDown(keyCode: Int) = handle(keyCode, true)
+                override fun onKeyUp(keyCode: Int) = handle(keyCode, false)
+                private fun handle(code: Int, down: Boolean) {
+                    val source = this
+                    scope.launch {
+                        if (!foreground || keyCallback !== source) return@launch
+                        if (code !in SCAN_KEYS) return@launch
+                        Log.i("RfidTrigger", "key=$code down=$down")
+                        _triggerStatus.value = "实体键 $code：${if (down) "按下" else "松开"}"
+                        if (down) {
+                            if (heldKeys.add(code)) start()
+                        } else if (heldKeys.remove(code) && heldKeys.isEmpty()) {
+                            stop()
+                        }
+                    }
+                }
+            }
+            keyService = keys
+            keyCallback = callback
+            // 实机 ScanKeyManagerService 的 cookie 按原始 Linux 键码匹配。
+            keys.registerCallback(callback, SCAN_KEYS.joinToString(","))
+            _triggerStatus.value = "实体键已连接：按住扳机 / SCAN 扫描，松开停止"
+            Log.i("RfidTrigger", "ScanKey callback registered")
+        } catch (t: Throwable) {
+            unregisterKeys()
+            _triggerStatus.value = "实体键连接失败：${t.message ?: t.javaClass.simpleName}"
+            Log.e("RfidTrigger", "注册扫描键失败", t)
+        }
+    }
 
-    // 存放读取到的标签列表(使用Set自动去重)
+    private fun unregisterKeys() {
+        val callback = keyCallback
+        keyCallback = null
+        heldKeys.clear()
+        try { if (callback != null) keyService?.unregisterCallback(callback) }
+        catch (t: Throwable) { Log.e("RfidTrigger", "注销扫描键失败", t) }
+        finally { keyService = null; _triggerStatus.value = "实体扫描键已释放" }
+    }
     private val _scannedTags = MutableStateFlow<Set<String>>(emptySet())
     val scannedTags = _scannedTags.asStateFlow()
-
-    // 扫描状态
     private val _isScanning = MutableStateFlow(false)
     val isScanning = _isScanning.asStateFlow()
-
-    // 当前发射功率
     private val _power = MutableStateFlow(DEFAULT_POWER)
     val power = _power.asStateFlow()
+    private val _status = MutableStateFlow("等待初始化")
+    val status = _status.asStateFlow()
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage.asStateFlow()
 
-    // 带缓冲：没有收集者时 tryEmit 也不会丢事件
-    private val _errorMessage = MutableSharedFlow<String>(extraBufferCapacity = 8)
-    val errorMessage = _errorMessage.asSharedFlow()
-
-    // 重置列表时把硬件缓存里已有的 EPC 记进来，轮询时跳过，避免清空后立刻又被塞回去
-    private val suppressed: MutableSet<String> = Collections.synchronizedSet(mutableSetOf())
-    private val pendingClear = AtomicBoolean(false)
-
-    // 初始化硬件
-    fun initHardware() {
-        if (initTask == null) {
-            initTask = viewModelScope.async(Dispatchers.IO) { openHardware() }
-        }
-    }
-
-    private suspend fun openHardware(): Boolean = try {
-        val service = UHFService.getInstance()
-        uhfService = service
-        if (service.open()) {
-            service.power = _power.value
-            Log.i(TAG, "RFID硬件初始化成功，功率 ${_power.value} dBm")
-            true
-        } else {
-            emitError("RFID硬件打开失败，请检查设备")
-            false
-        }
-    } catch (t: Throwable) {
-        // 缺 .so 时抛的是 UnsatisfiedLinkError(Error 而不是 Exception)，必须抓 Throwable
+    private fun report(t: Throwable) {
         if (t is CancellationException) throw t
-        Log.e(TAG, "RFID硬件初始化异常", t)
-        emitError("RFID硬件初始化异常：${t.message ?: t.javaClass.simpleName}")
-        false
+        Log.e("RfidViewModel", "UHF 调用失败", t)
+        _errorMessage.value = "RFID失败：${t.message ?: t.javaClass.simpleName}"
+        _status.value = "设备异常，可点击扫描重试"
     }
 
-    // 等初始化完成；失败过的初始化允许下次重试
-    private suspend fun ensureServiceReady(): Boolean {
-        if (initTask == null) initHardware()
-        val task = initTask ?: return false
-        val ready = task.await()
-        if (!ready) initTask = null
-        return ready
+    /**
+     * UTouch 当前系统库的 binderDied() 只打印日志，不会重连。
+     * 仅当其 server Binder 已失效时调用该厂商库自己的 init()，不终止系统服务。
+     * 其他 SDK 版本没有这些成员时，保留标准接口路径。
+     */
+    private fun reconnectIfNeeded(device: UHFService) {
+        val serverField = try {
+            UHFService::class.java.getDeclaredField("server").apply { isAccessible = true }
+        } catch (_: NoSuchFieldException) { return }
+        val binder = serverField.get(device) as? IBinder
+        if (binder?.isBinderAlive == true) return
+        _status.value = "正在重新连接 UHF 服务"
+        Log.w("RfidViewModel", "UHF Binder 已失效，重新连接系统服务")
+        val init = UHFService::class.java.getDeclaredMethod("init").apply { isAccessible = true }
+        val connected = init.invoke(device) as? Boolean ?: false
+        val refreshed = serverField.get(device) as? IBinder
+        check(connected && refreshed?.isBinderAlive == true) {
+            "系统 UHF 服务正在恢复，请稍后重新按下扫描键"
+        }
+        Log.i("RfidViewModel", "UHF 服务重新连接成功")
     }
-
-    // 开始扫描
-    fun startScan() {
-        if (_isScanning.value || startInProgress) return
-        startInProgress = true
-        viewModelScope.launch {
-            try {
-                if (!ensureServiceReady()) {
-                    emitError("硬件未准备好")
-                    return@launch
-                }
-                val service = uhfService
-                if (service == null) {
-                    emitError("硬件未准备好")
-                    return@launch
-                }
-                // 硬件调用统一放到 IO 线程，避免卡主线程
-                val started = withContext(Dispatchers.IO) {
-                    try {
-                        service.inventoryStart()
-                    } catch (t: Throwable) {
-                        if (t is CancellationException) throw t
-                        Log.e(TAG, "开启扫描异常", t)
-                        false
-                    }
-                }
-                if (!started) {
-                    emitError("无法开启扫描，请重试")
-                    return@launch
-                }
-                suppressed.clear() // 新一轮扫描，之前重置时的忽略记录作废
-                _isScanning.value = true
-                startPollLoop()
-            } finally {
-                startInProgress = false
+    private fun open(): UHFService {
+        val device = service ?: UHFService.getInstance()
+        try {
+            reconnectIfNeeded(device)
+            check(device.isOpen || device.open()) {
+                "UHF 服务或模块未就绪，请稍后重试；若持续失败，请检查系统 UHF 工具及模块连接"
             }
+            check(device.setPower(_power.value)) { "设置功率失败" }
+            service = device
+            _errorMessage.value = null
+            _status.value = "RFID 已就绪"
+            return device
+        } catch (t: Throwable) {
+            service = null
+            runCatching { device.close() }
+            throw t
         }
     }
 
-    // 停止扫描
-    fun stopScan() {
-        if (!_isScanning.value) return
-        _isScanning.value = false
-        pollJob?.cancel()
-        pollJob = null
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                uhfService?.inventoryStop()
-            } catch (t: Throwable) {
-                if (t is CancellationException) throw t
-                Log.e(TAG, "停止扫描异常", t)
-            }
-        }
-    }
+    fun initHardware() { scope.launch {
+        foreground = true
+        try { open() } catch (t: Throwable) { report(t) }
+        registerKeys()
+    } }
 
-    // 动态设置功率
-    fun updatePower(newPower: Int) {
-        val clamped = newPower.coerceIn(MIN_POWER, MAX_POWER)
-        if (clamped == _power.value) return
-        _power.value = clamped
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                uhfService?.power = clamped
-            } catch (t: Throwable) {
-                if (t is CancellationException) throw t
-                Log.e(TAG, "设置功率失败", t)
-            }
-        }
-    }
+    fun startScan() { scope.launch { start() } }
 
-    // 清空列表
-    fun clearList() {
-        _scannedTags.value = emptySet()
-        // 让轮询协程在下一轮把硬件缓存快照进 suppressed
-        pendingClear.set(true)
-    }
-
-    // 后台轮询读取数据
-    private fun startPollLoop() {
-        pollJob?.cancel()
-        pollJob = viewModelScope.launch(Dispatchers.IO) {
-            while (isActive && _isScanning.value) {
+    private fun start() {
+        if (!foreground || _isScanning.value) return
+        try {
+            val device = open()
+            check(device.setParameters(UHFService.PARAMETER_CLEAR_EPCLIST, 1)) { "清空设备标签缓存失败" }
+            check(device.inventoryStart()) { "启动盘点失败" }
+            _isScanning.value = true
+            _errorMessage.value = null
+            _status.value = "正在读取 RFID 标签"
+            pollJob = scope.launch {
                 try {
-                    // 重置列表：把硬件缓存里已有的标签记为忽略，并把本地列表中这些条目移除
-                    if (pendingClear.compareAndSet(true, false)) {
-                        val cached = uhfService?.tagIDs
-                            ?.mapNotNull { it.toString().takeIf(String::isNotBlank) }
-                            .orEmpty()
-                        if (cached.isNotEmpty()) {
-                            suppressed.addAll(cached)
-                            _scannedTags.update { it - cached.toSet() }
+                    val binder = runCatching {
+                        UHFService::class.java.getDeclaredField("server").apply {
+                            isAccessible = true
+                        }.get(device) as? IBinder
+                    }.getOrNull()
+                    while (isActive && _isScanning.value) {
+                        check(binder?.isBinderAlive != false) {
+                            "系统 UHF 服务连接已断开，请松开后重新按下扫描键以重连"
                         }
-                    }
-                    // 获取当前已经读取到的标签数量
-                    if ((uhfService?.tagIDCount ?: 0) > 0) {
-                        val tags = uhfService?.tagIDs
-                        if (!tags.isNullOrEmpty()) {
-                            val fresh = tags.asSequence()
-                                .mapNotNull { it.toString().takeIf(String::isNotBlank) }
-                                .filter { epc -> epc !in suppressed }
-                                .toSet()
-                            if (fresh.isNotEmpty()) {
-                                // 更新UI状态
-                                _scannedTags.update { it + fresh }
-                            }
-                        }
+                        // EPC.getId() 是编码；不要将 EPC 对象的 toString() 当作编码。
+                        val ids = device.tagIDs.orEmpty().mapNotNull { it?.getId()?.trim()?.takeIf(String::isNotEmpty) }
+                        if (ids.isNotEmpty()) _scannedTags.value = _scannedTags.value + ids
+                        delay(100.milliseconds)
                     }
                 } catch (t: Throwable) {
-                    if (t is CancellationException) throw t
-                    Log.e(TAG, "轮询读取异常", t)
+                    if (t !is CancellationException) { stop(); report(t) }
+                    else throw t
                 }
-                delay(50.milliseconds)
             }
-        }
+        } catch (t: Throwable) { stop(); report(t) }
     }
 
+    private fun stop() {
+        pollJob?.cancel()
+        pollJob = null
+        _isScanning.value = false
+        try {
+            service?.let { check(it.inventoryStop()) { "停止盘点失败" } }
+            _status.value = if (service != null) "扫描已停止" else "设备未连接"
+        } catch (t: Throwable) { report(t) }
+    }
+
+    fun stopScan() { scope.launch { stop() } }
+
+    fun updatePower(newPower: Int) { scope.launch {
+        val value = newPower.coerceIn(MIN_POWER, MAX_POWER)
+        try {
+            service?.let { check(it.setPower(value)) { "设置功率失败" } }
+            _power.value = value
+        } catch (t: Throwable) { report(t) }
+    } }
+
+    /** 清除设备缓存后，仍在读区的标签可以重新读入。 */
+    fun clearList() { scope.launch {
+        try {
+            service?.let { check(it.setParameters(UHFService.PARAMETER_CLEAR_EPCLIST, 1)) { "清空缓存失败" } }
+            _scannedTags.value = emptySet()
+        } catch (t: Throwable) { report(t) }
+    } }
+
+    private fun close() {
+        unregisterKeys()
+        stop()
+        try { service?.close() } catch (t: Throwable) { report(t) }
+        finally { service = null; _status.value = "RFID 已释放" }
+    }
+
+    fun releaseHardware() { scope.launch { foreground = false; close() } }
+
+    @SuppressLint("EmptySuperCall")
     override fun onCleared() {
+        scope.launch {
+            try { foreground = false; close() }
+            finally { scope.cancel(); dispatcher.close() }
+        }
         super.onCleared()
-        pollJob?.cancel()
-        pollJob = null
-        _isScanning.value = false
-        startInProgress = false
-        initTask?.cancel()
-        initTask = null
-        val service = uhfService
-        uhfService = null
-        if (service != null) {
-            // 此时 viewModelScope 已取消，用独立作用域把硬件停掉并关闭
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    service.inventoryStop()
-                } catch (t: Throwable) {
-                    if (t !is CancellationException) Log.e(TAG, "关闭前停止扫描异常", t)
-                }
-                try {
-                    service.close()
-                } catch (t: Throwable) {
-                    if (t !is CancellationException) Log.e(TAG, "关闭硬件异常", t)
-                }
-                Log.i(TAG, "RFID资源已释放")
-            }
-        }
-    }
-
-    private fun emitError(message: String) {
-        if (!_errorMessage.tryEmit(message)) {
-            Log.w(TAG, "错误事件被丢弃：$message")
-        }
     }
 
     companion object {
-        private const val TAG = "RfidViewModel"
-
-        /** 功率范围，单位 dBm */
+        private val SCAN_KEYS = setOf(142, 248, 249, 250, 252)
         const val MIN_POWER = 5
         const val MAX_POWER = 30
         const val DEFAULT_POWER = 20

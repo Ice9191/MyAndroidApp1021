@@ -1,14 +1,12 @@
 package com.hxb.myandroidapp_1021
 
 // 导入需要用到的工具类，组件/颜色/尺寸
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.annotation.RequiresApi
-import com.hxb.myandroidapp_1021.components.test01
+import com.hxb.myandroidapp_1021.components.index.DashboardScreen
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -18,7 +16,6 @@ import kotlin.time.Duration.Companion.milliseconds
 // 定义一个类，类继承自ComponentActivity
 class MainActivity : ComponentActivity() {
     // 重写并调用了父类的onCreate方法
-    @RequiresApi(Build.VERSION_CODES.DONUT)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // 安全间距
@@ -155,7 +152,7 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            test01()
+            DashboardScreen()
         }
     }
 }

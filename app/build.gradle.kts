@@ -38,6 +38,7 @@ android {
 
 dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.material3)
     compileOnly(files("libs/uhf.jar"))
     compileOnly(files("libs/scankey.jar"))
     implementation(libs.androidx.appcompat)

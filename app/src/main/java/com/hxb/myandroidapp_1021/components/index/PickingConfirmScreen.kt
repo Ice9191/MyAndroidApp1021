@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -21,30 +22,25 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.components.index.components.SearchField
+import com.hxb.myandroidapp_1021.components.index.models.DisplayField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PickingConfirmScreen(
+    order: PickingOrder? = null,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {}
 ) {
@@ -53,21 +49,51 @@ fun PickingConfirmScreen(
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
 
-    // 模拟读取到的 RFID 列表
-    val rfidList = remember {
+    // 单据信息
+    val orderNo = order?.orderNo.orEmpty()
+    val status = order?.status.orEmpty()
+    val team = order?.team.orEmpty()
+    val person = order?.person.orEmpty()
+
+    // 领料人工号输入
+    val employeeIdState = rememberTextFieldState("100268")
+
+    // 模拟读取到的工器具
+    val toolList = remember {
         listOf(
-            "E200 1026 A001",
-            "E200 1018 A002",
-            "E200 1018 A002",
-            "E200 1018 A002",
-            "E200 1018 A002",
-            "E200 1018 A002",
-            "E200 1018 A002",
-            "E200 1031 A003"
+            ToolScanItem(
+                id = "GJ-01026",
+                name = "绝缘鞋",
+                code = "GJ-01026",
+                rfid = "E200 1026 A001"
+            ),
+            ToolScanItem(
+                id = "GJ-01018",
+                name = "绝缘手套",
+                code = "GJ-01018",
+                rfid = "E200 1018 A002"
+            ),
+            ToolScanItem(
+                id = "GJ-01031",
+                name = "绝缘操作杆",
+                code = "GJ-01031",
+                rfid = "E200 1031 A003"
+            ),
+            ToolScanItem(
+                id = "GJ-01118",
+                name = "安全帽",
+                code = "GJ-01118",
+                rfid = "E200 1118 B001"
+            )
         )
     }
 
-    var employeeId by remember { mutableStateOf("100268") }
+    val infoFields = listOf(
+        DisplayField("姓名", person),
+        DisplayField("班组", team),
+        DisplayField("经办人", "王芳（材料员）"),
+        DisplayField("出库时间", "2026-10-30 09:30")
+    )
 
     Scaffold(
         containerColor = bgColor,
@@ -132,7 +158,7 @@ fun PickingConfirmScreen(
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
-            // === 1. 头部信息 ===
+            // === 1. 单据头部 ===
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,103 +170,86 @@ fun PickingConfirmScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "拣选单号：JC20261028001",
+                        text = "拣选单号：$orderNo",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = textDark
                     )
-                    Text(text = "待提交", fontSize = 14.sp, color = themeBlue)
+                    Text(text = status.ifBlank { "待提交" }, fontSize = 14.sp, color = themeBlue)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "已读取${rfidList.size}件 / 未读取0件",
+                    text = "已读取${toolList.size}件 / 未读取0件",
                     fontSize = 14.sp,
                     color = textDark
                 )
             }
-
             HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
-            // === 2. 中间：领料人信息及填写 ===
+            // === 2. 领料人工号 + 信息行 ===
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(top = 16.dp)
             ) {
                 Text(
                     text = "领料人工号",
                     fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
                     color = textDark,
-                    fontWeight = FontWeight.Bold
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = employeeId,
-                    onValueChange = { employeeId = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = themeBlue,
-                        unfocusedBorderColor = Color(0xFFDDDDDD),
-                        cursorColor = themeBlue
-                    )
+                SearchField(
+                    state = employeeIdState,
+                    placeholder = "请输入领料人工号",
+                    showSearchIcon = false
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = buildAnnotatedString {
-                        append("姓名：")
-                        withStyle(
-                            style = SpanStyle(
-                                color = textDark
-                            )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    // 行间距 10dp -> 6dp，整体更紧凑
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    infoFields.forEach { field ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            append("张伟")
-                        }
-                        append("   班组：")
-                        withStyle(
-                            style = SpanStyle(
-                                color = textDark
+                            Text(
+                                text = field.label,
+                                fontSize = 13.sp,
+                                lineHeight = 16.sp,
+                                color = textGray,
+                                maxLines = 1
                             )
-                        ) {
-                            append("检修一班")
+                            Text(
+                                text = field.value,
+                                fontSize = 13.sp,
+                                lineHeight = 16.sp,
+                                color = textDark,
+                                maxLines = 1,
+                                modifier = Modifier.padding(start = 16.dp)
+                            )
                         }
-                    },
-                    fontSize = 14.sp,
-                    color = textDark
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "经办人：王芳（材料员）",
-                    fontSize = 14.sp,
-                    color = textDark
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "出库时间：2026-10-30 09:30",
-                    fontSize = 14.sp,
-                    color = textDark
-                )
+                    }
+                }
             }
 
-            HorizontalDivider(thickness = 8.dp, color = bgColor)
-
-            // === 3. 底部：读取到的 RFID 列表 ===
+            // === 3. 工器具表格 ===
             Column(modifier = Modifier.fillMaxWidth()) {
-                // 表头
+                // 表头：工器具信息 / 数量
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF5F6F8))
+                        .height(40.dp)
+                        .background(bgColor)
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "RFID",
+                        text = "工器具信息",
                         modifier = Modifier.weight(1f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
@@ -255,20 +264,29 @@ fun PickingConfirmScreen(
                 }
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
 
-                // 列表内容
-                rfidList.forEach { rfid ->
+                toolList.forEach { tool ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                            // 不要写死高度：让两行文字自己撑开，只留一点上下边距，行才紧凑
+                            .padding(horizontal = 16.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = rfid,
-                            modifier = Modifier.weight(1f),
-                            fontSize = 14.sp,
-                            color = textDark
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = tool.rfid,
+                                fontSize = 14.sp,
+                                lineHeight = 16.sp,
+                                color = textDark
+                            )
+                            Text(
+                                text = tool.name,
+                                fontSize = 13.sp,
+                                lineHeight = 14.sp,
+                                color = textGray,
+                                modifier = Modifier.padding(top = 1.dp)
+                            )
+                        }
                         Text(
                             text = "1",
                             fontSize = 14.sp,
@@ -277,9 +295,6 @@ fun PickingConfirmScreen(
                     }
                     HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
                 }
-
-                // 底部留白，防止贴边
-                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }

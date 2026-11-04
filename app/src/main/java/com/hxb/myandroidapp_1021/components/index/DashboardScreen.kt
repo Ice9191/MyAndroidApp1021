@@ -48,16 +48,24 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
 // 单个菜单按钮的数据
-data class MenuItemData(val title: String, val icon: ImageVector)
+data class MenuItemData(
+    val title: String,
+    val icon: ImageVector,
+    val route: String
+)
 
 // 整个模块的数据
-data class MenuSectionData(val title: String, val items: List<MenuItemData>)
+data class MenuSectionData(
+    val title: String,
+    val items: List<MenuItemData>
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onLogoutClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: () -> Unit = {},
+    onMenuClick:(String)-> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
@@ -70,28 +78,28 @@ fun DashboardScreen(
         MenuSectionData(
             title = "借用归还",
             items = listOf(
-                MenuItemData("借出", Icons.AutoMirrored.Filled.ExitToApp),
-                MenuItemData("归还", Icons.AutoMirrored.Filled.Login)
+                MenuItemData("借出", Icons.AutoMirrored.Filled.ExitToApp, "picking"),
+                MenuItemData("归还", Icons.AutoMirrored.Filled.Login, "return_tool")
             )
         ),
         MenuSectionData(
             title = "库存管理",
             items = listOf(
-                MenuItemData("工具送检", Icons.AutoMirrored.Outlined.FactCheck),
-                MenuItemData("工具送修", Icons.Outlined.Build)
+                MenuItemData("工具送检", Icons.AutoMirrored.Outlined.FactCheck, "inspect"),
+                MenuItemData("工具送修", Icons.Outlined.Build, "repair")
             )
         ),
         MenuSectionData(
             title = "库存核减",
             items = listOf(
-                MenuItemData("工具报废", Icons.Outlined.DeleteForever),
-                MenuItemData("报废出库", Icons.Outlined.Outbox)
+                MenuItemData("工具报废", Icons.Outlined.DeleteForever, "scrap"),
+                MenuItemData("报废出库", Icons.Outlined.Outbox, "scrap_out")
             )
         ),
         MenuSectionData(
             title = "盘点管理",
             items = listOf(
-                MenuItemData("盘点单", Icons.Filled.QrCodeScanner)
+                MenuItemData("盘点单", Icons.Filled.QrCodeScanner, "inventory")
             )
         )
     )
@@ -111,7 +119,7 @@ fun DashboardScreen(
                 actions = {
                     TextButton(
                         onClick = onLogoutClick,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 4.dp)
                     ) {
                         Text(
                             text = "退出登录",
@@ -157,7 +165,7 @@ fun DashboardScreen(
                     contentDescription = "Logo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(44.dp)
                         .clip(RoundedCornerShape(4.dp))
                 )
 
@@ -208,7 +216,7 @@ fun DashboardScreen(
                                 themeBlue = themeBlue,
                                 bgColor = lightBlueBg,
                                 onClick = {
-                                    // TODO: 在这里处理点击事件，可以通过 item.title 判断点击了哪个
+                                    onMenuClick(item.route)
                                 }
                             )
                         }

@@ -41,7 +41,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(
+    onLoginSuccess:()-> Unit = {}
+) {
     // 状态管理
     var account by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -173,7 +175,10 @@ fun LoginScreen() {
 
                     // 登录按钮
                     Button(
-                        onClick = { /* TODO: 处理登录逻辑 */ },
+                        onClick = {
+                            // TODO账号密码非空校验、调接口校验
+                            onLoginSuccess()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    // JSON序列化成Kotlin对象
 }
 
 android {
@@ -37,6 +38,14 @@ android {
 }
 
 dependencies {
+    // JSON解析
+    implementation(libs.kotlinx.serialization.json)
+    // OkHttp - HTTP客户端 + 拦截器
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+    // Retrofit声明式API接口
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.material3)
     compileOnly(files("libs/uhf.jar"))

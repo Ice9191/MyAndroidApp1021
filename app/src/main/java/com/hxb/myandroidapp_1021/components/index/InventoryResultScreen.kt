@@ -21,8 +21,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.components.index.components.ApplicationTopBar
-import com.hxb.myandroidapp_1021.components.index.components.VerificationButton
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.Alignment
+import com.hxb.myandroidapp_1021.components.index.ToolScanItem
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 
 data class InventoryDifference(val tool: ToolScanItem, val bookCount: Int, val actualCount: Int)
 
@@ -102,4 +118,40 @@ fun InventoryResultScreen(
 @Composable
 private fun InventoryResultScreenPreview() {
     InventoryResultScreen()
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ApplicationTopBar(title: String, onBackClick: () -> Unit) {
+    TopAppBar(
+        modifier = Modifier.height(75.dp),
+        title = {
+            Text(
+                title, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.offset(x = (-16).dp)
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "返回")
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF1E71C8), titleContentColor = Color.White,
+            navigationIconContentColor = Color.White
+        )
+    )
+}
+
+@Composable
+private fun VerificationButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
+    Column(Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Button(
+            onClick = onClick, enabled = enabled, modifier = Modifier.fillMaxWidth().height(44.dp),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E71C8), disabledContainerColor = Color(0xFFB0BEC5))
+        ) {
+            Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        }
+    }
 }

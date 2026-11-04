@@ -6,7 +6,8 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.hxb.myandroidapp_1021.components.index.DashboardScreen
+import com.hxb.myandroidapp_1021.components.index.navigation.AppNavHost
+import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -152,7 +153,9 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            DashboardScreen()
+            MyAndroidApp1021Theme {
+                AppNavHost()
+            }
         }
     }
 }

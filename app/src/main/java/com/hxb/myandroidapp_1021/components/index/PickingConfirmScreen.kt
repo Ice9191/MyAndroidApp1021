@@ -208,7 +208,6 @@ fun PickingConfirmScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp),
-                    // 行间距 10dp -> 6dp，整体更紧凑
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     infoFields.forEach { field ->
@@ -268,7 +267,6 @@ fun PickingConfirmScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            // 不要写死高度：让两行文字自己撑开，只留一点上下边距，行才紧凑
                             .padding(horizontal = 16.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

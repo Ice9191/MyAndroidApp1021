@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.components.index.navigation
+﻿package com.hxb.myandroidapp_1021.components.index.navigation
 
 import android.net.Uri
 import android.os.Bundle
@@ -28,22 +28,23 @@ import com.hxb.myandroidapp_1021.components.index.InventoryScanScreen
 import com.hxb.myandroidapp_1021.components.index.LoginScreen
 import com.hxb.myandroidapp_1021.components.index.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.components.index.PickingListScreen
-import com.hxb.myandroidapp_1021.components.index.PickingOrder
 import com.hxb.myandroidapp_1021.components.index.PickingScanScreen
 import com.hxb.myandroidapp_1021.components.index.RepairConfirmScreen
 import com.hxb.myandroidapp_1021.components.index.RepairListScreen
 import com.hxb.myandroidapp_1021.components.index.RepairScanScreen
 import com.hxb.myandroidapp_1021.components.index.ReturnListScreen
-import com.hxb.myandroidapp_1021.components.index.ReturnOrder
 import com.hxb.myandroidapp_1021.components.index.ReturnScanScreen
-import com.hxb.myandroidapp_1021.components.index.ReturnStatus
 import com.hxb.myandroidapp_1021.components.index.ScrapConfirmScreen
 import com.hxb.myandroidapp_1021.components.index.ScrapListScreen
-import com.hxb.myandroidapp_1021.components.index.ScrapOrder
 import com.hxb.myandroidapp_1021.components.index.ScrapOutCheckScreen
 import com.hxb.myandroidapp_1021.components.index.ScrapOutListScreen
 import com.hxb.myandroidapp_1021.components.index.ScrapScanScreen
 import com.hxb.myandroidapp_1021.components.index.ServerConfigScreen
+import com.hxb.myandroidapp_1021.components.index.models.PickingOrder
+import com.hxb.myandroidapp_1021.components.index.models.ReturnOrder
+import com.hxb.myandroidapp_1021.components.index.models.ReturnStatus
+import com.hxb.myandroidapp_1021.components.index.models.ScrapOrder
+
 
 object Routes {
     const val DASHBOARD = "dashboard"

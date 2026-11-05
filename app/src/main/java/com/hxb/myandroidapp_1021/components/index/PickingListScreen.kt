@@ -3,16 +3,9 @@ package com.hxb.myandroidapp_1021.components.index
 import androidx.compose.runtime.Composable
 import com.hxb.myandroidapp_1021.components.index.components.OrderListPage
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
-
-// 定义拣选单数据模型
-data class PickingOrder(
-    val orderNo: String,
-    val team: String,
-    val person: String,
-    val toolCount: Int,
-    val expectedTime: String,
-    val status: String
-)
+import com.hxb.myandroidapp_1021.components.index.models.OrderCardSpec
+import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
+import com.hxb.myandroidapp_1021.components.index.models.PickingOrder
 
 @Composable
 fun PickingListScreen(
@@ -41,21 +34,25 @@ fun PickingListScreen(
     OrderListPage(
         title = "借出",
         orders = orderList,
-        searchPlaceholder = "请输入拣选单号",
-        orderNo = { it.orderNo },
-        fields = { order ->
-            listOf(
-                DisplayField("班组", order.team),
-                DisplayField("领用人", order.person),
-                DisplayField("工具数量", "${order.toolCount}件"),
-                DisplayField("期望领用", order.expectedTime)
-            )
-        },
-        statusText = { it.status },
-        actionText = "开始拣选",
-        listHeaderLabel = "待处理拣选单",
-        searchMatcher = { order, query -> order.orderNo.contains(query, ignoreCase = true) },
-        onBackClick = onBackClick,
-        onActionClick = { order -> onStartPickClick(order) }
+        card = OrderCardSpec(
+            orderNo = { it.orderNo },
+            fields = { order ->
+                listOf(
+                    DisplayField("班组", order.team),
+                    DisplayField("领用人", order.person),
+                    DisplayField("工具数量", "${order.toolCount}件"),
+                    DisplayField("期望领用", order.expectedTime)
+                )
+            },
+            statusText = { it.status },
+            actionText = "开始拣选",
+            onActionClick = { order -> onStartPickClick(order) },
+            searchMatcher = { order, query -> order.orderNo.contains(query, ignoreCase = true) }
+        ),
+        texts = OrderListTexts(
+            searchPlaceholder = "请输入拣选单号",
+            headerLabel = "待处理拣选单"
+        ),
+        onBackClick = onBackClick
     )
 }

@@ -4,23 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.hxb.myandroidapp_1021.components.index.components.OrderListPage
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
+import com.hxb.myandroidapp_1021.components.index.models.InspectionRecord
+import com.hxb.myandroidapp_1021.components.index.models.OrderCardSpec
+import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
 
-// 送检申请单数据模型（列表展示 + 审批状态）
-data class InspectionRecord(
-    val orderNo: String,
-    val team: String,
-    val person: String,
-    val toolCount: Int,
-    val applyDate: String,
-    val status: String   // 已审批 / 未审批
-)
-
-/**
- * 送检申请单列表页（一级路由，从仪表盘「工具送检」进来）。
- * 和借出列表一样用 OrderListPage，只是：
- *  - 状态展示的是审批状态（已审批 / 未审批）
- *  - 右下角多一个「+」悬浮按钮，点它去 InspectionScanScreen 新建申请
- */
 @Composable
 fun InspectionListScreen(
     onBackClick: () -> Unit = {},
@@ -43,23 +30,26 @@ fun InspectionListScreen(
     OrderListPage(
         title = "送检",
         orders = orderList,
-        searchPlaceholder = "请输入送检单号",
-        orderNo = { it.orderNo },
-        fields = { record ->
-            listOf(
-                DisplayField("班组", record.team),
-                DisplayField("申请人", record.person),
-                DisplayField("工具数量", "${record.toolCount}件"),
-                DisplayField("申请日期", record.applyDate)
-            )
-        },
-        statusText = { it.status },
-        // 未审批用红色，已审批用主题蓝
-        statusColor = {
-            if (it.status == "未审批") Color(0xFFE53935) else Color(0xFF1E71C8)
-        },
-        listHeaderLabel = "送检申请单",
-        searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) },
+        card = OrderCardSpec(
+            orderNo = { it.orderNo },
+            fields = { record ->
+                listOf(
+                    DisplayField("班组", record.team),
+                    DisplayField("申请人", record.person),
+                    DisplayField("工具数量", "${record.toolCount}件"),
+                    DisplayField("申请日期", record.applyDate)
+                )
+            },
+            statusText = { it.status },
+            statusColor = {
+                if (it.status == "未审批") Color(0xFFE53935) else Color(0xFF1E71C8)
+            },
+            searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) }
+        ),
+        texts = OrderListTexts(
+            searchPlaceholder = "请输入送检单号",
+            headerLabel = "送检申请单"
+        ),
         onBackClick = onBackClick,
         onAddClick = onAddApplyClick
     )

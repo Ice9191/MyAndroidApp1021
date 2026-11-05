@@ -1,28 +1,23 @@
-package com.hxb.myandroidapp_1021.components.index
+﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,29 +27,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
+import com.hxb.myandroidapp_1021.components.index.components.DateField
+import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
+import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
 
-/**
- * 送检·填写信息页。
- * 和借出确认页一致的三段式：上面是表单（送检原因 / 送检机构 / 预计返回时间），
- * 下面是一张工器具表格（工器具信息 / 数量件）。
- */
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InspectionConfirmScreen(
@@ -72,7 +60,6 @@ fun InspectionConfirmScreen(
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
     var reason by remember { mutableStateOf("") }
     var organization by remember { mutableStateOf("") }
     var returnDate by remember { mutableStateOf("") }
@@ -88,7 +75,35 @@ fun InspectionConfirmScreen(
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = bgColor,
-        topBar = { ApplicationTopBar("填写信息", onBackClick) },
+        topBar = {
+            TopAppBar(
+                modifier = Modifier.height(75.dp),
+                title = {
+                    Text(
+                        text = "填写信息",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.offset(x = (-16).dp)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.offset(x = (-7).dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "返回"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1E71C8),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        },
         bottomBar = {
             Column(
                 Modifier
@@ -162,67 +177,19 @@ fun InspectionConfirmScreen(
                     color = textDark
                 )
                 Spacer(Modifier.height(8.dp))
-                ApplicationReturnDateField(value = returnDate, onValueChange = { returnDate = it })
+                DateField(
+                    value = returnDate,
+                    onValueChange = { returnDate = it },
+                    placeholder = "请选择预计返回时间",
+                    contentDescription = "选择预计返回时间"
+                )
             }
 
-            // === 2. 工器具表格（和借出确认页的表格一致） ===
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(bgColor)
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "工器具信息",
-                        modifier = Modifier.weight(1f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                    Text(
-                        text = "数量/件",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-                tools.forEach { tool ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = tool.rfid,
-                                fontSize = 14.sp,
-                                lineHeight = 16.sp,
-                                color = textDark
-                            )
-                            Text(
-                                text = tool.name,
-                                fontSize = 13.sp,
-                                lineHeight = 14.sp,
-                                color = textGray,
-                                modifier = Modifier.padding(top = 1.dp)
-                            )
-                        }
-                        Text(
-                            text = "1",
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            color = textDark
-                        )
-                    }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-                }
-            }
+            // === 2. 工器具表格 ===
+            ToolInfoTable(
+                rows = tools.map { ToolInfoRow(rfid = it.rfid, name = it.name) },
+                rowVerticalPadding = 6
+            )
         }
     }
 
@@ -248,96 +215,5 @@ fun InspectionConfirmScreen(
                 }
             }
         )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-private fun InspectionConfirmScreenPreview() {
-    InspectionConfirmScreen()
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ApplicationTopBar(title: String, onBackClick: () -> Unit) {
-    TopAppBar(
-        modifier = Modifier.height(75.dp),
-        title = {
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.offset(x = (-16).dp)
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "返回")
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFF1E71C8),
-            titleContentColor = Color.White,
-            navigationIconContentColor = Color.White
-        )
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ApplicationReturnDateField(value: String, onValueChange: (String) -> Unit) {
-    val themeBlue = Color(0xFF1E71C8)
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState =
-        rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        readOnly = true,
-        placeholder = { Text("请选择预计返回时间") },
-        trailingIcon = {
-            IconButton(onClick = { showDatePicker = true }) {
-                Icon(
-                    Icons.Default.CalendarMonth,
-                    contentDescription = "选择预计返回时间",
-                    tint = themeBlue
-                )
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
-        shape = RoundedCornerShape(4.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = themeBlue,
-            unfocusedBorderColor = Color(0xFFDDDDDD),
-            cursorColor = themeBlue
-        )
-    )
-    if (showDatePicker) {
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let { millis ->
-                            onValueChange(
-                                SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
-                                    timeZone = TimeZone.getTimeZone("UTC")
-                                }.format(Date(millis))
-                            )
-                        }
-                        showDatePicker = false
-                    },
-                    enabled = datePickerState.selectedDateMillis != null
-                ) {
-                    Text("确定", color = themeBlue)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("取消") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
     }
 }

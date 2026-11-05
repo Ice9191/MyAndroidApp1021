@@ -4,23 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.hxb.myandroidapp_1021.components.index.components.OrderListPage
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
+import com.hxb.myandroidapp_1021.components.index.models.InventoryRecord
+import com.hxb.myandroidapp_1021.components.index.models.OrderCardSpec
+import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
 
-// 盘点任务单数据模型（列表展示 + 盘点状态）
-data class InventoryRecord(
-    val orderNo: String,
-    val team: String,
-    val person: String,
-    val toolCount: Int,
-    val inventoryDate: String,
-    val status: String   // 已盘点 / 未盘点
-)
-
-/**
- * 盘点任务单列表页（一级路由，从仪表盘「盘点单」进来）。
- * 和送检 / 送修 / 报废列表一样用 OrderListPage，只是：
- *  - 状态展示的是盘点状态（已盘点 / 未盘点）
- *  - 右下角多一个「+」悬浮按钮，点它去 InventoryScanScreen 新建一次盘点
- */
 @Composable
 fun InventoryListScreen(
     onBackClick: () -> Unit = {},
@@ -43,23 +30,26 @@ fun InventoryListScreen(
     OrderListPage(
         title = "盘点",
         orders = orderList,
-        searchPlaceholder = "请输入盘点单号",
-        orderNo = { it.orderNo },
-        fields = { record ->
-            listOf(
-                DisplayField("班组", record.team),
-                DisplayField("盘点人", record.person),
-                DisplayField("工具数量", "${record.toolCount}件"),
-                DisplayField("盘点日期", record.inventoryDate)
-            )
-        },
-        statusText = { it.status },
-        // 未盘点用红色，已盘点用主题蓝
-        statusColor = {
-            if (it.status == "未盘点") Color(0xFFE53935) else Color(0xFF1E71C8)
-        },
-        listHeaderLabel = "盘点任务单",
-        searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) },
+        card = OrderCardSpec(
+            orderNo = { it.orderNo },
+            fields = { record ->
+                listOf(
+                    DisplayField("班组", record.team),
+                    DisplayField("盘点人", record.person),
+                    DisplayField("工具数量", "${record.toolCount}件"),
+                    DisplayField("盘点日期", record.inventoryDate)
+                )
+            },
+            statusText = { it.status },
+            statusColor = {
+                if (it.status == "未盘点") Color(0xFFE53935) else Color(0xFF1E71C8)
+            },
+            searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) }
+        ),
+        texts = OrderListTexts(
+            searchPlaceholder = "请输入盘点单号",
+            headerLabel = "盘点任务单"
+        ),
         onBackClick = onBackClick,
         onAddClick = onAddApplyClick
     )

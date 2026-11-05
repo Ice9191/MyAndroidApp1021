@@ -19,7 +19,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -38,18 +37,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
+import com.hxb.myandroidapp_1021.components.index.models.InventoryResultItem
+import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
 
-/** 盘点结果里的一件工器具：工具信息 + 盘点结果（已盘 / 盘亏） */
-data class InventoryResultItem(
-    val tool: ToolScanItem,
-    val result: String
-)
-
-/**
- * 盘点管理·盘点结果页。
- * 和送检 / 送修 / 报废的填写页一致的三段式：上面是盘点信息（两端对齐，不带冒号），
- * 下面是一张工器具表格（工器具信息 / 盘点结果），最底下是提交按钮。
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryResultScreen(
@@ -75,14 +67,11 @@ fun InventoryResultScreen(
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
     var showConfirmDialog by remember { mutableStateOf(false) }
-
     val bookCount = items.size
     val actualCount = items.count { it.result == "已盘" }
     val shortage = items.count { it.result == "盘亏" }
     val surplus = items.count { it.result == "盘盈" }
     val canSubmit = items.isNotEmpty()
-
-    // 顶部信息行：左边键、右边值，两端对齐
     val infoRows = listOf(
         "盘点单号" to "PD20261028002",
         "盘点状态" to "已完成",
@@ -96,7 +85,32 @@ fun InventoryResultScreen(
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = bgColor,
-        topBar = { InventoryTopBar("盘点结果", onBackClick) },
+        topBar = {
+            TopAppBar(
+                modifier = Modifier.height(75.dp),
+                title = {
+                    Text(
+                        text = "盘点结果",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.offset(x = (-16).dp)
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            contentDescription = "返回"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1E71C8),
+                    titleContentColor = Color.White,
+                    navigationIconContentColor = Color.White
+                )
+            )
+        },
         bottomBar = {
             Column(
                 Modifier
@@ -132,7 +146,7 @@ fun InventoryResultScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // === 1. 盘点信息（一行一对，左键右值，不带冒号） ===
+            // === 1. 盘点信息 ===
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -167,66 +181,19 @@ fun InventoryResultScreen(
                 }
             }
 
-            // === 2. 工器具表格（和送检确认页的表格一致） ===
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(bgColor)
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "工器具信息",
-                        modifier = Modifier.weight(1f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
+            // === 2. 工器具表格 ===
+            ToolInfoTable(
+                rows = items.map {
+                    ToolInfoRow(
+                        rfid = it.tool.rfid,
+                        name = it.tool.name,
+                        value = it.result,
+                        valueColor = if (it.result == "已盘") themeBlue else Color(0xFFE53935)
                     )
-                    Text(
-                        text = "盘点结果",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-                items.forEach { item ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = item.tool.rfid,
-                                fontSize = 14.sp,
-                                lineHeight = 16.sp,
-                                color = textDark
-                            )
-                            Text(
-                                text = item.tool.name,
-                                fontSize = 13.sp,
-                                lineHeight = 14.sp,
-                                color = textGray,
-                                modifier = Modifier.padding(top = 1.dp)
-                            )
-                        }
-                        Text(
-                            text = item.result,
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            color = if (item.result == "已盘") themeBlue else Color(0xFFE53935)
-                        )
-                    }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-                }
-            }
+                },
+                quantityHeader = "盘点结果",
+                rowVerticalPadding = 6
+            )
         }
     }
 
@@ -253,30 +220,4 @@ fun InventoryResultScreen(
             }
         )
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun InventoryTopBar(title: String, onBackClick: () -> Unit) {
-    TopAppBar(
-        modifier = Modifier.height(75.dp),
-        title = {
-            Text(
-                text = title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.offset(x = (-16).dp)
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "返回")
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFF1E71C8),
-            titleContentColor = Color.White,
-            navigationIconContentColor = Color.White
-        )
-    )
 }

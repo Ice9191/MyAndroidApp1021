@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** 各页面统一的主题蓝 */
 private val ThemeBlue = Color(0xFF1E71C8)
 
 /**

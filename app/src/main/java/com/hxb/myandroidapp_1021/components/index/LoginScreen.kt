@@ -42,16 +42,14 @@ import coil3.compose.AsyncImage
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess:()-> Unit = {}
+    onLoginSuccess: () -> Unit = {}
 ) {
     // 状态管理
     var account by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val imageUrl = "https://img.icons8.com/color/96/000000/toolbox.png"
-    // 全局背景色，对应图上的浅灰色背景
     val backgroundColor = Color(0xFFF7F8FA)
-    // 主题蓝色
     val themeBlue = Color(0xFF1E71C8)
 
     Scaffold(
@@ -85,7 +83,7 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(50.dp))
 
-            // === 2. 登录表单区域（白色背景） ===
+            // === 2. 登录表单区域 ===
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

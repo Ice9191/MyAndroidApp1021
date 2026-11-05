@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.components.index
+﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +42,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.components.index.components.SearchField
+import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
+import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,8 +62,6 @@ fun ReturnConfirmScreen(
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
-
-    // 归还人工号、上架库位：和出库确认页一样用封装的 SearchField
     val employeeIdState = rememberTextFieldState("100268")
     val locationState = rememberTextFieldState()
     var boundLocation by remember { mutableStateOf("") }
@@ -68,7 +69,6 @@ fun ReturnConfirmScreen(
     val canComplete =
         tools.isNotEmpty() && employeeIdState.text.isNotBlank() && boundLocation.isNotBlank()
 
-    // 库位文字一改，之前「扫描库码」绑定的结果就作废
     LaunchedEffect(locationState) {
         snapshotFlow { locationState.text.toString() }.collect { boundLocation = "" }
     }
@@ -218,41 +218,12 @@ fun ReturnConfirmScreen(
                 }
             }
             HorizontalDivider(thickness = 8.dp, color = Color.White)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-                    .background(bgColor)
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Text(
-                    "RFID",
-                    modifier = Modifier.weight(1f),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textGray
-                )
-                Text("数量/件", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = textGray)
-            }
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-            tools.forEach { tool ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        tool.rfid,
-                        modifier = Modifier.weight(1f),
-                        fontSize = 14.sp,
-                        lineHeight = 16.sp,
-                        color = textDark
-                    )
-                    Text("1", fontSize = 14.sp, lineHeight = 16.sp, color = textDark)
-                }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-            }
+            ToolInfoTable(
+                rows = tools.map { ToolInfoRow(rfid = it.rfid, name = it.name) },
+                infoHeader = "RFID",
+                showName = false,
+                rowVerticalPadding = 6
+            )
         }
     }
     if (showConfirmDialog) {

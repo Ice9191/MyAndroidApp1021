@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,7 +21,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,316 +56,368 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
+import com.hxb.myandroidapp_1021.components.index.models.OrderCardSpec
+import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
 import kotlinx.coroutines.launch
 
-/** 三个列表页统一配色 */
 private val ThemeBlue = Color(0xFF1E71C8)
 private val PageBg = Color(0xFFF5F6F8)
 private val TextDark = Color(0xFF222222)
 private val TextGray = Color(0xFF888888)
 
 /**
- * 借出 / 归还 / 报废三个列表页共用的页面骨架：
- * 蓝色标题栏 + 搜索框 + 列表头 + 「单号 / 状态 / 按钮 / 字段明细」卡片列表 + 回到顶部按钮。
+ * 单据列表页骨架（借出 / 归还 / 送检 / 送修 / 报废 / 报废出库 / 盘点共用）：
+ * 蓝色标题栏 + 搜索框 + 列表头 + 单据卡片列表 + 右下角「回到顶部 / 新增」按钮。
+ *
+ * 页面本身只负责这层骨架，卡片内容与文案分别由 [card]、[texts] 两个对象描述。
  *
  * 用法（借出为例）：
  * ```
  * OrderListPage(
  *     title = "借出",
  *     orders = orderList,
- *     searchPlaceholder = "请输入拣选单号",
- *     orderNo = { it.orderNo },
- *     fields = { order -> listOf(DisplayField("班组", order.team), ...) },
- *     statusText = { it.status },
- *     actionText = "开始拣选",
- *     listHeaderLabel = "待处理拣选单",
- *     searchMatcher = { order, q -> order.orderNo.contains(q, ignoreCase = true) }
+ *     card = OrderCardSpec(
+ *         orderNo = { it.orderNo },
+ *         fields = { order -> listOf(DisplayField("班组", order.team), ...) },
+ *         statusText = { it.status },
+ *         actionText = "开始拣选",
+ *         onActionClick = { order -> onStartPickClick(order) },
+ *         searchMatcher = { order, q -> order.orderNo.contains(q, ignoreCase = true) }
+ *     ),
+ *     texts = OrderListTexts(
+ *         searchPlaceholder = "请输入拣选单号",
+ *         headerLabel = "待处理拣选单"
+ *     ),
+ *     onBackClick = onBackClick
  * )
  * ```
  *
  * @param title 标题栏文字
- * @param orders 已由调用方做过业务过滤（如报废只留审批通过的）的列表
- * @param searchPlaceholder 搜索框提示文字
- * @param orderNo 取单号
- * @param fields 取卡片里的「标签：值」明细行
- * @param statusText 单号右侧的状态文字，返回 null 则不显示
- * @param statusColor 状态文字颜色，默认主题蓝
- * @param actionText 单号右侧的按钮文字，null 则不显示按钮
- * @param onActionClick 按钮点击
- * @param listHeaderLabel 列表头左侧的普通文字（与 listHeader 二选一）
- * @param listHeader 列表头左侧自定义内容（如下拉筛选），优先级高于 listHeaderLabel
- * @param searchMatcher 搜索过滤规则，传 null 则不按搜索词过滤
- * @param emptyText 列表为空时的提示
- * @param noResultText 有搜索词但没匹配到时的提示
+ * @param orders 已由调用方做完业务过滤的列表
+ * @param card 卡片取数规则（单号 / 明细 / 状态 / 按钮 / 搜索匹配）
+ * @param texts 搜索提示、列表头文字、空数据文案
+ * @param onBackClick 返回
+ * @param header 自定义列表头（如下拉筛选），传了它就不显示 [texts] 里的 headerLabel
+ * @param onAddClick 传了才显示右下角「+」按钮
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> OrderListPage(
     title: String,
     orders: List<T>,
-    searchPlaceholder: String,
-    orderNo: (T) -> String,
-    fields: (T) -> List<DisplayField>,
+    card: OrderCardSpec<T>,
+    texts: OrderListTexts,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
-    statusText: (T) -> String? = { null },
-    statusColor: (T) -> Color = { ThemeBlue },
-    actionText: String? = null,
-    onActionClick: (T) -> Unit = {},
-    listHeaderLabel: String? = null,
-    listHeader: (@Composable () -> Unit)? = null,
-    searchMatcher: ((T, String) -> Boolean)? = null,
-    emptyText: String = "暂无数据",
-    noResultText: String = "暂无匹配数据",
+    header: (@Composable () -> Unit)? = null,
     onAddClick: (() -> Unit)? = null
 ) {
     val focusManager = LocalFocusManager.current
     val searchState = rememberTextFieldState()
     val query = searchState.text.toString().trim()
+    val searchMatcher = card.searchMatcher
     val visibleOrders = if (searchMatcher == null || query.isEmpty()) {
         orders
     } else {
         orders.filter { searchMatcher(it, query) }
     }
-
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val showScrollToTopButton by remember {
         derivedStateOf { listState.firstVisibleItemIndex > 2 } // 向下滑过 2 个条目再显示回到顶部
     }
+    val clearFocus = { focusManager.clearFocus() }
 
     Scaffold(
         modifier = modifier.imePadding(),
         containerColor = PageBg,
-        topBar = {
-            TopAppBar(
-                modifier = Modifier
-                    .height(75.dp)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-                title = {
-                    Text(
-                        text = title,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            focusManager.clearFocus()
-                            onBackClick()
-                        },
-                        modifier = Modifier.offset(x = (-7).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = ThemeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
-            )
-        }
+        topBar = { OrderListTopBar(title = title, onBackClick = onBackClick, onTap = clearFocus) }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
+                .pointerInput(Unit) { detectTapGestures(onTap = { clearFocus() }) }
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // === 1. 顶部搜索框 ===
-                SearchField(state = searchState, placeholder = searchPlaceholder)
+                SearchField(state = searchState, placeholder = texts.searchPlaceholder)
 
                 // === 2. 列表 ===
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     state = listState
                 ) {
-                    // 列表头：左侧说明 / 筛选，右侧总数
                     item {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(PageBg)
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            if (listHeader != null) {
-                                listHeader()
-                            } else {
-                                Text(
-                                    text = listHeaderLabel.orEmpty(),
-                                    fontSize = 14.sp,
-                                    color = TextGray
-                                )
-                            }
-                            Text(
-                                text = "共${visibleOrders.size}张",
-                                fontSize = 14.sp,
-                                color = TextGray
-                            )
-                        }
+                        OrderListHeaderRow(
+                            texts = texts,
+                            count = visibleOrders.size,
+                            header = header
+                        )
                     }
 
-                    // 空数据占位
                     if (visibleOrders.isEmpty()) {
                         item {
-                            Text(
-                                text = if (query.isEmpty()) emptyText else noResultText,
-                                fontSize = 14.sp,
-                                color = TextGray,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White)
-                                    .padding(16.dp)
+                            OrderListEmptyRow(
+                                text = if (query.isEmpty()) texts.emptyText else texts.noResultText
                             )
                         }
                     } else {
-                        itemsIndexed(visibleOrders) { index, order ->
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White)
-                            ) {
-                                // 第一行：单号 + 状态 + 操作按钮
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = orderNo(order),
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextDark,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        statusText(order)?.let { status ->
-                                            Text(
-                                                text = status,
-                                                fontSize = 13.sp,
-                                                color = statusColor(order),
-                                                modifier = Modifier.padding(end = 8.dp)
-                                            )
-                                        }
-                                        if (actionText != null) {
-                                            Button(
-                                                onClick = { onActionClick(order) },
-                                                modifier = Modifier
-                                                    .height(30.dp)
-                                                    .wrapContentWidth(),
-                                                shape = RoundedCornerShape(4.dp),
-                                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                                colors = ButtonDefaults.buttonColors(containerColor = ThemeBlue)
-                                            ) {
-                                                Text(
-                                                    text = actionText,
-                                                    fontSize = 13.sp,
-                                                    fontWeight = FontWeight.Medium
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-
-                                HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-
-                                // 字段明细
-                                Column(
-                                    modifier = Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 12.dp
-                                    ),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    fields(order).forEach { field ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Text(
-                                                text = field.label,
-                                                fontSize = 13.sp,
-                                                color = TextGray,
-                                                maxLines = 1,
-                                                modifier = Modifier.alignByBaseline()
-                                            )
-                                            Text(
-                                                text = field.value,
-                                                fontSize = 13.sp,
-                                                color = TextDark,
-                                                maxLines = 1,
-                                                modifier = Modifier
-                                                    .padding(start = 16.dp)
-                                                    .alignByBaseline()
-                                            )
-                                        }
-                                    }
-                                }
-
-                                // 卡片之间的灰色间隔
-                                if (index != visibleOrders.lastIndex) {
-                                    HorizontalDivider(thickness = 8.dp, color = PageBg)
-                                }
-                            }
+                        items(visibleOrders) { order ->
+                            OrderCard(order = order, card = card)
                         }
                     }
                 }
             }
 
             // === 3. 右下角悬浮按钮：回到顶部 / 新增(+) ===
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 32.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+            OrderListFloatingButtons(
+                showScrollToTop = showScrollToTopButton,
+                onScrollToTop = { coroutineScope.launch { listState.animateScrollToItem(0) } },
+                onAddClick = onAddClick
+            )
+        }
+    }
+}
+
+/**
+ * 顶部蓝色标题栏：点空白处清掉搜索框焦点，返回前也清一次
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OrderListTopBar(title: String, onBackClick: () -> Unit, onTap: () -> Unit) {
+    TopAppBar(
+        modifier = Modifier
+            .height(75.dp)
+            .pointerInput(Unit) { detectTapGestures(onTap = { onTap() }) },
+        title = {
+            Text(
+                text = title,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.offset(x = (-16).dp)
+            )
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = {
+                    onTap()
+                    onBackClick()
+                },
+                modifier = Modifier.offset(x = (-7).dp)
             ) {
-                AnimatedVisibility(
-                    visible = showScrollToTopButton,
-                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back"
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = ThemeBlue,
+            titleContentColor = Color.White,
+            navigationIconContentColor = Color.White
+        )
+    )
+}
+
+/**
+ * 列表头：左侧说明 / 自定义控件，右侧总数
+ */
+@Composable
+private fun OrderListHeaderRow(
+    texts: OrderListTexts,
+    count: Int,
+    header: (@Composable () -> Unit)?
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(PageBg)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (header != null) {
+            header()
+        } else {
+            Text(
+                text = texts.headerLabel.orEmpty(),
+                fontSize = 14.sp,
+                color = TextGray
+            )
+        }
+        Text(
+            text = "共${count}张",
+            fontSize = 14.sp,
+            color = TextGray
+        )
+    }
+}
+
+/**
+ * 空列表 / 搜不到时的占位行
+ */
+@Composable
+private fun OrderListEmptyRow(text: String) {
+    Text(
+        text = text,
+        fontSize = 14.sp,
+        color = TextGray,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(16.dp)
+    )
+}
+
+/**
+ * 一张单据卡片：单号+状态+按钮 -> 明细字段 -> 8dp 灰条
+ */
+@Composable
+private fun <T> OrderCard(order: T, card: OrderCardSpec<T>) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        OrderCardHeader(order = order, card = card)
+
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            card.fields(order).forEach { field -> OrderFieldRow(field = field) }
+        }
+
+        HorizontalDivider(thickness = 8.dp, color = PageBg)
+    }
+}
+
+/**
+ * 卡片第一行：左边单号，右边状态 + 操作按钮
+ */
+@Composable
+private fun <T> OrderCardHeader(order: T, card: OrderCardSpec<T>) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = card.orderNo(order),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextDark,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            card.statusText(order)?.let { status ->
+                Text(
+                    text = status,
+                    fontSize = 13.sp,
+                    color = card.statusColor(order),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
+            card.actionText?.let { label ->
+                Button(
+                    onClick = { card.onActionClick(order) },
+                    modifier = Modifier
+                        .height(30.dp)
+                        .wrapContentWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ThemeBlue)
                 ) {
-                    SmallFloatingActionButton(
-                        onClick = {
-                            coroutineScope.launch { listState.animateScrollToItem(0) }
-                        },
-                        containerColor = ThemeBlue,
-                        contentColor = Color.White,
-                        shape = CircleShape
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "回到顶部"
-                        )
-                    }
+                    Text(
+                        text = label,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
-                // 传了 onAddClick 才显示右上角的 + 号（用于进入"新建申请"页）
-                if (onAddClick != null) {
-                    SmallFloatingActionButton(
-                        onClick = onAddClick,
-                        containerColor = ThemeBlue,
-                        contentColor = Color.White,
-                        shape = CircleShape
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "新增"
-                        )
-                    }
-                }
+            }
+        }
+    }
+}
+
+/**
+ * 卡片里的一行明细：左标签右值，按基线对齐
+ */
+@Composable
+private fun OrderFieldRow(field: DisplayField) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = field.label,
+            fontSize = 13.sp,
+            color = TextGray,
+            maxLines = 1,
+            modifier = Modifier.alignByBaseline()
+        )
+        Text(
+            text = field.value,
+            fontSize = 13.sp,
+            color = TextDark,
+            maxLines = 1,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .alignByBaseline()
+        )
+    }
+}
+
+/**
+ * 右下角悬浮按钮组：回到顶部（滑过 2 条才出现）+ 新增（传了才显示）
+ */
+@Composable
+private fun BoxScope.OrderListFloatingButtons(
+    showScrollToTop: Boolean,
+    onScrollToTop: () -> Unit,
+    onAddClick: (() -> Unit)?
+) {
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(end = 16.dp, bottom = 32.dp),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        AnimatedVisibility(
+            visible = showScrollToTop,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
+        ) {
+            SmallFloatingActionButton(
+                onClick = onScrollToTop,
+                containerColor = ThemeBlue,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowUp,
+                    contentDescription = "回到顶部"
+                )
+            }
+        }
+
+        if (onAddClick != null) {
+            SmallFloatingActionButton(
+                onClick = onAddClick,
+                containerColor = ThemeBlue,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "新增"
+                )
             }
         }
     }

@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.components.index
+﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,7 +35,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.components.index.components.SearchField
+import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
+import com.hxb.myandroidapp_1021.components.index.models.PickingOrder
+import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,16 +53,11 @@ fun PickingConfirmScreen(
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
-
-    // 单据信息
     val orderNo = order?.orderNo.orEmpty()
     val status = order?.status.orEmpty()
     val team = order?.team.orEmpty()
     val person = order?.person.orEmpty()
-
-    // 领料人工号输入
-    val employeeIdState = rememberTextFieldState("100268")
-
+    val employeeIdState = rememberTextFieldState("")
     // 模拟读取到的工器具
     val toolList = remember {
         listOf(
@@ -87,7 +87,6 @@ fun PickingConfirmScreen(
             )
         )
     }
-
     val infoFields = listOf(
         DisplayField("姓名", person),
         DisplayField("班组", team),
@@ -208,7 +207,6 @@ fun PickingConfirmScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp),
-                    // 行间距 10dp -> 6dp，整体更紧凑
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     infoFields.forEach { field ->
@@ -238,64 +236,9 @@ fun PickingConfirmScreen(
             }
 
             // === 3. 工器具表格 ===
-            Column(modifier = Modifier.fillMaxWidth()) {
-                // 表头：工器具信息 / 数量
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(bgColor)
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "工器具信息",
-                        modifier = Modifier.weight(1f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                    Text(
-                        text = "数量/件",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-                toolList.forEach { tool ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            // 不要写死高度：让两行文字自己撑开，只留一点上下边距，行才紧凑
-                            .padding(horizontal = 16.dp, vertical = 5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = tool.rfid,
-                                fontSize = 14.sp,
-                                lineHeight = 16.sp,
-                                color = textDark
-                            )
-                            Text(
-                                text = tool.name,
-                                fontSize = 13.sp,
-                                lineHeight = 14.sp,
-                                color = textGray,
-                                modifier = Modifier.padding(top = 1.dp)
-                            )
-                        }
-                        Text(
-                            text = "1",
-                            fontSize = 14.sp,
-                            color = textDark
-                        )
-                    }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-                }
-            }
+            ToolInfoTable(
+                rows = toolList.map { ToolInfoRow(rfid = it.rfid, name = it.name) }
+            )
         }
     }
 }

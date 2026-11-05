@@ -23,11 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.components.index.components.OrderListPage
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
-
-enum class ReturnStatus(val label: String) {
-    PARTIAL("部分归还"),
-    UNRETURNED("未归还")
-}
+import com.hxb.myandroidapp_1021.components.index.models.OrderCardSpec
+import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
+import com.hxb.myandroidapp_1021.components.index.models.ReturnOrder
+import com.hxb.myandroidapp_1021.components.index.models.ReturnStatus
 
 enum class FilterType(val label: String) {
     ALL("全部"),
@@ -35,16 +34,6 @@ enum class FilterType(val label: String) {
     UNRETURNED("未归还")
 }
 
-// 归还业务的数据模型
-data class ReturnOrder(
-    val orderNo: String,
-    val team: String,
-    val person: String,
-    val totalCount: Int,
-    val returnedCount: Int,
-    val unreturnedCount: Int,
-    val status: ReturnStatus
-)
 @Composable
 fun ReturnListScreen(
     onBackClick: () -> Unit = {},
@@ -78,25 +67,29 @@ fun ReturnListScreen(
     OrderListPage(
         title = "归还",
         orders = filteredList,
-        searchPlaceholder = "请输入归还单号",
-        orderNo = { it.orderNo },
-        fields = { order ->
-            listOf(
-                DisplayField("班组", order.team),
-                DisplayField("领用人", order.person),
-                DisplayField("应还件数", "${order.totalCount}件"),
-                DisplayField("已归还", "${order.returnedCount}件"),
-                DisplayField("未归还", "${order.unreturnedCount}件")
-            )
-        },
-        statusText = { it.status.label },
-        actionText = "开始归还",
-        listHeader = {
+        card = OrderCardSpec(
+            orderNo = { it.orderNo },
+            fields = { order ->
+                listOf(
+                    DisplayField("班组", order.team),
+                    DisplayField("领用人", order.person),
+                    DisplayField("应还件数", "${order.totalCount}件"),
+                    DisplayField("已归还", "${order.returnedCount}件"),
+                    DisplayField("未归还", "${order.unreturnedCount}件")
+                )
+            },
+            statusText = { it.status.label },
+            actionText = "开始归还",
+            onActionClick = { order -> onStartReturnClick(order) },
+            searchMatcher = { order, query -> order.orderNo.contains(query, ignoreCase = true) }
+        ),
+        texts = OrderListTexts(searchPlaceholder = "请输入归还单号"),
+        header = {
             Box {
                 Row(
                     modifier = Modifier
                         .clickable { isDropdownExpanded = true }
-                        .padding(vertical = 4.dp), // 加大点击区域
+                        .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -134,8 +127,6 @@ fun ReturnListScreen(
                 }
             }
         },
-        searchMatcher = { order, query -> order.orderNo.contains(query, ignoreCase = true) },
-        onBackClick = onBackClick,
-        onActionClick = { order -> onStartReturnClick(order) }
+        onBackClick = onBackClick
     )
 }

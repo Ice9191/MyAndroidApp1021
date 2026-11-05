@@ -11,9 +11,8 @@ import com.hxb.myandroidapp_1021.components.index.models.OrderListTexts
 @Composable
 fun InventoryListScreen(
     onBackClick: () -> Unit = {},
-    onAddApplyClick: () -> Unit = {}
+    onStartInventoryClick: (InventoryRecord) -> Unit = {}
 ) {
-    // 模拟数据
     val orderList = listOf(
         InventoryRecord("PD20261028001", "检修一班", "张伟", 3, "10-28 09:30", "已盘点"),
         InventoryRecord("PD20261028002", "维修二班", "李明", 2, "10-28 10:00", "未盘点"),
@@ -44,13 +43,14 @@ fun InventoryListScreen(
             statusColor = {
                 if (it.status == "未盘点") Color(0xFFE53935) else Color(0xFF1E71C8)
             },
+            actionText = "开始盘点",
+            onActionClick = { record -> onStartInventoryClick(record) },
             searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) }
         ),
         texts = OrderListTexts(
             searchPlaceholder = "请输入盘点单号",
             headerLabel = "盘点任务单"
         ),
-        onBackClick = onBackClick,
-        onAddClick = onAddApplyClick
+        onBackClick = onBackClick
     )
 }

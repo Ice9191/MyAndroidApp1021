@@ -1,4 +1,4 @@
-﻿package com.hxb.myandroidapp_1021.components.index.navigation
+package com.hxb.myandroidapp_1021.components.index.navigation
 
 import android.net.Uri
 import android.os.Bundle
@@ -410,7 +410,7 @@ fun AppNavHost() {
         composable(Routes.INVENTORY) {
             InventoryListScreen(
                 onBackClick = safeBack,
-                onAddApplyClick = { navController.navigate(Routes.INVENTORY_SCAN) }
+                onStartInventoryClick = { navController.navigate(Routes.INVENTORY_SCAN) }
             )
         }
         // 盘点管理·读取盘点（二级路由）

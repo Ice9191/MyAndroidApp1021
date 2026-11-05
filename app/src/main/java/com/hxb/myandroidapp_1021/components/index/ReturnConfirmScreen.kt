@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -22,25 +23,25 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.components.index.components.SearchField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +51,7 @@ fun ReturnConfirmScreen(
         ToolScanItem("GJ-01155", rfid = "E200 1155 B002"),
         ToolScanItem("GJ-01162", rfid = "E200 1162 B003")
     ),
+    orderNo: String = "JC20261027006",
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {}
 ) {
@@ -57,11 +59,19 @@ fun ReturnConfirmScreen(
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
-    var employeeId by remember { mutableStateOf("100268") }
-    var locationInput by remember { mutableStateOf("") }
+
+    // 归还人工号、上架库位：和出库确认页一样用封装的 SearchField
+    val employeeIdState = rememberTextFieldState("100268")
+    val locationState = rememberTextFieldState()
     var boundLocation by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
-    val canComplete = tools.isNotEmpty() && employeeId.isNotBlank() && boundLocation.isNotBlank()
+    val canComplete =
+        tools.isNotEmpty() && employeeIdState.text.isNotBlank() && boundLocation.isNotBlank()
+
+    // 库位文字一改，之前「扫描库码」绑定的结果就作废
+    LaunchedEffect(locationState) {
+        snapshotFlow { locationState.text.toString() }.collect { boundLocation = "" }
+    }
 
     Scaffold(
         containerColor = bgColor,
@@ -124,15 +134,17 @@ fun ReturnConfirmScreen(
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
-            Column(Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 Row(
                     Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "原借出单：JC20261027006",
+                        "原借出单：$orderNo",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = textDark
@@ -147,48 +159,48 @@ fun ReturnConfirmScreen(
                 )
             }
             HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-            Column(Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
-                Text("归还人工号", fontSize = 14.sp, color = textDark, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = employeeId,
-                    onValueChange = { employeeId = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = themeBlue,
-                        unfocusedBorderColor = Color(0xFFDDDDDD),
-                        cursorColor = themeBlue
-                    )
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                Text(
+                    "归还人工号",
+                    fontSize = 14.sp,
+                    color = textDark,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                SearchField(
+                    state = employeeIdState,
+                    placeholder = "请输入归还人工号",
+                    showSearchIcon = false
                 )
             }
-            HorizontalDivider(thickness = 8.dp, color = bgColor)
-            Column(Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
-                Text("上架库位", fontSize = 14.sp, color = textDark, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = locationInput,
-                    onValueChange = { locationInput = it; boundLocation = "" },
-                    placeholder = { Text("输入库位，如：中心工具库 / A区-03柜") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = themeBlue,
-                        unfocusedBorderColor = Color(0xFFDDDDDD),
-                        cursorColor = themeBlue
-                    )
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
+            ) {
+                Text(
+                    "上架库位",
+                    fontSize = 14.sp,
+                    color = textDark,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Spacer(Modifier.height(12.dp))
+                SearchField(
+                    state = locationState,
+                    placeholder = "输入库位",
+                    showSearchIcon = false
+                )
+                Spacer(Modifier.height(8.dp))
                 Button(
-                    onClick = { boundLocation = locationInput.trim() },
-                    enabled = locationInput.isNotBlank(),
+                    onClick = { boundLocation = locationState.text.toString().trim() },
+                    enabled = locationState.text.isNotBlank(),
                     modifier = Modifier
+                        .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                         .height(44.dp),
                     shape = RoundedCornerShape(4.dp),
@@ -205,10 +217,11 @@ fun ReturnConfirmScreen(
                     )
                 }
             }
-            HorizontalDivider(thickness = 8.dp, color = bgColor)
+            HorizontalDivider(thickness = 8.dp, color = Color.White)
             Row(
                 Modifier
                     .fillMaxWidth()
+                    .height(40.dp)
                     .background(bgColor)
                     .padding(horizontal = 16.dp, vertical = 10.dp)
             ) {
@@ -226,20 +239,20 @@ fun ReturnConfirmScreen(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         tool.rfid,
                         modifier = Modifier.weight(1f),
                         fontSize = 14.sp,
+                        lineHeight = 16.sp,
                         color = textDark
                     )
-                    Text("1", fontSize = 14.sp, color = textDark)
+                    Text("1", fontSize = 14.sp, lineHeight = 16.sp, color = textDark)
                 }
                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
             }
-            Spacer(Modifier.height(20.dp))
         }
     }
     if (showConfirmDialog) {
@@ -266,10 +279,4 @@ fun ReturnConfirmScreen(
             }
         )
     }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-private fun ReturnConfirmScreenPreview() {
-    ReturnConfirmScreen()
 }

@@ -19,16 +19,29 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.hxb.myandroidapp_1021.components.index.DashboardScreen
+import com.hxb.myandroidapp_1021.components.index.InspectionConfirmScreen
+import com.hxb.myandroidapp_1021.components.index.InspectionListScreen
 import com.hxb.myandroidapp_1021.components.index.InspectionScanScreen
+import com.hxb.myandroidapp_1021.components.index.InventoryListScreen
+import com.hxb.myandroidapp_1021.components.index.InventoryResultScreen
 import com.hxb.myandroidapp_1021.components.index.InventoryScanScreen
 import com.hxb.myandroidapp_1021.components.index.LoginScreen
 import com.hxb.myandroidapp_1021.components.index.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.components.index.PickingListScreen
 import com.hxb.myandroidapp_1021.components.index.PickingOrder
 import com.hxb.myandroidapp_1021.components.index.PickingScanScreen
+import com.hxb.myandroidapp_1021.components.index.RepairConfirmScreen
+import com.hxb.myandroidapp_1021.components.index.RepairListScreen
 import com.hxb.myandroidapp_1021.components.index.RepairScanScreen
 import com.hxb.myandroidapp_1021.components.index.ReturnListScreen
+import com.hxb.myandroidapp_1021.components.index.ReturnOrder
+import com.hxb.myandroidapp_1021.components.index.ReturnScanScreen
+import com.hxb.myandroidapp_1021.components.index.ReturnStatus
+import com.hxb.myandroidapp_1021.components.index.ScrapConfirmScreen
 import com.hxb.myandroidapp_1021.components.index.ScrapListScreen
+import com.hxb.myandroidapp_1021.components.index.ScrapOrder
+import com.hxb.myandroidapp_1021.components.index.ScrapOutCheckScreen
+import com.hxb.myandroidapp_1021.components.index.ScrapOutListScreen
 import com.hxb.myandroidapp_1021.components.index.ScrapScanScreen
 import com.hxb.myandroidapp_1021.components.index.ServerConfigScreen
 
@@ -41,10 +54,37 @@ object Routes {
     const val PICKING = "picking"
     const val RETURN_TOOL = "return_tool"
     const val INSPECT = "inspect"
+    // 送检·申请（读取工器具），二级路由
+    const val INSPECT_APPLY = "inspection_apply"
+    // 送检·填写信息，三级路由
+    const val INSPECT_CONFIRM = "inspection_confirm"
     const val REPAIR = "repair"
+    // 送修·申请（读取工器具），二级路由
+    const val REPAIR_APPLY = "repair_apply"
+    // 送修·填写信息，三级路由
+    const val REPAIR_CONFIRM = "repair_confirm"
     const val SCRAP = "scrap"
+    // 报废·申请（读取工器具），二级路由
+    const val SCRAP_APPLY = "scrap_apply"
+    // 报废·填写信息，三级路由
+    const val SCRAP_CONFIRM = "scrap_confirm"
     const val SCRAP_OUT = "scrap_out"
+    // 报废出库·核对，二级路由
+    const val SCRAP_OUT_CHECK =
+        "scrap_out_check/{orderNo}/{applicant}/{warehouse}/{toolCount}/{outboundStatus}"
+
+    fun scrapOutCheck(order: ScrapOrder): String =
+        "scrap_out_check" +
+                "/${Uri.encode(order.orderNo)}" +
+                "/${Uri.encode(order.applicant)}" +
+                "/${Uri.encode(order.warehouse)}" +
+                "/${order.toolCount}" +
+                "/${Uri.encode(order.outboundStatus)}"
     const val INVENTORY = "inventory"
+    // 盘点·读取盘点（二级路由）
+    const val INVENTORY_SCAN = "inventory_scan"
+    // 盘点·盘点结果（三级路由）
+    const val INVENTORY_RESULT = "inventory_result"
 
     // 二级路由
     const val PICKING_SCAN =
@@ -66,7 +106,42 @@ object Routes {
                 "/${Uri.encode(order.person)}" +
                 "/${order.toolCount}" +
                 "/${Uri.encode(order.expectedTime)}"
+
+    const val RETURN_SCAN =
+        "return_scan/{orderNo}/{status}/{team}/{person}/{totalCount}/{returnedCount}/{unreturnedCount}"
+
+    fun returnScan(order: ReturnOrder): String =
+        "return_scan" +
+                "/${Uri.encode(order.orderNo)}" +
+                "/${Uri.encode(order.status.name)}" +
+                "/${Uri.encode(order.team)}" +
+                "/${Uri.encode(order.person)}" +
+                "/${order.totalCount}" +
+                "/${order.returnedCount}" +
+                "/${order.unreturnedCount}"
 }
+
+private val RETURN_ARGS = listOf(
+    navArgument("orderNo") { type = NavType.StringType },
+    navArgument("status") { type = NavType.StringType },
+    navArgument("team") { type = NavType.StringType },
+    navArgument("person") { type = NavType.StringType },
+    navArgument("totalCount") { type = NavType.IntType },
+    navArgument("returnedCount") { type = NavType.IntType },
+    navArgument("unreturnedCount") { type = NavType.IntType }
+)
+
+private fun buildReturnOrder(args: Bundle?): ReturnOrder = ReturnOrder(
+    orderNo = args?.getString("orderNo").orEmpty(),
+    team = args?.getString("team").orEmpty(),
+    person = args?.getString("person").orEmpty(),
+    totalCount = args?.getInt("totalCount") ?: 0,
+    returnedCount = args?.getInt("returnedCount") ?: 0,
+    unreturnedCount = args?.getInt("unreturnedCount") ?: 0,
+    status = runCatching {
+        ReturnStatus.valueOf(args?.getString("status").orEmpty())
+    }.getOrDefault(ReturnStatus.PARTIAL)
+)
 
 private val ORDER_ARGS = listOf(
     navArgument("orderNo") { type = NavType.StringType },
@@ -207,45 +282,149 @@ fun AppNavHost() {
             PickingConfirmScreen(
                 order = buildPickingOrder(entry.arguments),
                 onBackClick = safeBack,
-                // 确认出库后回到借出列表
                 onConfirmClick = { navController.popBackStack(Routes.PICKING, false) }
             )
         }
         // 归还
         composable(Routes.RETURN_TOOL) {
             ReturnListScreen(
-                onBackClick = safeBack
+                onBackClick = safeBack,
+                onStartReturnClick = { order ->
+                    navController.navigate(Routes.returnScan(order))
+                }
             )
         }
-        // 工具送检
+        composable(
+            route = Routes.RETURN_SCAN,
+            arguments = RETURN_ARGS
+        ) { entry ->
+            ReturnScanScreen(
+                order = buildReturnOrder(entry.arguments),
+                onBackClick = safeBack,
+                onCompleteClick = { navController.popBackStack(Routes.RETURN_TOOL, false) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
+            )
+        }
+        // 工具送检·申请单列表（一级路由）
         composable(Routes.INSPECT) {
+            InspectionListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(Routes.INSPECT_APPLY) }
+            )
+        }
+        // 工具送检·申请（读取工器具，二级路由）
+        composable(Routes.INSPECT_APPLY) {
             InspectionScanScreen(
-                onBackClick = safeBack
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(Routes.INSPECT_CONFIRM) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 工具送修
+        // 工具送检·填写信息（三级路由）
+        composable(Routes.INSPECT_CONFIRM) {
+            InspectionConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack(Routes.INSPECT, false) }
+            )
+        }
+        // 工具送修·申请单列表（一级路由）
         composable(Routes.REPAIR) {
-            RepairScanScreen(
-                onBackClick = safeBack
+            RepairListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(Routes.REPAIR_APPLY) }
             )
         }
-        // 工具报废
+        // 工具送修·申请（读取工器具，二级路由）
+        composable(Routes.REPAIR_APPLY) {
+            RepairScanScreen(
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(Routes.REPAIR_CONFIRM) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
+            )
+        }
+        // 工具送修·填写信息（三级路由）
+        composable(Routes.REPAIR_CONFIRM) {
+            RepairConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack(Routes.REPAIR, false) }
+            )
+        }
+        // 工具报废·申请单列表（一级路由）
         composable(Routes.SCRAP) {
+            ScrapListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(Routes.SCRAP_APPLY) }
+            )
+        }
+        // 工具报废·申请（读取工器具，二级路由）
+        composable(Routes.SCRAP_APPLY) {
             ScrapScanScreen(
                 onBackClick = safeBack,
-                onCompleteClick = safeBack
+                onNextClick = { navController.navigate(Routes.SCRAP_CONFIRM) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 报废出库
+        // 工具报废·填写信息（三级路由）
+        composable(Routes.SCRAP_CONFIRM) {
+            ScrapConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack(Routes.SCRAP, false) }
+            )
+        }
+        // 报废出库·出库单列表
         composable(Routes.SCRAP_OUT) {
-            ScrapListScreen(
-                onBackClick = safeBack
+            ScrapOutListScreen(
+                onBackClick = safeBack,
+                onCheckClick = { order ->
+                    navController.navigate(Routes.scrapOutCheck(order))
+                }
             )
         }
-        // 盘点管理
+        // 报废出库·核对（读取并核对要出库的工器具）
+        composable(
+            route = Routes.SCRAP_OUT_CHECK,
+            arguments = listOf(
+                navArgument("orderNo") { type = NavType.StringType },
+                navArgument("applicant") { type = NavType.StringType },
+                navArgument("warehouse") { type = NavType.StringType },
+                navArgument("toolCount") { type = NavType.IntType },
+                navArgument("outboundStatus") { type = NavType.StringType }
+            )
+        ) { entry ->
+            val args = entry.arguments
+            ScrapOutCheckScreen(
+                order = ScrapOrder(
+                    orderNo = args?.getString("orderNo").orEmpty(),
+                    applicant = args?.getString("applicant").orEmpty(),
+                    warehouse = args?.getString("warehouse").orEmpty(),
+                    toolCount = args?.getInt("toolCount") ?: 0,
+                    outboundStatus = args?.getString("outboundStatus").orEmpty()
+                ),
+                onBackClick = safeBack,
+                onNextClick = { navController.popBackStack(Routes.SCRAP_OUT, false) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
+            )
+        }
+        // 盘点管理·盘点任务单列表（一级路由）
         composable(Routes.INVENTORY) {
+            InventoryListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(Routes.INVENTORY_SCAN) }
+            )
+        }
+        // 盘点管理·读取盘点（二级路由）
+        composable(Routes.INVENTORY_SCAN) {
             InventoryScanScreen(
-                onBackClick = safeBack
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(Routes.INVENTORY_RESULT) },
+                onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
+            )
+        }
+        // 盘点管理·盘点结果（三级路由）
+        composable(Routes.INVENTORY_RESULT) {
+            InventoryResultScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack(Routes.INVENTORY, false) }
             )
         }
     }

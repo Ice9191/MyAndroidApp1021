@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -87,6 +88,7 @@ private val TextGray = Color(0xFF888888)
  * @param orderNo 取单号
  * @param fields 取卡片里的「标签：值」明细行
  * @param statusText 单号右侧的状态文字，返回 null 则不显示
+ * @param statusColor 状态文字颜色，默认主题蓝
  * @param actionText 单号右侧的按钮文字，null 则不显示按钮
  * @param onActionClick 按钮点击
  * @param listHeaderLabel 列表头左侧的普通文字（与 listHeader 二选一）
@@ -106,13 +108,15 @@ fun <T> OrderListPage(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit = {},
     statusText: (T) -> String? = { null },
+    statusColor: (T) -> Color = { ThemeBlue },
     actionText: String? = null,
     onActionClick: (T) -> Unit = {},
     listHeaderLabel: String? = null,
     listHeader: (@Composable () -> Unit)? = null,
     searchMatcher: ((T, String) -> Boolean)? = null,
     emptyText: String = "暂无数据",
-    noResultText: String = "暂无匹配数据"
+    noResultText: String = "暂无匹配数据",
+    onAddClick: (() -> Unit)? = null
 ) {
     val focusManager = LocalFocusManager.current
     val searchState = rememberTextFieldState()
@@ -251,7 +255,7 @@ fun <T> OrderListPage(
                                             Text(
                                                 text = status,
                                                 fontSize = 13.sp,
-                                                color = ThemeBlue,
+                                                color = statusColor(order),
                                                 modifier = Modifier.padding(end = 8.dp)
                                             )
                                         }
@@ -320,27 +324,46 @@ fun <T> OrderListPage(
                 }
             }
 
-            // === 3. 回到顶部悬浮按钮 ===
-            AnimatedVisibility(
-                visible = showScrollToTopButton,
-                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
+            // === 3. 右下角悬浮按钮：回到顶部 / 新增(+) ===
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 32.dp)
+                    .padding(end = 16.dp, bottom = 32.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SmallFloatingActionButton(
-                    onClick = {
-                        coroutineScope.launch { listState.animateScrollToItem(0) }
-                    },
-                    containerColor = ThemeBlue,
-                    contentColor = Color.White,
-                    shape = CircleShape
+                AnimatedVisibility(
+                    visible = showScrollToTopButton,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                    exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 })
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "回到顶部"
-                    )
+                    SmallFloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch { listState.animateScrollToItem(0) }
+                        },
+                        containerColor = ThemeBlue,
+                        contentColor = Color.White,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "回到顶部"
+                        )
+                    }
+                }
+                // 传了 onAddClick 才显示右上角的 + 号（用于进入"新建申请"页）
+                if (onAddClick != null) {
+                    SmallFloatingActionButton(
+                        onClick = onAddClick,
+                        containerColor = ThemeBlue,
+                        contentColor = Color.White,
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "新增"
+                        )
+                    }
                 }
             }
         }

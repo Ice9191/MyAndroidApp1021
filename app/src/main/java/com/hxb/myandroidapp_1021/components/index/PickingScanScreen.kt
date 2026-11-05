@@ -25,8 +25,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -101,10 +99,8 @@ fun PickingScanScreen(
     var showConfirmDialog by remember { mutableStateOf(false) }
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
 
-    // 全部工器具：数量就是上一页传进来的「工具数量」
     val allTools = remember(orderNo, toolCount) { buildTools(orderNo, toolCount) }
 
-    // 演示数据：第 1 件当成已拣选、第 2 件当成刚扫到还没确认。接接口后删掉这两段即可
     val readList = remember(orderNo) {
         mutableStateListOf<ToolScanItem>().apply {
             allTools.getOrNull(0)?.let { add(it.copy(pickDate = today)) }
@@ -220,7 +216,7 @@ fun PickingScanScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // === 1. 顶部信息卡片（3 行，左右 spaceBetween，内容全部来自上一页） ===
+            // === 1. 顶部信息卡片 ===
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -552,38 +548,5 @@ private fun buildTools(orderNo: String, count: Int): List<ToolScanItem> {
             code = "GJ-$no",
             rfid = "E280 1160 6000 0200 ${(index + 1).toString().padStart(4, '0')}"
         )
-    }
-}
-
-// ================= 兼容旧调用：归还扫码页仍在用这个行组件 =================
-
-@Composable
-fun ReadItemRow(
-    item: ToolScanItem,
-    themeBlue: Color,
-    textDark: Color,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Checkbox(
-            checked = item.isChecked,
-            onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(checkedColor = themeBlue),
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = item.rfid,
-            modifier = Modifier.weight(1f),
-            fontSize = 14.sp,
-            color = textDark
-        )
-        Text(text = "1", fontSize = 14.sp, color = textDark)
     }
 }

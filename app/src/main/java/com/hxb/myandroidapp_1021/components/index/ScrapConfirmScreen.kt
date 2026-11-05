@@ -1,7 +1,13 @@
 package com.hxb.myandroidapp_1021.components.index
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,27 +17,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.outlined.CameraAlt
-import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
@@ -58,7 +57,9 @@ import java.util.Locale
 import java.util.TimeZone
 
 /**
- * 工具报废·填写信息页（对照送修页做成一样的结构，字段换成报废相关的）。
+ * 报废·填写信息页。
+ * 和借出确认页一致的三段式：上面是表单（报废原因 / 报废机构 / 报废日期），
+ * 下面是一张工器具表格（工器具信息 / 数量件）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,9 +78,11 @@ fun ScrapConfirmScreen(
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
+    val textGray = Color(0xFF888888)
     var reason by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var scrapDate by remember { mutableStateOf("") }
+    var scrapCount by remember { mutableStateOf("") }
+    var organization by remember { mutableStateOf("") }
+    var returnDate by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
     val fieldColors = OutlinedTextFieldDefaults.colors(
         focusedBorderColor = themeBlue,
@@ -87,12 +90,13 @@ fun ScrapConfirmScreen(
         cursorColor = themeBlue
     )
     val canSubmit =
-        tools.isNotEmpty() && reason.isNotBlank() && description.isNotBlank() && scrapDate.isNotBlank()
+        tools.isNotEmpty() && reason.isNotBlank() && scrapCount.isNotBlank() &&
+            organization.isNotBlank() && returnDate.isNotBlank()
 
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = bgColor,
-        topBar = { ScrapTopBar("报废·填写信息", onBackClick) },
+        topBar = { ApplicationTopBar("填写信息", onBackClick) },
         bottomBar = {
             Column(
                 Modifier
@@ -113,7 +117,7 @@ fun ScrapConfirmScreen(
                     )
                 ) {
                     Text(
-                        text = "确认",
+                        "确认",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -128,46 +132,7 @@ fun ScrapConfirmScreen(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // 报废申请信息
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(16.dp)
-            ) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "报废申请信息",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textDark
-                    )
-                    Text(text = "待提交", fontSize = 14.sp, color = themeBlue)
-                }
-                Text(
-                    text = "申请人：张伟",
-                    fontSize = 13.sp,
-                    color = textDark,
-                    modifier = Modifier.padding(top = 12.dp)
-                )
-                Text(
-                    text = "已选工具：${tools.size}件",
-                    fontSize = 13.sp,
-                    color = textDark,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-            HorizontalDivider(thickness = 8.dp, color = bgColor)
-
-            // 工具清单
-            tools.forEach { tool -> ScrapToolRow(tool) }
-            HorizontalDivider(thickness = 8.dp, color = bgColor)
-
-            // 表单
+            // === 1. 表单：报废原因 / 报废机构 / 报废日期 ===
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -185,36 +150,141 @@ fun ScrapConfirmScreen(
                     shape = RoundedCornerShape(4.dp),
                     colors = fieldColors
                 )
-
                 Spacer(Modifier.height(16.dp))
-                Text("报废说明", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text("报废数量", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    placeholder = { Text("请输入损坏情况、处置说明等") },
+                    value = scrapCount,
+                    onValueChange = { scrapCount = it },
+                    placeholder = { Text("请输入报废数量") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    suffix = { Text("件") },
                     shape = RoundedCornerShape(4.dp),
                     colors = fieldColors
                 )
-
                 Spacer(Modifier.height(16.dp))
-                Text("报废日期", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text("报废机构", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
                 Spacer(Modifier.height(8.dp))
-                ScrapDateField(value = scrapDate, onValueChange = { scrapDate = it })
-
+                OutlinedTextField(
+                    value = organization,
+                    onValueChange = { organization = it },
+                    placeholder = { Text("请输入报废机构") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(4.dp),
+                    colors = fieldColors
+                )
                 Spacer(Modifier.height(16.dp))
-                Text("报废现场图片（选填）", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textDark)
+                Text(
+                    "报废日期",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
                 Spacer(Modifier.height(8.dp))
-                ScrapPhotoInput()
+                ScrapDateField(value = returnDate, onValueChange = { returnDate = it })
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "报废现场图片（选填）",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = { /* 拍照功能暂留占位 */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.CameraAlt,
+                            contentDescription = null,
+                            tint = themeBlue,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(" 拍照", fontSize = 13.sp, color = themeBlue)
+                    }
+                    OutlinedButton(
+                        onClick = { /* 相册选择暂留占位 */ },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(44.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.PhotoLibrary,
+                            contentDescription = null,
+                            tint = themeBlue,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(" 从相册选择", fontSize = 13.sp, color = themeBlue)
+                    }
+                }
             }
-            Spacer(
-                Modifier
-                    .height(20.dp)
-                    .fillMaxWidth()
-                    .background(Color.White)
-            )
+
+            // === 2. 工器具表格（和借出确认页的表格一致） ===
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .background(bgColor)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "工器具信息",
+                        modifier = Modifier.weight(1f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textGray
+                    )
+                    Text(
+                        text = "数量/件",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textGray
+                    )
+                }
+                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+
+                tools.forEach { tool ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = tool.rfid,
+                                fontSize = 14.sp,
+                                lineHeight = 16.sp,
+                                color = textDark
+                            )
+                            Text(
+                                text = tool.name,
+                                fontSize = 13.sp,
+                                lineHeight = 14.sp,
+                                color = textGray,
+                                modifier = Modifier.padding(top = 1.dp)
+                            )
+                        }
+                        Text(
+                            text = "1",
+                            fontSize = 14.sp,
+                            lineHeight = 16.sp,
+                            color = textDark
+                        )
+                    }
+                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+                }
+            }
         }
     }
 
@@ -225,8 +295,8 @@ fun ScrapConfirmScreen(
             title = { Text("确认报废申请") },
             text = {
                 Text(
-                    "共${tools.size}件工具\n报废原因：${reason.trim()}\n" +
-                            "报废说明：${description.trim()}\n报废日期：$scrapDate"
+                    "共${tools.size}件工具\n报废原因：${reason.trim()}\n报废数量：${scrapCount.trim()}件\n" +
+                            "报废机构：${organization.trim()}\n报废日期：$returnDate"
                 )
             },
             confirmButton = {
@@ -243,15 +313,9 @@ fun ScrapConfirmScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-private fun ScrapConfirmScreenPreview() {
-    ScrapConfirmScreen()
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ScrapTopBar(title: String, onBackClick: () -> Unit) {
+private fun ApplicationTopBar(title: String, onBackClick: () -> Unit) {
     TopAppBar(
         modifier = Modifier.height(75.dp),
         title = {
@@ -275,47 +339,6 @@ private fun ScrapTopBar(title: String, onBackClick: () -> Unit) {
     )
 }
 
-@Composable
-private fun ScrapToolRow(tool: ToolScanItem, onCheckedChange: ((Boolean) -> Unit)? = null) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (onCheckedChange != null) {
-            Checkbox(
-                checked = tool.isChecked,
-                onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(checkedColor = Color(0xFF1E71C8))
-            )
-        }
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = tool.name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF222222)
-            )
-            Text(
-                text = tool.code,
-                fontSize = 13.sp,
-                color = Color(0xFF888888),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            Text(
-                text = "RFID：${tool.rfid}",
-                fontSize = 13.sp,
-                color = Color(0xFF888888),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-        Text(text = "1", fontSize = 14.sp, color = Color(0xFF222222))
-    }
-    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScrapDateField(value: String, onValueChange: (String) -> Unit) {
@@ -331,7 +354,7 @@ private fun ScrapDateField(value: String, onValueChange: (String) -> Unit) {
         trailingIcon = {
             IconButton(onClick = { showDatePicker = true }) {
                 Icon(
-                    imageVector = Icons.Default.CalendarMonth,
+                    Icons.Default.CalendarMonth,
                     contentDescription = "选择报废日期",
                     tint = themeBlue
                 )
@@ -371,47 +394,6 @@ private fun ScrapDateField(value: String, onValueChange: (String) -> Unit) {
             }
         ) {
             DatePicker(state = datePickerState)
-        }
-    }
-}
-
-@Composable
-private fun ScrapPhotoInput() {
-    val themeBlue = Color(0xFF1E71C8)
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        OutlinedButton(
-            onClick = {
-                // 拍照功能暂留占位。
-            },
-            modifier = Modifier
-                .weight(1f)
-                .height(44.dp),
-            shape = RoundedCornerShape(4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.CameraAlt,
-                contentDescription = null,
-                tint = themeBlue,
-                modifier = Modifier.size(18.dp)
-            )
-            Text(" 拍照", fontSize = 13.sp, color = themeBlue)
-        }
-        OutlinedButton(
-            onClick = {
-                // 相册选择功能暂留占位。
-            },
-            modifier = Modifier
-                .weight(1f)
-                .height(44.dp),
-            shape = RoundedCornerShape(4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.PhotoLibrary,
-                contentDescription = null,
-                tint = themeBlue,
-                modifier = Modifier.size(18.dp)
-            )
-            Text(" 从相册选择", fontSize = 13.sp, color = themeBlue)
         }
     }
 }

@@ -1,58 +1,66 @@
 package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import com.hxb.myandroidapp_1021.components.index.components.OrderListPage
 import com.hxb.myandroidapp_1021.components.index.models.DisplayField
 
-// 报废单数据模型
-data class ScrapOrder(
+// 报废申请单数据模型（列表展示 + 审批状态）
+data class ScrapRecord(
     val orderNo: String,
-    val applicant: String,
-    val warehouse: String,
+    val team: String,
+    val person: String,
     val toolCount: Int,
-    val isApproved: Boolean = true,
-    val outboundStatus: String = "待出库"
+    val applyDate: String,
+    val status: String   // 已审批 / 未审批
 )
 
+/**
+ * 报废申请单列表页（一级路由，从仪表盘「工具报废」进来）。
+ * 和借出列表一样用 OrderListPage，只是：
+ *  - 状态展示的是审批状态（已审批 / 未审批）
+ *  - 右下角多一个「+」悬浮按钮，点它去 InspectionScanScreen 新建申请
+ */
 @Composable
 fun ScrapListScreen(
     onBackClick: () -> Unit = {},
-    onCheckClick: (ScrapOrder) -> Unit = {},
-    orders: List<ScrapOrder> = listOf(
-        ScrapOrder("BF20261027003", "李明", "中心工具库", 2),
-        ScrapOrder("BF20261028001", "张伟", "中心工具库", 3),
-        ScrapOrder("BF20261029002", "王健", "电气工具库", 4),
-        ScrapOrder("BF20261030001", "刘洋", "运行工具库", 1),
-        ScrapOrder("BF20261031002", "陈强", "中心工具库", 5)
-    )
+    onAddApplyClick: () -> Unit = {}
 ) {
-    // 业务过滤：只展示审批通过的报废单
-    val approvedOrders = orders.filter { it.isApproved }
+    // 模拟数据
+    val orderList = listOf(
+        ScrapRecord("BF20261028001", "检修一班", "张伟", 3, "10-28 09:30", "已审批"),
+        ScrapRecord("BF20261028002", "维修二班", "李明", 2, "10-28 10:00", "未审批"),
+        ScrapRecord("BF20261028003", "电气班组", "王健", 4, "10-28 10:30", "已审批"),
+        ScrapRecord("BF20261028004", "运行一班", "刘洋", 1, "10-28 11:00", "未审批"),
+        ScrapRecord("BF20261028005", "热控班组", "陈强", 5, "10-28 11:15", "已审批"),
+        ScrapRecord("BF20261028006", "继保班", "赵磊", 3, "10-28 13:00", "未审批"),
+        ScrapRecord("BF20261028007", "综合班", "孙浩", 2, "10-28 14:00", "已审批"),
+        ScrapRecord("BF20261028008", "变电检修班", "周杰", 6, "10-28 14:30", "未审批"),
+        ScrapRecord("BF20261028009", "汽机本体班", "吴刚", 4, "10-28 15:00", "已审批"),
+        ScrapRecord("BF20261028010", "锅炉辅机班", "郑爽", 7, "10-28 15:30", "未审批")
+    )
 
     OrderListPage(
-        title = "报废单列表",
-        orders = approvedOrders,
-        searchPlaceholder = "搜索报废单号、申请人或库房",
+        title = "报废",
+        orders = orderList,
+        searchPlaceholder = "请输入报废单号",
         orderNo = { it.orderNo },
-        fields = { order ->
+        fields = { record ->
             listOf(
-                DisplayField("申请人", order.applicant),
-                DisplayField("所属库房", order.warehouse),
-                DisplayField("工具数量", "${order.toolCount}件"),
-                DisplayField("出库状态", order.outboundStatus)
+                DisplayField("班组", record.team),
+                DisplayField("申请人", record.person),
+                DisplayField("工具数量", "${record.toolCount}件"),
+                DisplayField("申请日期", record.applyDate)
             )
         },
-        statusText = { "审批通过" }, // 列表里只剩审批通过的单据
-        actionText = "出库核对",
-        onActionClick = { onCheckClick(it) },
-        listHeaderLabel = "审批通过的报废单",
-        searchMatcher = { order, query ->
-            order.orderNo.contains(query, ignoreCase = true) ||
-                    order.applicant.contains(query) ||
-                    order.warehouse.contains(query)
+        statusText = { it.status },
+        // 未审批用红色，已审批用主题蓝
+        statusColor = {
+            if (it.status == "未审批") Color(0xFFE53935) else Color(0xFF1E71C8)
         },
-        emptyText = "暂无审批通过的报废单",
-        noResultText = "暂无匹配的报废单",
-        onBackClick = onBackClick
+        listHeaderLabel = "报废申请单",
+        searchMatcher = { record, query -> record.orderNo.contains(query, ignoreCase = true) },
+        onBackClick = onBackClick,
+        onAddClick = onAddApplyClick
     )
 }

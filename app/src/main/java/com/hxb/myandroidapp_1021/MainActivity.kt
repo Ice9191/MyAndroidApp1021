@@ -2,7 +2,6 @@ package com.hxb.myandroidapp_1021
 
 // 导入需要用到的工具类，组件/颜色/尺寸
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -128,9 +127,6 @@ class MainActivity : ComponentActivity() {
         //     task.cancelAndJoin() // cancel + join的简写，一行搞定
         //     println("666-主线程执行完了")
         // }
-
-        // 设置页面的内容，写ComposeUI
-        Log.d("ScreenSize", "宽: ${resources.displayMetrics.widthPixels}, 高: ${resources.displayMetrics.heightPixels}, 密度: ${resources.displayMetrics.densityDpi}")
 
         // 不会阻塞主线程
         // lifecycleScope.launch {

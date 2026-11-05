@@ -46,7 +46,10 @@ data class ReturnOrder(
     val status: ReturnStatus
 )
 @Composable
-fun ReturnListScreen(onBackClick: () -> Unit = {}) {
+fun ReturnListScreen(
+    onBackClick: () -> Unit = {},
+    onStartReturnClick: (ReturnOrder) -> Unit = {}
+) {
     val themeBlue = Color(0xFF1E71C8)
     val textDark = Color(0xFF222222)
 
@@ -132,6 +135,7 @@ fun ReturnListScreen(onBackClick: () -> Unit = {}) {
             }
         },
         searchMatcher = { order, query -> order.orderNo.contains(query, ignoreCase = true) },
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        onActionClick = { order -> onStartReturnClick(order) }
     )
 }

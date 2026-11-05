@@ -1,19 +1,20 @@
-﻿package com.hxb.myandroidapp_1021.components.index
+package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,8 +33,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +63,7 @@ fun InspectionConfirmScreen(
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
+    val focusManager = LocalFocusManager.current
     var reason by remember { mutableStateOf("") }
     var organization by remember { mutableStateOf("") }
     var returnDate by remember { mutableStateOf("") }
@@ -77,7 +81,9 @@ fun InspectionConfirmScreen(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
+                modifier = Modifier
+                    .height(75.dp)
+                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 title = {
                     Text(
                         text = "填写信息",
@@ -88,7 +94,10 @@ fun InspectionConfirmScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = onBackClick,
+                        onClick = {
+                            focusManager.clearFocus()
+                            onBackClick()
+                        },
                         modifier = Modifier.offset(x = (-7).dp)
                     ) {
                         Icon(
@@ -112,7 +121,10 @@ fun InspectionConfirmScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Button(
-                    onClick = { showConfirmDialog = true },
+                    onClick = {
+                        focusManager.clearFocus()
+                        showConfirmDialog = true
+                    },
                     enabled = canSubmit,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -138,6 +150,7 @@ fun InspectionConfirmScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
         ) {
             // === 1. 表单：送检原因 / 送检机构 / 预计返回时间 ===
             Column(

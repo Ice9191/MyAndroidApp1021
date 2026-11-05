@@ -1,6 +1,7 @@
 ﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -49,6 +52,7 @@ import com.hxb.myandroidapp_1021.components.index.components.DateField
 import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
 import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
 import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +69,7 @@ fun ScrapConfirmScreen(
     onConfirmClick: () -> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
+    val focusManager = LocalFocusManager.current
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     var reason by remember { mutableStateOf("") }
@@ -86,7 +91,9 @@ fun ScrapConfirmScreen(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
+                modifier = Modifier
+                    .height(75.dp)
+                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 title = {
                     Text(
                         text = "填写信息",
@@ -97,7 +104,10 @@ fun ScrapConfirmScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = onBackClick,
+                        onClick = {
+                            focusManager.clearFocus()
+                            onBackClick()
+                        },
                         modifier = Modifier.offset(x = (-7).dp)
                     ) {
                         Icon(
@@ -121,7 +131,7 @@ fun ScrapConfirmScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Button(
-                    onClick = { showConfirmDialog = true },
+                    onClick = { focusManager.clearFocus(); showConfirmDialog = true },
                     enabled = canSubmit,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -147,6 +157,7 @@ fun ScrapConfirmScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
         ) {
             // === 1. 表单：报废原因 / 报废机构 / 报废日期 ===
             Column(

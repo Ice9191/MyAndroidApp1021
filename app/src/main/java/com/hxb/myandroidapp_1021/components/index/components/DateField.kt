@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -56,6 +57,7 @@ fun DateField(
     contentDescription: String = "选择日期"
 ) {
     val themeBlue = Color(0xFF1E71C8)
+    val focusManager = LocalFocusManager.current
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState =
         rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
@@ -66,7 +68,10 @@ fun DateField(
         readOnly = true,
         placeholder = { Text(placeholder) },
         trailingIcon = {
-            IconButton(onClick = { showDatePicker = true }) {
+            IconButton(onClick = {
+                focusManager.clearFocus()
+                showDatePicker = true
+            }) {
                 Icon(
                     imageVector = Icons.Default.CalendarMonth,
                     contentDescription = contentDescription,

@@ -1,22 +1,23 @@
-package com.hxb.myandroidapp_1021.components.index
+﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material3.AlertDialog
@@ -38,8 +39,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +50,7 @@ import com.hxb.myandroidapp_1021.components.index.components.DateField
 import com.hxb.myandroidapp_1021.components.index.components.ToolInfoTable
 import com.hxb.myandroidapp_1021.components.index.models.ToolInfoRow
 import com.hxb.myandroidapp_1021.components.index.models.ToolScanItem
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +67,7 @@ fun RepairConfirmScreen(
     onConfirmClick: () -> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
+    val focusManager = LocalFocusManager.current
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     var reason by remember { mutableStateOf("") }
@@ -82,7 +87,9 @@ fun RepairConfirmScreen(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
+                modifier = Modifier
+                    .height(75.dp)
+                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 title = {
                     Text(
                         text = "填写信息",
@@ -93,7 +100,10 @@ fun RepairConfirmScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = onBackClick,
+                        onClick = {
+                            focusManager.clearFocus()
+                            onBackClick()
+                        },
                         modifier = Modifier.offset(x = (-7).dp)
                     ) {
                         Icon(
@@ -117,7 +127,7 @@ fun RepairConfirmScreen(
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Button(
-                    onClick = { showConfirmDialog = true },
+                    onClick = { focusManager.clearFocus(); showConfirmDialog = true },
                     enabled = canSubmit,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -143,6 +153,7 @@ fun RepairConfirmScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
         ) {
             // === 1. 表单：送修原因 / 送修机构 / 预计返回时间 ===
             Column(

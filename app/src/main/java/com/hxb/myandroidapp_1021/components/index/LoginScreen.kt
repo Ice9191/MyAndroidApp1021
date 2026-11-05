@@ -1,6 +1,7 @@
-package com.hxb.myandroidapp_1021.components.index
+﻿package com.hxb.myandroidapp_1021.components.index
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +33,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -39,6 +42,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+
 
 @Composable
 fun LoginScreen(
@@ -51,6 +55,7 @@ fun LoginScreen(
     val imageUrl = "https://img.icons8.com/color/96/000000/toolbox.png"
     val backgroundColor = Color(0xFFF7F8FA)
     val themeBlue = Color(0xFF1E71C8)
+    val focusManager = LocalFocusManager.current
 
     Scaffold(
         containerColor = backgroundColor
@@ -58,7 +63,8 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -175,7 +181,7 @@ fun LoginScreen(
                     Button(
                         onClick = {
                             // TODO账号密码非空校验、调接口校验
-                            onLoginSuccess()
+                            focusManager.clearFocus(); onLoginSuccess()
                         },
                         modifier = Modifier
                             .fillMaxWidth()

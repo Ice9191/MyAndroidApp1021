@@ -50,27 +50,18 @@ object Routes {
     const val DASHBOARD = "dashboard"
     const val LOGIN = "login"
     const val SERVER_CONFIG = "server_config"
-
-    // 一级路由
     const val PICKING = "picking"
     const val RETURN_TOOL = "return_tool"
     const val INSPECT = "inspect"
-    // 送检·申请（读取工器具），二级路由
     const val INSPECT_APPLY = "inspection_apply"
-    // 送检·填写信息，三级路由
     const val INSPECT_CONFIRM = "inspection_confirm"
     const val REPAIR = "repair"
-    // 送修·申请（读取工器具），二级路由
     const val REPAIR_APPLY = "repair_apply"
-    // 送修·填写信息，三级路由
     const val REPAIR_CONFIRM = "repair_confirm"
     const val SCRAP = "scrap"
-    // 报废·申请（读取工器具），二级路由
     const val SCRAP_APPLY = "scrap_apply"
-    // 报废·填写信息，三级路由
     const val SCRAP_CONFIRM = "scrap_confirm"
     const val SCRAP_OUT = "scrap_out"
-    // 报废出库·核对，二级路由
     const val SCRAP_OUT_CHECK =
         "scrap_out_check/{orderNo}/{applicant}/{warehouse}/{toolCount}/{outboundStatus}"
 
@@ -81,24 +72,17 @@ object Routes {
                 "/${Uri.encode(order.warehouse)}" +
                 "/${order.toolCount}" +
                 "/${Uri.encode(order.outboundStatus)}"
-    const val INVENTORY = "inventory"
-    // 盘点·读取盘点（二级路由）
-    const val INVENTORY_SCAN = "inventory_scan"
-    // 盘点·盘点结果（三级路由）
-    const val INVENTORY_RESULT = "inventory_result"
 
-    // 二级路由
+    const val INVENTORY = "inventory"
+    const val INVENTORY_SCAN = "inventory_scan"
+    const val INVENTORY_RESULT = "inventory_result"
     const val PICKING_SCAN =
         "picking_scan/{orderNo}/{status}/{team}/{person}/{toolCount}/{expectedTime}"
-
-    // 三级路由
     const val PICKING_CONFIRM =
         "picking_confirm/{orderNo}/{status}/{team}/{person}/{toolCount}/{expectedTime}"
 
     fun pickingScan(order: PickingOrder): String = orderRoute("picking_scan", order)
-
     fun pickingConfirm(order: PickingOrder): String = orderRoute("picking_confirm", order)
-
     private fun orderRoute(prefix: String, order: PickingOrder): String =
         prefix +
                 "/${Uri.encode(order.orderNo)}" +
@@ -306,14 +290,13 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 工具送检·申请单列表（一级路由）
+        // 工具送检
         composable(Routes.INSPECT) {
             InspectionListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(Routes.INSPECT_APPLY) }
             )
         }
-        // 工具送检·申请（读取工器具，二级路由）
         composable(Routes.INSPECT_APPLY) {
             InspectionScanScreen(
                 onBackClick = safeBack,
@@ -321,21 +304,19 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 工具送检·填写信息（三级路由）
         composable(Routes.INSPECT_CONFIRM) {
             InspectionConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack(Routes.INSPECT, false) }
             )
         }
-        // 工具送修·申请单列表（一级路由）
+        // 工具送修
         composable(Routes.REPAIR) {
             RepairListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(Routes.REPAIR_APPLY) }
             )
         }
-        // 工具送修·申请（读取工器具，二级路由）
         composable(Routes.REPAIR_APPLY) {
             RepairScanScreen(
                 onBackClick = safeBack,
@@ -343,21 +324,19 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 工具送修·填写信息（三级路由）
         composable(Routes.REPAIR_CONFIRM) {
             RepairConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack(Routes.REPAIR, false) }
             )
         }
-        // 工具报废·申请单列表（一级路由）
+        // 工具报废
         composable(Routes.SCRAP) {
             ScrapListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(Routes.SCRAP_APPLY) }
             )
         }
-        // 工具报废·申请（读取工器具，二级路由）
         composable(Routes.SCRAP_APPLY) {
             ScrapScanScreen(
                 onBackClick = safeBack,
@@ -365,14 +344,13 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 工具报废·填写信息（三级路由）
         composable(Routes.SCRAP_CONFIRM) {
             ScrapConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack(Routes.SCRAP, false) }
             )
         }
-        // 报废出库·出库单列表
+        // 报废出库
         composable(Routes.SCRAP_OUT) {
             ScrapOutListScreen(
                 onBackClick = safeBack,
@@ -381,7 +359,6 @@ fun AppNavHost() {
                 }
             )
         }
-        // 报废出库·核对（读取并核对要出库的工器具）
         composable(
             route = Routes.SCRAP_OUT_CHECK,
             arguments = listOf(
@@ -406,14 +383,13 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 盘点管理·盘点任务单列表（一级路由）
+        // 盘点管理
         composable(Routes.INVENTORY) {
             InventoryListScreen(
                 onBackClick = safeBack,
                 onStartInventoryClick = { navController.navigate(Routes.INVENTORY_SCAN) }
             )
         }
-        // 盘点管理·读取盘点（二级路由）
         composable(Routes.INVENTORY_SCAN) {
             InventoryScanScreen(
                 onBackClick = safeBack,
@@ -421,7 +397,6 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack(Routes.DASHBOARD, false) }
             )
         }
-        // 盘点管理·盘点结果（三级路由）
         composable(Routes.INVENTORY_RESULT) {
             InventoryResultScreen(
                 onBackClick = safeBack,

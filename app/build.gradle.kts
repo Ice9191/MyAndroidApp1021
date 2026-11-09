@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    // JSON序列化成Kotlin对象
 }
 
 android {
@@ -38,6 +37,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.converter.kotlinx.serialization)
     // JSON解析
     implementation(libs.kotlinx.serialization.json)
     // OkHttp - HTTP客户端 + 拦截器

@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.hxb.myandroidapp_1021.components.index.navigation.AppNavHost
+import com.hxb.myandroidapp_1021.components.WriteRfidTestPage
 import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -138,6 +138,18 @@ class MainActivity : ComponentActivity() {
         //     delay(6000.milliseconds)
         //     Log.d("ccc", "会阻塞主线程")
         // }
+
+        // lifecycleScope.launch {
+        //     val res = HttpClient.apiService.getQuestionList(
+        //         type = "all",
+        //         page = 1,
+        //         pageSize = 20,
+        //         // 如果传入null，Retrofit会自动忽略这个参数
+        //         questionBankType = null
+        //     )
+        //     Log.d("HttpClient", res.toString())
+        // }
+
         setContent {
             // 脚手架，现在先不用
             // MyAndroidApp1021Theme {
@@ -150,7 +162,7 @@ class MainActivity : ComponentActivity() {
             // }
 
             MyAndroidApp1021Theme {
-                AppNavHost()
+                WriteRfidTestPage()
             }
         }
     }

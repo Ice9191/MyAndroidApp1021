@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.MyAndroidApp1021" parent="android:Theme.Material.Light.NoActionBar">
-        <!-- 窗口背景（Content 还没画出来时露出的颜色）。
-             原来没设，用的是 Material Light 默认的近白色，冷启动时会看到一大片白；
-             改成和页面一致的 #F5F6F8，露底的瞬间就不刺眼了。 -->
-        <item name="android:windowBackground">@color/window_bg</item>
-    </style>
+    <style name="Theme.MyAndroidApp1021" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

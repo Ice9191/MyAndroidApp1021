@@ -4,6 +4,11 @@
     <!-- 添加 INTERNET 权限，暂时只能发https的 -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- 相机权限，运行时还需要动态申请 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- required="false"：没有相机的设备也能安装，避免被应用市场过滤 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

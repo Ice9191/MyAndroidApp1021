@@ -15,8 +15,8 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MyAndroidApp1021">
-        <uses-library android:name="com.seuic.uhf" android:required="true" />
-        <uses-library android:name="com.seuic.scankey" android:required="true" />
+        <uses-library android:name="com.seuic.uhf" android:required="false" />
+        <uses-library android:name="com.seuic.scankey" android:required="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

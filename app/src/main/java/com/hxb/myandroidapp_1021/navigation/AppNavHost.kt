@@ -9,65 +9,16 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.hxb.myandroidapp_1021.pages.DashboardScreen
-import com.hxb.myandroidapp_1021.pages.InspectionConfirmScreen
-import com.hxb.myandroidapp_1021.pages.InspectionListScreen
-import com.hxb.myandroidapp_1021.pages.InventoryListScreen
-import com.hxb.myandroidapp_1021.pages.InventoryResultScreen
-import com.hxb.myandroidapp_1021.pages.InventoryScanScreen
-import com.hxb.myandroidapp_1021.pages.LoginScreen
-import com.hxb.myandroidapp_1021.pages.PickingConfirmScreen
-import com.hxb.myandroidapp_1021.pages.PickingListScreen
-import com.hxb.myandroidapp_1021.pages.PickingScanScreen
-import com.hxb.myandroidapp_1021.pages.RepairConfirmScreen
-import com.hxb.myandroidapp_1021.pages.RepairListScreen
-import com.hxb.myandroidapp_1021.pages.RepairScanScreen
-import com.hxb.myandroidapp_1021.pages.ReturnConfirmScreen
-import com.hxb.myandroidapp_1021.pages.ReturnListScreen
-import com.hxb.myandroidapp_1021.pages.ReturnScanScreen
-import com.hxb.myandroidapp_1021.pages.ScrapConfirmScreen
-import com.hxb.myandroidapp_1021.pages.ScrapListScreen
-import com.hxb.myandroidapp_1021.pages.ScrapOutCheckScreen
-import com.hxb.myandroidapp_1021.pages.ScrapOutListScreen
-import com.hxb.myandroidapp_1021.pages.ScrapScanScreen
-import com.hxb.myandroidapp_1021.pages.ServerConfigScreen
-import com.hxb.myandroidapp_1021.models.ScrapOrder
-import com.hxb.myandroidapp_1021.pages.InspectionScanScreen
-import com.hxb.myandroidapp_1021.routes.Dashboard
-import com.hxb.myandroidapp_1021.routes.InspectionConfirm
-import com.hxb.myandroidapp_1021.routes.InspectionList
-import com.hxb.myandroidapp_1021.routes.InspectionScan
-import com.hxb.myandroidapp_1021.routes.InventoryList
-import com.hxb.myandroidapp_1021.routes.InventoryResult
-import com.hxb.myandroidapp_1021.routes.InventoryScan
-import com.hxb.myandroidapp_1021.routes.Login
-import com.hxb.myandroidapp_1021.routes.PickingConfirm
-import com.hxb.myandroidapp_1021.routes.PickingList
-import com.hxb.myandroidapp_1021.routes.PickingScan
-import com.hxb.myandroidapp_1021.routes.RepairConfirm
-import com.hxb.myandroidapp_1021.routes.RepairList
-import com.hxb.myandroidapp_1021.routes.RepairScan
-import com.hxb.myandroidapp_1021.routes.ReturnConfirm
-import com.hxb.myandroidapp_1021.routes.ReturnList
-import com.hxb.myandroidapp_1021.routes.ReturnScan
-import com.hxb.myandroidapp_1021.routes.ScrapConfirm
-import com.hxb.myandroidapp_1021.routes.ScrapList
-import com.hxb.myandroidapp_1021.routes.ScrapOutCheck
-import com.hxb.myandroidapp_1021.routes.ScrapOutList
-import com.hxb.myandroidapp_1021.routes.ScrapScan
-import com.hxb.myandroidapp_1021.routes.ServerConfig
-import com.hxb.myandroidapp_1021.routes.toInventoryScan
-import com.hxb.myandroidapp_1021.routes.toPickingConfirm
-import com.hxb.myandroidapp_1021.routes.toPickingScan
-import com.hxb.myandroidapp_1021.routes.toReturnConfirm
-import com.hxb.myandroidapp_1021.routes.toReturnScan
-import com.hxb.myandroidapp_1021.routes.toScrapOutCheck
+import com.hxb.myandroidapp_1021.data.models.ScrapOrder
+import com.hxb.myandroidapp_1021.ui.viewmodel.PickingScanState
 
 @Composable
 fun AppNavHost() {
@@ -120,7 +71,7 @@ fun AppNavHost() {
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
         ) {
-            DashboardScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.DashboardScreen(
                 onLogoutClick = {
                     navController.navigate(Login) {
                         popUpTo<Dashboard> { inclusive = true }
@@ -142,7 +93,7 @@ fun AppNavHost() {
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
         ) {
-            LoginScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(Dashboard) {
                         popUpTo<Login> { inclusive = true }
@@ -153,38 +104,48 @@ fun AppNavHost() {
         }
         // 服务器配置页
         composable<ServerConfig> {
-            ServerConfigScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ServerConfigScreen(
                 onBackClick = safeBack,
                 onSaveClick = safeBack
             )
         }
         // 借出
         composable<PickingList> {
-            PickingListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.PickingListScreen(
                 onBackClick = safeBack,
-                onStartPickClick = { order ->
-                    navController.navigate(order.toPickingScan()) { launchSingleTop = true }
+                onStartPickClick = {
+                    navController.navigate(PickingScan) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }
         composable<PickingScan> { entry ->
-            val route = entry.toRoute<PickingScan>()
-            PickingScanScreen(
-                order = route,
-                onBackClick = safeBack,
-                onNextClick = {
-                    navController.navigate(route.toPickingConfirm()) {
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.PickingScanScreen(
+                state = viewModel<PickingScanState>(entry),
+                onManualClick = {
+                    navController.navigate(PickingManual) {
                         launchSingleTop = true
                     }
                 },
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(PickingConfirm) { launchSingleTop = true } },
                 onSettingsClick = {},
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
+        composable<PickingManual> { entry ->
+            val scanEntry = remember(entry) { navController.getBackStackEntry<PickingScan>() }
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.PickingByMan(
+                state = viewModel<PickingScanState>(scanEntry),
+                onBackClick = safeBack,
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
         composable<PickingConfirm> { entry ->
-            val route = entry.toRoute<PickingConfirm>()
-            PickingConfirmScreen(
-                order = route,
+            val scanEntry = remember(entry) { navController.getBackStackEntry<PickingScan>() }
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.PickingConfirmScreen(
+                state = viewModel<PickingScanState>(scanEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<PickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -192,7 +153,7 @@ fun AppNavHost() {
         }
         // 归还
         composable<ReturnList> {
-            ReturnListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ReturnListScreen(
                 onBackClick = safeBack,
                 onStartReturnClick = { order ->
                     navController.navigate(order.toReturnScan()) { launchSingleTop = true }
@@ -201,7 +162,7 @@ fun AppNavHost() {
         }
         composable<ReturnScan> { entry ->
             val route = entry.toRoute<ReturnScan>()
-            ReturnScanScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ReturnScanScreen(
                 order = route,
                 onBackClick = safeBack,
                 onNextClick = {
@@ -214,7 +175,7 @@ fun AppNavHost() {
         }
         composable<ReturnConfirm> { entry ->
             val route = entry.toRoute<ReturnConfirm>()
-            ReturnConfirmScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ReturnConfirmScreen(
                 order = route,
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<ReturnList>(false) },
@@ -223,20 +184,20 @@ fun AppNavHost() {
         }
         // 工具送检
         composable<InspectionList> {
-            InspectionListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InspectionListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(InspectionScan) }
             )
         }
         composable<InspectionScan> {
-            InspectionScanScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InspectionScanScreen(
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(InspectionConfirm) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<InspectionConfirm> {
-            InspectionConfirmScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InspectionConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<InspectionList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -244,20 +205,20 @@ fun AppNavHost() {
         }
         // 工具送修
         composable<RepairList> {
-            RepairListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.RepairListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(RepairScan) }
             )
         }
         composable<RepairScan> {
-            RepairScanScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.RepairScanScreen(
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(RepairConfirm) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<RepairConfirm> {
-            RepairConfirmScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.RepairConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<RepairList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -265,20 +226,20 @@ fun AppNavHost() {
         }
         // 工具报废
         composable<ScrapList> {
-            ScrapListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ScrapListScreen(
                 onBackClick = safeBack,
                 onAddApplyClick = { navController.navigate(ScrapScan) }
             )
         }
         composable<ScrapScan> {
-            ScrapScanScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ScrapScanScreen(
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(ScrapConfirm) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<ScrapConfirm> {
-            ScrapConfirmScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ScrapConfirmScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<ScrapList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -286,7 +247,7 @@ fun AppNavHost() {
         }
         // 报废出库
         composable<ScrapOutList> {
-            ScrapOutListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ScrapOutListScreen(
                 onBackClick = safeBack,
                 onCheckClick = { order ->
                     navController.navigate(order.toScrapOutCheck())
@@ -295,7 +256,7 @@ fun AppNavHost() {
         }
         composable<ScrapOutCheck> { entry ->
             val route = entry.toRoute<ScrapOutCheck>()
-            ScrapOutCheckScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.ScrapOutCheckScreen(
                 order = ScrapOrder(
                     orderNo = route.orderNo,
                     applicant = route.applicant,
@@ -310,7 +271,7 @@ fun AppNavHost() {
         }
         // 盘点管理
         composable<InventoryList> {
-            InventoryListScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InventoryListScreen(
                 onBackClick = safeBack,
                 onStartInventoryClick = { record ->
                     navController.navigate(record.toInventoryScan())
@@ -318,7 +279,7 @@ fun AppNavHost() {
             )
         }
         composable<InventoryScan> { entry ->
-            InventoryScanScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InventoryScanScreen(
                 order = entry.toRoute<InventoryScan>(),
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(InventoryResult) },
@@ -326,7 +287,7 @@ fun AppNavHost() {
             )
         }
         composable<InventoryResult> {
-            InventoryResultScreen(
+            _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.InventoryResultScreen(
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<InventoryList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }

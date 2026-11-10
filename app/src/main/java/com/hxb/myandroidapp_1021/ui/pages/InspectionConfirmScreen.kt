@@ -68,7 +68,7 @@ fun InspectionConfirmScreen(
     ),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
-    onHomeClick:()-> Unit = {}
+    onHomeClick: () -> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
@@ -253,9 +253,10 @@ fun InspectionConfirmScreen(
                             TextButton(
                                 onClick = {
                                     datePickerState.selectedDateMillis?.let { millis ->
-                                        returnDate = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
-                                            timeZone = TimeZone.getTimeZone("UTC")
-                                        }.format(Date(millis))
+                                        returnDate =
+                                            SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
+                                                timeZone = TimeZone.getTimeZone("UTC")
+                                            }.format(Date(millis))
                                     }
                                     showDatePicker = false
                                 },

@@ -267,7 +267,10 @@ fun InspectionListScreen(
                                 HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
 
                                 Column(
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 12.dp
+                                    ),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     listOf(

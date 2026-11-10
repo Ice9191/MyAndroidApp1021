@@ -53,7 +53,7 @@ fun DashboardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    _root_ide_package_.com.hxb.myandroidapp_1021.ui.pages.DashboardContent(
+    DashboardContent(
         uiState = uiState,
         onLogoutClick = onLogoutClick,
         onSettingsClick = onSettingsClick,
@@ -195,7 +195,8 @@ fun DashboardContent(
                     ) {
                         section.items.forEach { item ->
                             Row(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .weight(1f)
                                     .background(lightBlueBg, RoundedCornerShape(8.dp))
                                     .clickable { onMenuClick(item.route) }
                                     .padding(vertical = 16.dp, horizontal = 12.dp),

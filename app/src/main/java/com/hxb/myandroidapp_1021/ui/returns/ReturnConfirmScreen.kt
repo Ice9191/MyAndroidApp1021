@@ -115,6 +115,7 @@ fun ReturnConfirmContent(
                 },
                 navigationIcon = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = { focusManager.clearFocus(); onBackClick() },
                         modifier = Modifier.offset(x = (-7).dp)
                     ) {
@@ -126,6 +127,7 @@ fun ReturnConfirmContent(
                 },
                 actions = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onHomeClick()

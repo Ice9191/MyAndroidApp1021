@@ -173,7 +173,7 @@ fun LoginContent(
                             )
                         },
                         trailingIcon = {
-                            IconButton(onClick = onTogglePasswordVisible) {
+                            IconButton(shape = RoundedCornerShape(4.dp), onClick = onTogglePasswordVisible) {
                                 Icon(
                                     imageVector = image,
                                     contentDescription = "Toggle password visibility",

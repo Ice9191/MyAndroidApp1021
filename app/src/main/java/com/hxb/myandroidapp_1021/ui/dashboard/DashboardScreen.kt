@@ -90,6 +90,7 @@ fun DashboardContent(
                 },
                 actions = {
                     TextButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = onLogoutClick,
                         modifier = Modifier.padding(end = 4.dp)
                     ) {
@@ -100,6 +101,7 @@ fun DashboardContent(
                         )
                     }
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = onSettingsClick,
                         modifier = Modifier.offset(x = (-4).dp)
                     ) {

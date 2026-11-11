@@ -26,7 +26,9 @@ class ReturnConfirmViewModel : ViewModel() {
         _uiState.update { it.copy(boundLocation = it.locationCode.trim()) }
     }
 
-    /** 库位修改会撤销绑定；确认时统一校验表单及读取清单，并阻止重复提交。 */
+    /**
+     * 库位修改会撤销绑定；确认时统一校验表单及读取清单，并阻止重复提交。
+     */
     fun confirmReturn(order: ReturnOrder?, tools: List<ReturnToolScanItem>, onSuccess: () -> Unit) {
         val state = _uiState.value
         if (order == null || tools.isEmpty() || !state.canConfirm) return

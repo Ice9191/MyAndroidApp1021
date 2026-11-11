@@ -16,7 +16,9 @@ data class LoginRequest(val username: String, val password: String)
 @Serializable
 data class LoginResponse(val userName: String, val userRole: String, val token: String? = null)
 
-/** 前端表单状态，密码可见性、加载及错误信息不由后端提供。 */
+/**
+ * 前端表单状态，密码可见性、加载及错误信息不由后端提供。
+ */
 
 data class LoginUiState(
     val username: String = "",

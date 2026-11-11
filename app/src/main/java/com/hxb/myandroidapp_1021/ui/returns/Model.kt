@@ -30,7 +30,9 @@ enum class ReturnStatus(val label: String) {
     PARTIALLY_RETURNED("部分归还")
 }
 
-/** 前端列表状态，不作为数据库字段或后端响应对象。 */
+/**
+ * 前端列表状态，不作为数据库字段或后端响应对象。
+ */
 data class ReturnListUiState(
     val isLoading: Boolean = false,
     val searchQuery: String = "",
@@ -57,7 +59,9 @@ data class ReturnToolScanItem(
     val readDate: String = ""
 )
 
-/** 前端扫描状态；单据和明细是接口数据，加载标记及筛选列表只供页面使用。 */
+/**
+ * 前端扫描状态；单据和明细是接口数据，加载标记及筛选列表只供页面使用。
+ */
 data class ReturnScanUiState(
     val isLoading: Boolean = false,
     val order: ReturnOrder? = null,
@@ -67,7 +71,9 @@ data class ReturnScanUiState(
     val unreadList: List<ReturnToolScanItem> get() = tools.filterNot { it.isRead }
 }
 
-/** 前端确认页状态，不直接作为后端数据模型。 */
+/**
+ * 前端确认页状态，不直接作为后端数据模型。
+ */
 data class ReturnConfirmUiState(
     val employeeId: String = "",
     val locationCode: String = "",

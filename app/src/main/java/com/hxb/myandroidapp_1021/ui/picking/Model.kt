@@ -31,7 +31,9 @@ enum class PickingStatus(val label: String) {
     CLOSED("已关闭")
 }
 
-/** 前端列表状态，不作为数据库字段或后端响应对象。 */
+/**
+ * 前端列表状态，不作为数据库字段或后端响应对象。
+ */
 data class PickingListUiState(
     val isLoading: Boolean = false,
     val searchQuery: String = "",
@@ -58,7 +60,9 @@ data class PickingToolScanItem(
     val readDate: String = ""
 )
 
-/** 前端扫描状态；单据和明细是接口数据，加载标记及筛选列表只供页面使用。 */
+/**
+ * 前端扫描状态；单据和明细是接口数据，加载标记及筛选列表只供页面使用。
+ */
 data class PickingScanUiState(
     val isLoading: Boolean = false,
     val order: PickingOrder? = null,
@@ -68,7 +72,9 @@ data class PickingScanUiState(
     val unreadList: List<PickingToolScanItem> get() = tools.filterNot { it.isRead }
 }
 
-/** 确认页元数据：文档“借用交接”中的经办人和出库时间。 */
+/**
+ * 确认页元数据：文档“借用交接”中的经办人和出库时间。
+ */
 @Serializable
 data class PickingConfirmData(val handler: String, val outboundTime: String)
 
@@ -83,7 +89,9 @@ data class PickingConfirmRequest(
     val rfids: List<String>
 )
 
-/** 前端确认页状态，不作为数据库字段。 */
+/**
+ * 前端确认页状态，不作为数据库字段。
+ */
 data class PickingConfirmUiState(
     val isLoading: Boolean = true,
     val employeeId: String = "",

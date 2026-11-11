@@ -12,7 +12,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.navigation.InspectionList
 import com.hxb.myandroidapp_1021.navigation.InventoryList
+import com.hxb.myandroidapp_1021.navigation.OtherPickingList
+import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
 import com.hxb.myandroidapp_1021.navigation.PickingList
+import com.hxb.myandroidapp_1021.navigation.PutawayList
 import com.hxb.myandroidapp_1021.navigation.RepairList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
 import com.hxb.myandroidapp_1021.navigation.ScrapList
@@ -60,7 +63,8 @@ class DashboardViewModel : ViewModel() {
         MenuSectionData(
             title = "入库管理",
             items = listOf(
-                MenuItemData("工器具上架", Icons.Filled.QrCodeScanner, InventoryList)
+                // 原入口误指向盘点；文档“上架单”要求独立的 PDA 上架作业入口。
+                MenuItemData("工器具上架", Icons.Filled.QrCodeScanner, PutawayList)
             )
         ),
         MenuSectionData(
@@ -68,6 +72,13 @@ class DashboardViewModel : ViewModel() {
             items = listOf(
                 MenuItemData("拣选", Icons.AutoMirrored.Filled.ExitToApp, PickingList),
                 MenuItemData("归还", Icons.AutoMirrored.Filled.Login, ReturnList)
+            )
+        ),
+        MenuSectionData(
+            title = "其他作业",
+            items = listOf(
+                MenuItemData("其他拣选", Icons.AutoMirrored.Filled.ExitToApp, OtherPickingList),
+                MenuItemData("其他上架", Icons.Filled.QrCodeScanner, OtherPutawayList)
             )
         ),
         MenuSectionData(

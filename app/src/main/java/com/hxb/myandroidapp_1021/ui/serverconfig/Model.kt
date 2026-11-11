@@ -17,7 +17,9 @@ enum class ConnectionStatus{
     FAILURE   // 连接失败
 }
 
-/** 前端表单和连接测试状态，连接结果不作为数据库列。 */
+/**
+ * 前端表单和连接测试状态，连接结果不作为数据库列。
+ */
 data class ServerConfigUiState(
     val ipAddress: String = "",
     val port: String = "",

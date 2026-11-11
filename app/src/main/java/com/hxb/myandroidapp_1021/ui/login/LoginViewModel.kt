@@ -32,7 +32,9 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    /** 先校验本次输入快照，再模拟认证；加载期间忽略重复登录。 */
+    /**
+     * 先校验本次输入快照，再模拟认证；加载期间忽略重复登录。
+     */
     fun login(onSuccess: () -> Unit) {
         val state = _uiState.value
         if (state.isLoading) return

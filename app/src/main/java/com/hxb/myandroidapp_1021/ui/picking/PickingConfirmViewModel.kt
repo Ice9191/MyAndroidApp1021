@@ -37,7 +37,9 @@ class PickingConfirmViewModel : ViewModel() {
         _uiState.update { it.copy(employeeId = value, errorMessage = null) }
     }
 
-    /** 只提交当前流程已读签的 RFID；请求校验与重复提交保护均在 ViewModel 完成。 */
+    /**
+     * 只提交当前流程已读签的 RFID；请求校验与重复提交保护均在 ViewModel 完成。
+     */
     fun confirmOutbound(
         order: PickingOrder?,
         tools: List<PickingToolScanItem>,

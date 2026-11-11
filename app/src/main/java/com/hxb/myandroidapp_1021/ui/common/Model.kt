@@ -2,13 +2,17 @@ package com.hxb.myandroidapp_1021.ui.common
 
 import androidx.compose.ui.graphics.Color
 
-/** 两个以上业务模块使用的前端展示字段，不是数据库或接口模型。 */
+/**
+ * 两个以上业务模块使用的前端展示字段，不是数据库或接口模型。
+ */
 data class DisplayField(
     val label: String,
     val value: String
 )
 
-/** 两个以上业务模块使用的双列展示配置，颜色与排版不由后端返回。 */
+/**
+ * 两个以上业务模块使用的双列展示配置，颜色与排版不由后端返回。
+ */
 data class InfoRow(
     val left: DisplayField,
     val right: DisplayField,
@@ -16,7 +20,9 @@ data class InfoRow(
     val rightColor: Color? = null
 )
 
-/** 多模块共用的前端页签，不是工具业务状态。 */
+/**
+ * 多模块共用的前端页签，不是工具业务状态。
+ */
 enum class ScanTab {
     All,      // 全部
     Read,     // 已读取

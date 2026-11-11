@@ -101,7 +101,7 @@ fun InventoryResultScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "返回"
@@ -110,6 +110,7 @@ fun InventoryResultScreen(
                 },
                 actions = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onHomeClick()
@@ -289,12 +290,12 @@ fun InventoryResultScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showConfirmDialog = false; onConfirmClick() }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false; onConfirmClick() }) {
                     Text("确认", color = themeBlue)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false }) {
                     Text("取消", color = Color(0xFF888888))
                 }
             }

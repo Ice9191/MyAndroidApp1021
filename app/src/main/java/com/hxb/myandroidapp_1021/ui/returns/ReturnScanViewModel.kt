@@ -69,7 +69,9 @@ class ReturnScanViewModel : ViewModel() {
         }
     }
 
-    /** 新单据进入同一流程时清空上次读签结果；加载中的单据选择不会被模拟响应覆盖。 */
+    /**
+     * 新单据进入同一流程时清空上次读签结果；加载中的单据选择不会被模拟响应覆盖。
+     */
     fun selectOrder(order: ReturnOrder) {
         _uiState.update { state ->
             state.copy(
@@ -78,7 +80,9 @@ class ReturnScanViewModel : ViewModel() {
         }
     }
 
-    /** 只切换本次读签状态及时间，不直接改动单据已完成数量或库存。 */
+    /**
+     * 只切换本次读签状态及时间，不直接改动单据已完成数量或库存。
+     */
     fun toggleRead(ids: Set<Int>) {
         val readDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
         _uiState.update { state ->

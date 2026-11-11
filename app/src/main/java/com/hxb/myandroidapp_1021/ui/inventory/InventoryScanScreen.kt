@@ -141,7 +141,7 @@ fun InventoryScanContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Back"
@@ -149,14 +149,14 @@ fun InventoryScanContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.offset(x = (-4).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onSettingsClick, modifier = Modifier.offset(x = (-4).dp)) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Setting",
                             tint = Color.White
                         )
                     }
-                    IconButton(onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
                         Icon(
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",
@@ -477,6 +477,7 @@ fun InventoryScanContent(
             containerColor = Color.White,
             confirmButton = {
                 TextButton(
+                    shape = RoundedCornerShape(4.dp),
                     onClick = {
                         if (isManualRead) {
                             // 未读取 -> 已读取，记录拣选日期
@@ -506,7 +507,7 @@ fun InventoryScanContent(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false }) {
                     Text("取消", color = textGray)
                 }
             }

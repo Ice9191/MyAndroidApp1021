@@ -41,7 +41,8 @@ fun InputFieldOne(
     modifier: Modifier = Modifier,
     showSearchIcon: Boolean = true,
     errorMessage: String? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
+    keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+    enabled: Boolean = true
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -60,6 +61,7 @@ fun InputFieldOne(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         BasicTextField(
+            enabled = enabled,
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
@@ -73,7 +75,7 @@ fun InputFieldOne(
             decorationBox = { innerTextField ->
                 Box {
                     OutlinedTextFieldDefaults.Container(
-                        enabled = true,
+                        enabled = enabled,
                         isError = errorMessage != null,
                         interactionSource = searchInteractionSource,
                         modifier = Modifier.matchParentSize(),

@@ -76,7 +76,9 @@ class ReturnListViewModel : ViewModel() {
         _uiState.update { it.copy(selectedStatus = value).filterOrders() }
     }
 
-    /** 在同一份原始数据上组合搜索和状态筛选，加载完成时也保留用户已选条件。 */
+    /**
+     * 在同一份原始数据上组合搜索和状态筛选，加载完成时也保留用户已选条件。
+     */
     private fun ReturnListUiState.filterOrders(): ReturnListUiState = copy(
         filteredOrders = orders.filter { order ->
             (selectedStatus == null || order.status == selectedStatus) &&

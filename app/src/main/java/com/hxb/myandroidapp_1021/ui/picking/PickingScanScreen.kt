@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Home
@@ -137,7 +138,7 @@ fun PickingScanContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                             contentDescription = "Back"
@@ -145,7 +146,7 @@ fun PickingScanContent(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onSettingsClick, modifier = Modifier.offset(x = (-4).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onSettingsClick, modifier = Modifier.offset(x = (-4).dp)) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Setting",
@@ -153,7 +154,7 @@ fun PickingScanContent(
                         )
                     }
 
-                    IconButton(onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
+                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
                         Icon(
                             imageVector = Icons.Default.Home,
                             contentDescription = "Home",

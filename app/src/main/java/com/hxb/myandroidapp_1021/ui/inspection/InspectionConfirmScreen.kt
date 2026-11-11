@@ -104,6 +104,7 @@ fun InspectionConfirmScreen(
                 },
                 navigationIcon = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onBackClick()
@@ -118,6 +119,7 @@ fun InspectionConfirmScreen(
                 },
                 actions = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onHomeClick()
@@ -225,7 +227,7 @@ fun InspectionConfirmScreen(
                     readOnly = true,
                     placeholder = { Text("请选择预计返回时间") },
                     trailingIcon = {
-                        IconButton(onClick = {
+                        IconButton(shape = RoundedCornerShape(4.dp), onClick = {
                             focusManager.clearFocus()
                             showDatePicker = true
                         }) {
@@ -251,6 +253,7 @@ fun InspectionConfirmScreen(
                         onDismissRequest = { showDatePicker = false },
                         confirmButton = {
                             TextButton(
+                                shape = RoundedCornerShape(4.dp),
                                 onClick = {
                                     datePickerState.selectedDateMillis?.let { millis ->
                                         returnDate =
@@ -266,7 +269,7 @@ fun InspectionConfirmScreen(
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showDatePicker = false }) { Text("取消") }
+                            TextButton(shape = RoundedCornerShape(4.dp), onClick = { showDatePicker = false }) { Text("取消") }
                         }
                     ) {
                         DatePicker(state = datePickerState)
@@ -356,12 +359,12 @@ fun InspectionConfirmScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showConfirmDialog = false; onConfirmClick() }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false; onConfirmClick() }) {
                     Text("确认", color = themeBlue)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false }) {
                     Text("取消", color = Color(0xFF888888))
                 }
             }

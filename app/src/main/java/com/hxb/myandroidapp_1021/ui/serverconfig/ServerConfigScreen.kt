@@ -102,6 +102,7 @@ fun ServerConfigContent(
                 },
                 navigationIcon = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onBackClick()

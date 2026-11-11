@@ -10,7 +10,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class DashboardData(val userName: String, val userRole: String, val avatarUrl: String)
 
-/** 前端首页状态，连接结果及菜单配置不是数据库字段。 */
+/**
+ * 前端首页状态，连接结果及菜单配置不是数据库字段。
+ */
 data class DashboardUiState(
     val isLoading: Boolean = false,
     val userName: String = "",
@@ -23,7 +25,9 @@ data class DashboardUiState(
         get() = if (serverConnected) "服务器已连接" else "服务器未连接"
 }
 
-/** 本地菜单展示配置，图标和路由不由后端返回。 */
+/**
+ * 本地菜单展示配置，图标和路由不由后端返回。
+ */
 data class MenuItemData(
     val title: String,
     val icon: ImageVector,

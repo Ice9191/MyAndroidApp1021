@@ -113,6 +113,7 @@ fun ScrapConfirmScreen(
                 },
                 navigationIcon = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onBackClick()
@@ -127,6 +128,7 @@ fun ScrapConfirmScreen(
                 },
                 actions = {
                     IconButton(
+                        shape = RoundedCornerShape(4.dp),
                         onClick = {
                             focusManager.clearFocus()
                             onHomeClick()
@@ -245,7 +247,7 @@ fun ScrapConfirmScreen(
                     readOnly = true,
                     placeholder = { Text("请选择报废日期") },
                     trailingIcon = {
-                        IconButton(onClick = {
+                        IconButton(shape = RoundedCornerShape(4.dp), onClick = {
                             focusManager.clearFocus()
                             showDatePicker = true
                         }) {
@@ -271,6 +273,7 @@ fun ScrapConfirmScreen(
                         onDismissRequest = { showDatePicker = false },
                         confirmButton = {
                             TextButton(
+                                shape = RoundedCornerShape(4.dp),
                                 onClick = {
                                     datePickerState.selectedDateMillis?.let { millis ->
                                         returnDate = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply {
@@ -285,7 +288,7 @@ fun ScrapConfirmScreen(
                             }
                         },
                         dismissButton = {
-                            TextButton(onClick = { showDatePicker = false }) { Text("取消") }
+                            TextButton(shape = RoundedCornerShape(4.dp), onClick = { showDatePicker = false }) { Text("取消") }
                         }
                     ) {
                         DatePicker(state = datePickerState)
@@ -301,7 +304,9 @@ fun ScrapConfirmScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(
-                        onClick = { /* 拍照功能暂留占位 */ },
+                        onClick = {
+                            // 拍照功能暂留占位
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -316,7 +321,9 @@ fun ScrapConfirmScreen(
                         Text(" 拍照", fontSize = 13.sp, color = themeBlue)
                     }
                     OutlinedButton(
-                        onClick = { /* 相册选择暂留占位 */ },
+                        onClick = {
+                            // 相册选择暂留占位
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(44.dp),
@@ -415,12 +422,12 @@ fun ScrapConfirmScreen(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showConfirmDialog = false; onConfirmClick() }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false; onConfirmClick() }) {
                     Text("确认", color = themeBlue)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
+                TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false }) {
                     Text("取消", color = Color(0xFF888888))
                 }
             }

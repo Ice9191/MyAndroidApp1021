@@ -27,7 +27,9 @@ class ServerConfigViewModel : ViewModel() {
         }
     }
 
-    /** 使用点击时的配置快照；请求期间修改了地址，则不能把旧结果当作新配置的连接结果。 */
+    /**
+     * 使用点击时的配置快照；请求期间修改了地址，则不能把旧结果当作新配置的连接结果。
+     */
     fun testConnection() {
         val state = _uiState.value
         if (state.isTesting) return

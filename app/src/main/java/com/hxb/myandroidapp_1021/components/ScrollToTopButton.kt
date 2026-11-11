@@ -5,7 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
@@ -13,6 +13,7 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 /**
  * 调用页面控制显隐、位置和回顶操作，可用于不同列表或滚动容器。
@@ -35,7 +36,7 @@ fun ScrollToTopButton(
             onClick = onClick,
             containerColor = themeBlue,
             contentColor = Color.White,
-            shape = CircleShape
+            shape = RoundedCornerShape(4.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowUp,

@@ -11,9 +11,12 @@ data object Login
 @Serializable
 data object ServerConfig
 
-/**
- * 拣选
- */
+@Serializable
+data object PutawayList
+
+@Serializable
+data object PutawayConfirm
+
 @Serializable
 data object PickingList
 
@@ -79,3 +82,18 @@ data object InventoryScan
 
 @Serializable
 data object InventoryResult
+
+@Serializable
+data object OtherPickingList
+
+@Serializable
+data object OtherPickingScan
+
+@Serializable
+data object OtherPickingConfirm
+
+@Serializable
+data object OtherPutawayList
+
+@Serializable
+data object OtherPutaway

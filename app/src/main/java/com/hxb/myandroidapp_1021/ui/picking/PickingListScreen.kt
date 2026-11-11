@@ -42,9 +42,10 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PickingListScreen(
+    scanViewModel: PickingScanViewModel,
     viewModel: PickingListViewModel = viewModel(),
     onBackClick: () -> Unit = {},
-    onStartPickClick: (PickingOrder) -> Unit = {}
+    onStartPickClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -53,7 +54,10 @@ fun PickingListScreen(
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onStatusChange = viewModel::onStatusChange,
         onBackClick = onBackClick,
-        onStartPickClick = onStartPickClick
+        onStartPickClick = { order ->
+            scanViewModel.selectOrder(order)
+            onStartPickClick()
+        }
     )
 }
 
@@ -141,7 +145,7 @@ fun PickingListContent(
                             DisplayField("单据状态", order.status.label),
                             DisplayField("车间/工班", order.workshop),
                             DisplayField("借用人", order.borrower),
-                            DisplayField("计划日期", order.plannedDate)
+                            DisplayField("计划日期", order.plannedDate.ifBlank { "-" })
                         )
                     },
                     progress = { OrderProgress("拣选进度", it.pickedCount, it.totalCount) },

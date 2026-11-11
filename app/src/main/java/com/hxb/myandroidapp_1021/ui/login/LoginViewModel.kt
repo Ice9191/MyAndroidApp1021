@@ -32,32 +32,29 @@ class LoginViewModel : ViewModel() {
         }
     }
 
+    /** 先校验本次输入快照，再模拟认证；加载期间忽略重复登录。 */
     fun login(onSuccess: () -> Unit) {
         val state = _uiState.value
-        if (state.username.isBlank()) {
+        if (state.isLoading) return
+        val request = LoginRequest(state.username.trim(), state.password)
+        if (request.username.isBlank()) {
             _uiState.update { oldState ->
                 oldState.copy(errorMessage = "请输入账号")
             }
             return
         }
-        if (state.password.isBlank()) {
+        if (request.password.isBlank()) {
             _uiState.update { oldState ->
                 oldState.copy(errorMessage = "请输入密码")
             }
             return
         }
-        if (state.isLoading) return
-
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { oldState ->
-                oldState.copy(isLoading = true, errorMessage = null)
-            }
-
-            // TODO：目前用 delay 模拟网络请求
             delay(2000.milliseconds)
-
+            val mockResponse = LoginResponse(userName = request.username, userRole = "材料员")
             _uiState.update { oldState ->
-                oldState.copy(isLoading = false)
+                oldState.copy(isLoading = false, response = mockResponse)
             }
             onSuccess()
         }

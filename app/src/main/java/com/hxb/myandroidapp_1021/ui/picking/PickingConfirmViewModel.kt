@@ -15,67 +15,46 @@ class PickingConfirmViewModel : ViewModel() {
     val uiState: StateFlow<PickingConfirmUiState> = _uiState.asStateFlow()
 
     init {
-        loadConfirmData()
+        loadData()
     }
 
-    private fun loadConfirmData() {
+    private fun loadData() {
         viewModelScope.launch {
             delay(500.milliseconds)
-
-            _uiState.update {
-                it.copy(
+            val mockConfirmation =
+                PickingConfirmData(handler = "王芳（材料员）", outboundTime = "2026-11-11 09:30")
+            _uiState.update { state ->
+                state.copy(
                     isLoading = false,
-                    orderNo = "JC20231028001",
-                    orderStatus = PickingStatus.UNPICKED,
-                    borrower = "张三",
-                    workshop = "检修一班",
-                    handler = "王芳（材料员）",
-                    outboundTime = "2026-10-30 09:30",
-                    unreadCount = 2, // 假设还有2件未读取
-                    readTools = listOf(
-                        PickingToolScanItem(
-                            id = 1,
-                            name = "绝缘扳手",
-                            status = ToolScanItemStatus.PICKED,
-                            itemCode = "GJ-001",
-                            rfid = "E280 1160 6000 0200 0001",
-                            recommendedLocation = "A1-1",
-                            unit = "个"
-                        ),
-                        PickingToolScanItem(
-                            id = 2,
-                            name = "数字万用表",
-                            status = ToolScanItemStatus.PICKED,
-                            itemCode = "GJ-002",
-                            rfid = "E280 1160 6000 0200 0002",
-                            recommendedLocation = "A1-2",
-                            unit = "个"
-                        )
-                    )
+                    handler = mockConfirmation.handler,
+                    outboundTime = mockConfirmation.outboundTime
                 )
             }
         }
     }
 
-    fun onEmployeeIdChange(newId: String) {
-        _uiState.update { it.copy(employeeId = newId, errorMessage = null) }
+    fun onEmployeeIdChange(value: String) {
+        _uiState.update { it.copy(employeeId = value, errorMessage = null) }
     }
 
-    fun confirmOutbound(onSuccess: () -> Unit) {
+    /** 只提交当前流程已读签的 RFID；请求校验与重复提交保护均在 ViewModel 完成。 */
+    fun confirmOutbound(
+        order: PickingOrder?,
+        tools: List<PickingToolScanItem>,
+        onSuccess: () -> Unit
+    ) {
         val state = _uiState.value
-        if (state.employeeId.isBlank()) {
+        if (state.isLoading || state.isSubmitting || order == null || tools.isEmpty()) return
+        val request =
+            PickingConfirmRequest(order.orderNo, state.employeeId.trim(), tools.map { it.rfid })
+        if (request.employeeId.isBlank()) {
             _uiState.update { it.copy(errorMessage = "请输入领料人工号") }
             return
         }
-        if (state.isSubmitting) return
-
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
-
-            // 模拟提交网络请求
+            // TODO: 字段未确定，确认后将 request 交给真实出库接口。
             delay(800.milliseconds)
-
-            // TODO: 接入真实接口
             _uiState.update { it.copy(isSubmitting = false) }
             onSuccess()
         }

@@ -52,19 +52,28 @@ import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
 
 @Composable
 fun PickingConfirmScreen(
+    scanViewModel: PickingScanViewModel,
     viewModel: PickingConfirmViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scanState by scanViewModel.uiState.collectAsStateWithLifecycle()
 
     PickingConfirmContent(
         uiState = uiState,
+        scanState = scanState,
         onEmployeeIdChange = viewModel::onEmployeeIdChange,
         onBackClick = onBackClick,
         onHomeClick = onHomeClick,
-        onConfirmClick = { viewModel.confirmOutbound(onSuccess = onConfirmClick) }
+        onConfirmClick = {
+            viewModel.confirmOutbound(
+                scanState.order,
+                scanState.readList,
+                onConfirmClick
+            )
+        }
     )
 }
 
@@ -72,6 +81,7 @@ fun PickingConfirmScreen(
 @Composable
 fun PickingConfirmContent(
     uiState: PickingConfirmUiState,
+    scanState: PickingScanUiState,
     onEmployeeIdChange: (String) -> Unit,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
@@ -84,12 +94,12 @@ fun PickingConfirmContent(
     val textGray = Color(0xFF888888)
     // 根据状态生成展示字段
     val infoFields = listOf(
-        DisplayField("姓名", uiState.borrower),
-        DisplayField("班组", uiState.workshop),
+        DisplayField("姓名", scanState.order?.borrower.orEmpty()),
+        DisplayField("班组", scanState.order?.workshop.orEmpty()),
         DisplayField("经办人", uiState.handler),
         DisplayField("出库时间", uiState.outboundTime)
     )
-    val toolRows = uiState.readTools.map { ToolInfoRow(rfid = it.rfid, name = it.name) }
+    val toolRows = scanState.readList.map { ToolInfoRow(rfid = it.rfid, name = it.name) }
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -147,7 +157,7 @@ fun PickingConfirmContent(
                         .height(44.dp),
                     shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = themeBlue),
-                    enabled = !uiState.isSubmitting
+                    enabled = !uiState.isLoading && !uiState.isSubmitting && scanState.readList.isNotEmpty()
                 ) {
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
@@ -197,16 +207,20 @@ fun PickingConfirmContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "拣选单号：${uiState.orderNo}",
+                            text = "拣选单号：${scanState.order?.orderNo.orEmpty()}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = textDark
                         )
-                        Text(text = uiState.orderStatus.label, fontSize = 14.sp, color = themeBlue)
+                        Text(
+                            text = scanState.order?.status?.label.orEmpty(),
+                            fontSize = 14.sp,
+                            color = themeBlue
+                        )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "已读取${uiState.readTools.size}件 / 未读取${uiState.unreadCount}件",
+                        text = "已读取${scanState.readList.size}件 / 未读取${scanState.unreadList.size}件",
                         fontSize = 14.sp,
                         color = textDark
                     )

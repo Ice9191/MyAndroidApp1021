@@ -42,18 +42,22 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ReturnListScreen(
+    scanViewModel: ReturnScanViewModel,
     viewModel: ReturnListViewModel = viewModel(),
     onBackClick: () -> Unit = {},
-    onStartReturnClick: (ReturnOrder) -> Unit = {}
+    onStartReturnClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     ReturnListContent(
         uiState = uiState,
         onSearchQueryChange = viewModel::onSearchQueryChange,
-        onFilterChange = viewModel::onFilterChange,
+        onStatusChange = viewModel::onStatusChange,
         onBackClick = onBackClick,
-        onStartReturnClick = onStartReturnClick
+        onStartReturnClick = { order ->
+            scanViewModel.selectOrder(order)
+            onStartReturnClick()
+        }
     )
 }
 
@@ -62,9 +66,9 @@ fun ReturnListScreen(
 fun ReturnListContent(
     uiState: ReturnListUiState,
     onSearchQueryChange: (String) -> Unit,
-    onFilterChange: (FilterType) -> Unit,
     onBackClick: () -> Unit = {},
-    onStartReturnClick: (ReturnOrder) -> Unit = {}
+    onStartReturnClick: (ReturnOrder) -> Unit = {},
+    onStatusChange: (ReturnStatus?) -> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val pageBg = Color(0xFFF5F6F8)
@@ -141,16 +145,16 @@ fun ReturnListContent(
                             DisplayField("单据状态", order.status.label),
                             DisplayField("车间/工班", order.workshop),
                             DisplayField("归还人", order.returner),
-                            DisplayField("归还日期", order.returnedDate.ifBlank { "-" })
+                            DisplayField("归还时间", order.returnedDate.ifBlank { "-" })
                         )
                     },
                     progress = { OrderProgress("归还进度", it.returnedCount, it.totalCount) },
                     actionText = "开始上架",
                     onActionClick = onStartReturnClick,
                     modifier = Modifier.fillMaxSize(),
-                    filterOptions = FilterType.entries.map { it.label },
-                    selectedFilterIndex = uiState.selectedFilter.ordinal,
-                    onFilterChange = { onFilterChange(FilterType.entries[it]) }
+                    filterOptions = listOf("全部") + ReturnStatus.entries.map { it.label },
+                    selectedFilterIndex = uiState.selectedStatus?.let { it.ordinal + 1 } ?: 0,
+                    onFilterChange = { onStatusChange(ReturnStatus.entries.getOrNull(it - 1)) }
                 )
             }
 

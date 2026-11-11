@@ -3,9 +3,7 @@ package com.hxb.myandroidapp_1021.ui.returns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,68 +14,66 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.input.TextFieldLineLimits
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.components.InputFieldOne
+import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
-import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
 
 @Composable
 fun ReturnConfirmScreen(
-    viewModel: ReturnScanViewModel = viewModel(),
+    scanViewModel: ReturnScanViewModel,
+    viewModel: ReturnConfirmViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scanState by scanViewModel.uiState.collectAsStateWithLifecycle()
     ReturnConfirmContent(
-        order = uiState.order,
-        tools = uiState.readList.map { tool ->
-            ToolScanItem(
-                id = tool.id.toString(),
-                name = tool.name,
-                code = tool.itemCode,
-                rfid = tool.rfid,
-                pickDate = tool.readDate
+        uiState = uiState,
+        scanState = scanState,
+        onEmployeeIdChange = viewModel::onEmployeeIdChange,
+        onLocationChange = viewModel::onLocationChange,
+        onBindLocation = viewModel::bindLocation,
+        onBackClick = onBackClick,
+        onConfirmClick = {
+            viewModel.confirmReturn(
+                scanState.order,
+                scanState.readList,
+                onConfirmClick
             )
         },
-        onBackClick = onBackClick,
-        onConfirmClick = onConfirmClick,
         onHomeClick = onHomeClick
     )
 }
@@ -85,13 +81,11 @@ fun ReturnConfirmScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReturnConfirmContent(
-    order: ReturnOrder? = null,
-    tools: List<ToolScanItem> = listOf(
-        ToolScanItem("GJ-01118", rfid = "E200 1118 B001"),
-        ToolScanItem("GJ-01155", rfid = "E200 1155 B002"),
-        ToolScanItem("GJ-01162", rfid = "E200 1162 B003")
-    ),
-    orderNo: String = order?.orderNo ?: "JC20261027006",
+    uiState: ReturnConfirmUiState,
+    scanState: ReturnScanUiState,
+    onEmployeeIdChange: (String) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onBindLocation: () -> Unit,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
@@ -100,17 +94,10 @@ fun ReturnConfirmContent(
     val focusManager = LocalFocusManager.current
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
-    val employeeIdState = rememberTextFieldState("100268")
-    val locationState = rememberTextFieldState()
-    var boundLocation by remember { mutableStateOf("") }
+    val tools = scanState.readList
+    val orderNo = scanState.order?.orderNo.orEmpty()
     var showConfirmDialog by remember { mutableStateOf(false) }
-    val canComplete =
-        tools.isNotEmpty() && employeeIdState.text.isNotBlank() && boundLocation.isNotBlank()
-
-    LaunchedEffect(locationState) {
-        snapshotFlow { locationState.text.toString() }.collect { boundLocation = "" }
-    }
+    val canComplete = tools.isNotEmpty() && uiState.canConfirm
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -178,7 +165,7 @@ fun ReturnConfirmContent(
                     )
                 ) {
                     Text(
-                        "完成",
+                        if (uiState.isSubmitting) "提交中" else "完成",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -232,43 +219,13 @@ fun ReturnConfirmContent(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    OutlinedTextField(
-                        state = employeeIdState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(38.dp),
-                        textStyle = TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            color = Color(0xFF333333)
-                        ),
-                        placeholder = {
-                            Text(
-                                text = "请输入归还人工号",
-                                fontSize = 14.sp,
-                                color = Color(0xFF999999)
-                            )
-                        },
-                        lineLimits = TextFieldLineLimits.SingleLine,
-                        shape = RoundedCornerShape(4.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color(0xFF333333),
-                            unfocusedTextColor = Color(0xFF333333),
-                            focusedContainerColor = Color(0xFFF5F6F8),
-                            unfocusedContainerColor = Color(0xFFF5F6F8),
-                            focusedBorderColor = themeBlue,
-                            unfocusedBorderColor = Color.Transparent,
-                            cursorColor = themeBlue
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
-                    )
-                }
+                InputFieldOne(
+                    value = uiState.employeeId,
+                    onValueChange = onEmployeeIdChange,
+                    placeholder = "请输入归还人工号",
+                    showSearchIcon = false,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                )
             }
             HorizontalDivider(thickness = 8.dp, color = Color(0xFFE0E0E0))
             Column(
@@ -283,50 +240,20 @@ fun ReturnConfirmContent(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    OutlinedTextField(
-                        state = locationState,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(38.dp),
-                        textStyle = TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            color = Color(0xFF333333)
-                        ),
-                        placeholder = {
-                            Text(
-                                text = "输入库位",
-                                fontSize = 14.sp,
-                                color = Color(0xFF999999)
-                            )
-                        },
-                        lineLimits = TextFieldLineLimits.SingleLine,
-                        shape = RoundedCornerShape(4.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color(0xFF333333),
-                            unfocusedTextColor = Color(0xFF333333),
-                            focusedContainerColor = Color(0xFFF5F6F8),
-                            unfocusedContainerColor = Color(0xFFF5F6F8),
-                            focusedBorderColor = themeBlue,
-                            unfocusedBorderColor = Color.Transparent,
-                            cursorColor = themeBlue
-                        ),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
-                    )
-                }
+                InputFieldOne(
+                    value = uiState.locationCode,
+                    onValueChange = onLocationChange,
+                    placeholder = "输入库位",
+                    showSearchIcon = false,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done)
+                )
                 Spacer(Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        focusManager.clearFocus(); boundLocation =
-                        locationState.text.toString().trim()
+                        focusManager.clearFocus()
+                        onBindLocation()
                     },
-                    enabled = locationState.text.isNotBlank(),
+                    enabled = uiState.locationCode.isNotBlank() && !uiState.isSubmitting,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
@@ -346,87 +273,21 @@ fun ReturnConfirmContent(
                 }
             }
             HorizontalDivider(thickness = 8.dp, color = Color.White)
-            val toolRows = tools.map { ToolInfoRow(rfid = it.rfid) }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-            ) {
-                // 表头
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(Color(0xFFF5F6F8))
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "RFID",
-                        modifier = Modifier.weight(1f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                    Text(
-                        text = "数量/件",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textGray
-                    )
-                }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
-
-                // 数据行
-                toolRows.forEach { row ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = row.rfid,
-                                fontSize = 14.sp,
-                                lineHeight = 16.sp,
-                                color = textDark
-                            )
-                        }
-                        Text(
-                            text = row.value ?: "${row.quantity}",
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            color = row.valueColor ?: textDark
-                        )
-                    }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-                }
-            }
+            ToolsInfoList(
+                rows = tools.map { ToolInfoRow(rfid = it.rfid, name = it.name) },
+            )
         }
     }
     if (showConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = { showConfirmDialog = false },
-            title = { Text("确认上架") },
-            text = { Text("确认${tools.size}件工具已放入 $boundLocation？当前仅演示页面流程，不提交归还记录。") },
-            containerColor = Color.White,
-            confirmButton = {
-                TextButton(onClick = { showConfirmDialog = false; onConfirmClick() }) {
-                    Text(
-                        "确认",
-                        color = themeBlue
-                    )
-                }
+        ConfirmDialog(
+            title = "确认上架",
+            onConfirm = {
+                showConfirmDialog = false
+                onConfirmClick()
             },
-            dismissButton = {
-                TextButton(onClick = { showConfirmDialog = false }) {
-                    Text(
-                        "取消",
-                        color = textGray
-                    )
-                }
-            }
-        )
+            onDismiss = { showConfirmDialog = false }
+        ) {
+            Text("确认${tools.size}件工具已放入 ${uiState.boundLocation}？当前仅演示页面流程，不提交归还记录。")
+        }
     }
 }

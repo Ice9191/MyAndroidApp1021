@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScanTabs
@@ -50,7 +49,7 @@ import com.hxb.myandroidapp_1021.ui.common.DisplayField
 
 @Composable
 fun PickingManualScreen(
-    viewModel: PickingScanViewModel = viewModel(),
+    viewModel: PickingScanViewModel,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
@@ -162,7 +161,7 @@ fun PickingManualContent(
                 key = { it.id }
             ) { tool ->
                 val selected = tool.id in selectedIds
-                val picked = tool.status == ToolScanItemStatus.PICKED
+                val read = tool.isRead
                 val lift by animateDpAsState(if (selected) 2.dp else 0.dp, label = "cardLift")
                 val selectionModifier = Modifier.toggleable(
                     value = selected,
@@ -200,16 +199,16 @@ fun PickingManualContent(
                             )
                             Surface(
                                 shape = RoundedCornerShape(12.dp),
-                                color = if (picked) Color(0xFFE7F6EB) else Color(0xFFF0F2F5)
+                                color = if (read) Color(0xFFE7F6EB) else Color(0xFFF0F2F5)
                             ) {
                                 Text(
-                                    text = tool.status.label,
+                                    text = if (tool.isRead) "已读取" else "未读取",
                                     modifier = Modifier.padding(
                                         horizontal = 8.dp,
                                         vertical = 2.dp
                                     ),
                                     fontSize = 11.sp,
-                                    color = if (picked) Color(0xFF16763C) else Color(0xFF596575)
+                                    color = if (read) Color(0xFF16763C) else Color(0xFF596575)
                                 )
                             }
                         }
@@ -222,7 +221,7 @@ fun PickingManualContent(
                         listOf(
                             DisplayField("物资编码", tool.itemCode),
                             DisplayField("RFID编码", tool.rfid),
-                            DisplayField("推荐货位", tool.recommendedLocation),
+                            DisplayField("推荐货位", tool.location),
                             DisplayField("单位", tool.unit)
                         ).forEach { field ->
                             Row(

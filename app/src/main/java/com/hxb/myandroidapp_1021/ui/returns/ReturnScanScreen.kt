@@ -80,15 +80,17 @@ fun ReturnScanContent(
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
-    // UI 展示的字段列表，根据 state 动态生成
+    val order = uiState.order
     val infoFields = listOf(
-        DisplayField("归还单号", uiState.order.orderNo),
-        DisplayField("单据状态", uiState.order.status.label),
-        DisplayField("归属车间", uiState.order.workshop),
-        DisplayField("归还人", uiState.order.returner),
-        DisplayField("应还件数", "${uiState.order.totalCount}件"),
-        DisplayField("已归还", "${uiState.order.returnedCount}件"),
-        DisplayField("本次待归还", "${uiState.tools.size}件")
+        DisplayField("归还单号", order?.orderNo.orEmpty()),
+        DisplayField("单据状态", order?.status?.label.orEmpty()),
+        DisplayField("工单号", order?.workOrderNo.orEmpty()),
+        DisplayField("归属车间", order?.workshop.orEmpty()),
+        DisplayField("归还人", order?.returner.orEmpty()),
+        DisplayField("工具数量", "${uiState.tools.size}件"),
+        DisplayField("归还时间", order?.returnedDate.orEmpty()),
+        DisplayField("创建人", order?.createdBy.orEmpty()),
+        DisplayField("创建时间", order?.createdAt.orEmpty())
     )
     var selectedTab by rememberSaveable { mutableStateOf(ScanTab.All) }
     var viewportHeight by remember { mutableIntStateOf(0) }
@@ -108,7 +110,8 @@ fun ReturnScanContent(
                 available
         }
     }
-    val isNextEnabled = uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
+    val isNextEnabled =
+        !uiState.isLoading && uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
     val visibleTools = when (selectedTab) {
         ScanTab.All -> uiState.tools
         ScanTab.Read -> uiState.readList
@@ -189,7 +192,11 @@ fun ReturnScanContent(
                                 onClick = {},
                                 enabled = false
                             ),
-                            secondButton = ScanControlButton("人工读取", onClick = onManualClick, enabled = !uiState.isLoading),
+                            secondButton = ScanControlButton(
+                                "人工读取",
+                                onClick = onManualClick,
+                                enabled = !uiState.isLoading
+                            ),
                             thirdButton = ScanControlButton(
                                 "下一步",
                                 onClick = onNextClick,
@@ -215,13 +222,13 @@ fun ReturnScanContent(
                     key = { it.id },
                     title = { it.name },
                     lineLabel = { "行号 ${it.id.toString().padStart(2, '0')}" },
-                    statusText = { it.statusLabel },
+                    statusText = { if (it.isRead) "已读取" else "未读取" },
                     isRead = { it.isRead },
                     fields = { tool ->
                         listOf(
                             DisplayField("物资编码", tool.itemCode),
                             DisplayField("RFID编码", tool.rfid),
-                            DisplayField("读取日期", tool.readDate.ifBlank { "-" }),
+                            DisplayField("存放货位", tool.location),
                             DisplayField("单位", tool.unit)
                         )
                     },

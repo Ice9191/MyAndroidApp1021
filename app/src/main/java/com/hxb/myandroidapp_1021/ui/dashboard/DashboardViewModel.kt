@@ -17,10 +17,13 @@ import com.hxb.myandroidapp_1021.navigation.RepairList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
 import com.hxb.myandroidapp_1021.navigation.ScrapList
 import com.hxb.myandroidapp_1021.navigation.ScrapOutList
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class DashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardUiState(isLoading = true))
@@ -32,18 +35,28 @@ class DashboardViewModel : ViewModel() {
 
     private fun loadDashboard() {
         viewModelScope.launch {
-            _uiState.value = DashboardUiState(
-                isLoading = false,
+            delay(500.milliseconds)
+            val mockDashboard = DashboardData(
                 userName = "张三",
                 userRole = "材料员",
-                avatarUrl = "https://picsum.photos/800/300",
-                serverConnected = true,
-                menuSections = mockMenuSections()
+                avatarUrl = "https://picsum.photos/800/300"
             )
+            val mockMenuSections = createMenuSections()
+            val mockServerConnected = true
+            _uiState.update { state ->
+                state.copy(
+                    isLoading = false,
+                    userName = mockDashboard.userName,
+                    userRole = mockDashboard.userRole,
+                    avatarUrl = mockDashboard.avatarUrl,
+                    serverConnected = mockServerConnected,
+                    menuSections = mockMenuSections
+                )
+            }
         }
     }
 
-    private fun mockMenuSections(): List<MenuSectionData> = listOf(
+    private fun createMenuSections(): List<MenuSectionData> = listOf(
         MenuSectionData(
             title = "入库管理",
             items = listOf(
@@ -79,7 +92,16 @@ class DashboardViewModel : ViewModel() {
         )
     )
 
-    fun onLogout() {
-        // TODO: 清 token / 调接口
+    fun onLogout(onSuccess: () -> Unit) {
+        // TODO: 字段未确定，认证协议确认后清理真实登录凭证。
+        _uiState.update {
+            it.copy(
+                userName = "",
+                userRole = "",
+                avatarUrl = "",
+                menuSections = emptyList()
+            )
+        }
+        onSuccess()
     }
 }

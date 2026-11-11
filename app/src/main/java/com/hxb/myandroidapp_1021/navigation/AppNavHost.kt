@@ -136,19 +136,20 @@ fun AppNavHost() {
             )
         }
         // 借出
-        composable<PickingList> {
+        composable<PickingList> { entry ->
+            val scanViewModel = viewModel<PickingScanViewModel>(entry)
             PickingListScreen(
+                scanViewModel = scanViewModel,
                 onBackClick = safeBack,
                 onStartPickClick = {
-                    navController.navigate(PickingScan) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(PickingScan) { launchSingleTop = true }
                 }
             )
         }
         composable<PickingScan> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingScanScreen(
-                viewModel = viewModel<PickingScanViewModel>(entry),
+                viewModel = viewModel<PickingScanViewModel>(listEntry),
                 onManualClick = {
                     navController.navigate(PickingManual) {
                         launchSingleTop = true
@@ -156,20 +157,21 @@ fun AppNavHost() {
                 },
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(PickingConfirm) { launchSingleTop = true } },
-                onSettingsClick = {},
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<PickingManual> { entry ->
-            val scanEntry = remember(entry) { navController.getBackStackEntry<PickingScan>() }
+            val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingManualScreen(
-                viewModel = viewModel<PickingScanViewModel>(scanEntry),
+                viewModel = viewModel<PickingScanViewModel>(listEntry),
                 onBackClick = safeBack,
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
-        composable<PickingConfirm> {
+        composable<PickingConfirm> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingConfirmScreen(
+                scanViewModel = viewModel<PickingScanViewModel>(listEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<PickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -179,9 +181,9 @@ fun AppNavHost() {
         composable<ReturnList> { entry ->
             val scanViewModel = viewModel<ReturnScanViewModel>(entry)
             ReturnListScreen(
+                scanViewModel = scanViewModel,
                 onBackClick = safeBack,
-                onStartReturnClick = { order ->
-                    scanViewModel.selectOrder(order)
+                onStartReturnClick = {
                     navController.navigate(ReturnScan) { launchSingleTop = true }
                 }
             )
@@ -207,7 +209,7 @@ fun AppNavHost() {
         composable<ReturnConfirm> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnConfirmScreen(
-                viewModel = viewModel<ReturnScanViewModel>(listEntry),
+                scanViewModel = viewModel<ReturnScanViewModel>(listEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<ReturnList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }

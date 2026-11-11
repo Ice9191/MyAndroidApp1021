@@ -161,7 +161,7 @@ fun ReturnManualContent(
                 key = { it.id }
             ) { tool ->
                 val selected = tool.id in selectedIds
-                val picked = tool.isRead
+                val read = tool.isRead
                 val lift by animateDpAsState(if (selected) 2.dp else 0.dp, label = "cardLift")
                 val selectionModifier = Modifier.toggleable(
                     value = selected,
@@ -199,16 +199,16 @@ fun ReturnManualContent(
                             )
                             Surface(
                                 shape = RoundedCornerShape(12.dp),
-                                color = if (picked) Color(0xFFE7F6EB) else Color(0xFFF0F2F5)
+                                color = if (read) Color(0xFFE7F6EB) else Color(0xFFF0F2F5)
                             ) {
                                 Text(
-                                    text = tool.statusLabel,
+                                    text = if (tool.isRead) "已读取" else "未读取",
                                     modifier = Modifier.padding(
                                         horizontal = 8.dp,
                                         vertical = 2.dp
                                     ),
                                     fontSize = 11.sp,
-                                    color = if (picked) Color(0xFF16763C) else Color(0xFF596575)
+                                    color = if (read) Color(0xFF16763C) else Color(0xFF596575)
                                 )
                             }
                         }
@@ -221,7 +221,7 @@ fun ReturnManualContent(
                         listOf(
                             DisplayField("物资编码", tool.itemCode),
                             DisplayField("RFID编码", tool.rfid),
-                            DisplayField("读取日期", tool.readDate.ifBlank { "-" }),
+                            DisplayField("存放货位", tool.location),
                             DisplayField("单位", tool.unit)
                         ).forEach { field ->
                             Row(

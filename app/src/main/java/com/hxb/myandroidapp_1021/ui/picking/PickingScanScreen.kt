@@ -39,7 +39,6 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
@@ -50,7 +49,7 @@ import com.hxb.myandroidapp_1021.ui.common.ScanTab
 
 @Composable
 fun PickingScanScreen(
-    viewModel: PickingScanViewModel = viewModel(),
+    viewModel: PickingScanViewModel,
     onManualClick: () -> Unit,
     onBackClick: () -> Unit = {},
     onNextClick: () -> Unit = {},
@@ -81,20 +80,18 @@ fun PickingScanContent(
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
-    // UI 展示的字段列表，根据 state 动态生成
-    val mockFields = remember(uiState) {
-        listOf(
-            DisplayField("拣选单号", uiState.orderNo),
-            DisplayField("单据状态", uiState.orderStatus.label),
-            DisplayField("工单号", "GD20231028088"),
-            DisplayField("归属车间", uiState.workshop),
-            DisplayField("借用人", uiState.borrower),
-            DisplayField("工具数量", "${uiState.tools.size}件"),
-            DisplayField("计划日期", "2023-10-30 09:30"),
-            DisplayField("创建人", "李四"),
-            DisplayField("创建时间", "2023-10-28 10:00")
-        )
-    }
+    val order = uiState.order
+    val infoFields = listOf(
+        DisplayField("拣选单号", order?.orderNo.orEmpty()),
+        DisplayField("单据状态", order?.status?.label.orEmpty()),
+        DisplayField("工单号", order?.workOrderNo.orEmpty()),
+        DisplayField("归属车间", order?.workshop.orEmpty()),
+        DisplayField("借用人", order?.borrower.orEmpty()),
+        DisplayField("工具数量", "${uiState.tools.size}件"),
+        DisplayField("计划日期", order?.plannedDate.orEmpty()),
+        DisplayField("创建人", order?.createdBy.orEmpty()),
+        DisplayField("创建时间", order?.createdAt.orEmpty())
+    )
     var selectedTab by rememberSaveable { mutableStateOf(ScanTab.All) }
     var viewportHeight by remember { mutableIntStateOf(0) }
     var controlsAndTabsHeight by remember { mutableIntStateOf(0) }
@@ -113,7 +110,8 @@ fun PickingScanContent(
                 available
         }
     }
-    val isNextEnabled = uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
+    val isNextEnabled =
+        !uiState.isLoading && uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
     val visibleTools = when (selectedTab) {
         ScanTab.All -> uiState.tools
         ScanTab.Read -> uiState.readList
@@ -181,7 +179,7 @@ fun PickingScanContent(
             item {
                 Column {
                     // === 1. 顶部信息卡片 ===
-                    ScanTopInfo(fields = mockFields)
+                    ScanTopInfo(fields = infoFields)
                     HorizontalDivider(thickness = 8.dp, color = bgColor)
 
                     Column(
@@ -189,9 +187,21 @@ fun PickingScanContent(
                     ) {
                         // === 2. 读取控制区 ===
                         ScanControlButtons(
-                            firstButton = ScanControlButton("RFID 待开放", onClick = {}, enabled = false),
-                            secondButton = ScanControlButton("人工拣选", onClick = onManualClick),
-                            thirdButton = ScanControlButton("下一步", onClick = onNextClick, enabled = isNextEnabled)
+                            firstButton = ScanControlButton(
+                                "RFID 待开放",
+                                onClick = {},
+                                enabled = false
+                            ),
+                            secondButton = ScanControlButton(
+                                "人工拣选",
+                                onClick = onManualClick,
+                                enabled = !uiState.isLoading
+                            ),
+                            thirdButton = ScanControlButton(
+                                "下一步",
+                                onClick = onNextClick,
+                                enabled = isNextEnabled
+                            )
                         )
                         HorizontalDivider(thickness = 8.dp, color = bgColor)
 
@@ -212,13 +222,13 @@ fun PickingScanContent(
                     key = { it.id },
                     title = { it.name },
                     lineLabel = { "行号 ${it.id.toString().padStart(2, '0')}" },
-                    statusText = { it.status.label },
-                    isRead = { it.status == ToolScanItemStatus.PICKED },
+                    statusText = { if (it.isRead) "已读取" else "未读取" },
+                    isRead = { it.isRead },
                     fields = { tool ->
                         listOf(
                             DisplayField("物资编码", tool.itemCode),
                             DisplayField("RFID编码", tool.rfid),
-                            DisplayField("推荐货位", tool.recommendedLocation),
+                            DisplayField("推荐货位", tool.location),
                             DisplayField("单位", tool.unit)
                         )
                     },

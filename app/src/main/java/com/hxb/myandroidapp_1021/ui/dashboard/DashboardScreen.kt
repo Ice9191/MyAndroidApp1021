@@ -53,7 +53,7 @@ fun DashboardScreen(
 
     DashboardContent(
         uiState = uiState,
-        onLogoutClick = onLogoutClick,
+        onLogoutClick = { viewModel.onLogout(onLogoutClick) },
         onSettingsClick = onSettingsClick,
         onMenuClick = onMenuClick
     )

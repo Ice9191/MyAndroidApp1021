@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 class ServerConfigViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(ServerConfigUiState())
+    private val mockConfig = ServerConfig(ipAddress = "192.168.1.100", port = "8080")
+    private val _uiState = MutableStateFlow(ServerConfigUiState(ipAddress = mockConfig.ipAddress, port = mockConfig.port))
     val uiState: StateFlow<ServerConfigUiState> = _uiState.asStateFlow()
 
     fun onIpAddressChange(newIp: String) {
@@ -26,31 +27,34 @@ class ServerConfigViewModel : ViewModel() {
         }
     }
 
+    /** 使用点击时的配置快照；请求期间修改了地址，则不能把旧结果当作新配置的连接结果。 */
     fun testConnection() {
-        if (_uiState.value.isTesting) return
-
+        val state = _uiState.value
+        if (state.isTesting) return
+        val request = ServerConfig(state.ipAddress, state.port)
+        _uiState.update { it.copy(isTesting = true, connectionStatus = ConnectionStatus.TESTING) }
         viewModelScope.launch {
-            // 进入测试中状态
-            _uiState.update { oldState ->
-                oldState.copy(isTesting = true, connectionStatus = ConnectionStatus.TESTING)
-            }
-
-            // 模拟网络请求延迟
             delay(1500.milliseconds)
-
-            // 校验并返回结果
-            val success = _uiState.value.ipAddress.isNotBlank() && _uiState.value.port.isNotBlank()
-            _uiState.update { oldState ->
-                oldState.copy(
+            val mockConnectionSucceeded = request.ipAddress.isNotBlank() && request.port.isNotBlank()
+            _uiState.update { current ->
+                val configUnchanged = current.ipAddress == request.ipAddress && current.port == request.port
+                current.copy(
                     isTesting = false,
-                    connectionStatus = if (success) ConnectionStatus.SUCCESS else ConnectionStatus.FAILURE
+                    connectionStatus = when {
+                        !configUnchanged -> ConnectionStatus.UNTESTED
+                        mockConnectionSucceeded -> ConnectionStatus.SUCCESS
+                        else -> ConnectionStatus.FAILURE
+                    }
                 )
             }
         }
     }
 
     fun saveConfig(onSaveSuccess: () -> Unit) {
-        // TODO: 这里可以将配置写入 SharedPreferences 或 DataStore
+        val state = _uiState.value
+        val config = ServerConfig(state.ipAddress, state.port)
+        // TODO: 字段未确定，确认保存接口后持久化 config；当前仅保留本次表单快照。
+        _uiState.update { it.copy(savedConfig = config) }
         onSaveSuccess()
     }
 }

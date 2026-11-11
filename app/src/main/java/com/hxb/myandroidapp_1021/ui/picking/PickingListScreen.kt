@@ -37,7 +37,7 @@ import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
-import com.hxb.myandroidapp_1021.data.models.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable

@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
 
 /**
  * 只展示传入的工器具行数据，滚动与业务状态由调用页面管理。

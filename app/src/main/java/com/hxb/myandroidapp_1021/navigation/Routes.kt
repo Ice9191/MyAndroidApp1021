@@ -1,9 +1,5 @@
 package com.hxb.myandroidapp_1021.navigation
 
-import com.hxb.myandroidapp_1021.data.models.InventoryRecord
-import com.hxb.myandroidapp_1021.data.models.ScrapOrder
-import com.hxb.myandroidapp_1021.ui.returns.ReturnOrder
-import com.hxb.myandroidapp_1021.ui.returns.ReturnStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -34,46 +30,13 @@ data object PickingConfirm
 data object ReturnList
 
 @Serializable
-data class ReturnScan(
-    val orderNo: String,
-    val status: ReturnStatus,
-    val team: String,
-    val person: String,
-    val totalCount: Int,
-    val returnedCount: Int,
-    val unreturnedCount: Int
-)
+data object ReturnScan
 
 @Serializable
-data class ReturnConfirm(
-    val orderNo: String,
-    val status: ReturnStatus,
-    val team: String,
-    val person: String,
-    val totalCount: Int,
-    val returnedCount: Int,
-    val unreturnedCount: Int
-)
+data object ReturnManual
 
-fun ReturnOrder.toReturnScan(): ReturnScan = ReturnScan(
-    orderNo = orderNo,
-    status = status,
-    team = workshop,
-    person = returner,
-    totalCount = totalCount,
-    returnedCount = returnedCount,
-    unreturnedCount = pendingCount
-)
-
-fun ReturnScan.toReturnConfirm(): ReturnConfirm = ReturnConfirm(
-    orderNo = orderNo,
-    status = status,
-    team = team,
-    person = person,
-    totalCount = totalCount,
-    returnedCount = returnedCount,
-    unreturnedCount = unreturnedCount
-)
+@Serializable
+data object ReturnConfirm
 
 @Serializable
 data object InspectionList
@@ -106,39 +69,13 @@ data object ScrapConfirm
 data object ScrapOutList
 
 @Serializable
-data class ScrapOutCheck(
-    val orderNo: String,
-    val applicant: String,
-    val warehouse: String,
-    val toolCount: Int,
-    val outboundStatus: String
-)
-
-fun ScrapOrder.toScrapOutCheck(): ScrapOutCheck = ScrapOutCheck(
-    orderNo = orderNo,
-    applicant = applicant,
-    warehouse = warehouse,
-    toolCount = toolCount,
-    outboundStatus = outboundStatus
-)
+data object ScrapOutCheck
 
 @Serializable
 data object InventoryList
 
 @Serializable
-data class InventoryScan(
-    val orderNo: String,
-    val team: String,
-    val person: String,
-    val inventoryDate: String
-)
-
-fun InventoryRecord.toInventoryScan(): InventoryScan = InventoryScan(
-    orderNo = orderNo,
-    team = team,
-    person = person,
-    inventoryDate = inventoryDate
-)
+data object InventoryScan
 
 @Serializable
 data object InventoryResult

@@ -1,6 +1,5 @@
 package com.hxb.myandroidapp_1021.components
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -15,7 +14,6 @@ import androidx.compose.ui.unit.dp
 /**
  * 标签、当前选中项由页面传入，点击只上报索引。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanTabs(
     labels: List<String>,

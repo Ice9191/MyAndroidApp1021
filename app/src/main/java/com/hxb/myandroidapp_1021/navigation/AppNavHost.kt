@@ -16,12 +16,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
-import com.hxb.myandroidapp_1021.data.models.ScrapOrder
 import com.hxb.myandroidapp_1021.ui.dashboard.DashboardScreen
 import com.hxb.myandroidapp_1021.ui.inspection.InspectionConfirmScreen
 import com.hxb.myandroidapp_1021.ui.inspection.InspectionListScreen
 import com.hxb.myandroidapp_1021.ui.inspection.InspectionScanScreen
+import com.hxb.myandroidapp_1021.ui.inventory.InventoryFlowViewModel
 import com.hxb.myandroidapp_1021.ui.inventory.InventoryListScreen
 import com.hxb.myandroidapp_1021.ui.inventory.InventoryResultScreen
 import com.hxb.myandroidapp_1021.ui.inventory.InventoryScanScreen
@@ -36,11 +35,14 @@ import com.hxb.myandroidapp_1021.ui.repair.RepairListScreen
 import com.hxb.myandroidapp_1021.ui.repair.RepairScanScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnConfirmScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnListScreen
+import com.hxb.myandroidapp_1021.ui.returns.ReturnManualScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnScanScreen
+import com.hxb.myandroidapp_1021.ui.returns.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.ui.scrap.ScrapConfirmScreen
 import com.hxb.myandroidapp_1021.ui.scrap.ScrapListScreen
 import com.hxb.myandroidapp_1021.ui.scrap.ScrapScanScreen
 import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutCheckScreen
+import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutFlowViewModel
 import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutListScreen
 import com.hxb.myandroidapp_1021.ui.serverconfig.ServerConfigScreen
 
@@ -174,31 +176,38 @@ fun AppNavHost() {
             )
         }
         // 归还
-        composable<ReturnList> {
+        composable<ReturnList> { entry ->
+            val scanViewModel = viewModel<ReturnScanViewModel>(entry)
             ReturnListScreen(
                 onBackClick = safeBack,
                 onStartReturnClick = { order ->
-                    navController.navigate(order.toReturnScan()) { launchSingleTop = true }
+                    scanViewModel.selectOrder(order)
+                    navController.navigate(ReturnScan) { launchSingleTop = true }
                 }
             )
         }
         composable<ReturnScan> { entry ->
-            val route = entry.toRoute<ReturnScan>()
+            val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnScanScreen(
-                order = route,
+                viewModel = viewModel<ReturnScanViewModel>(listEntry),
+                onManualClick = { navController.navigate(ReturnManual) { launchSingleTop = true } },
                 onBackClick = safeBack,
-                onNextClick = {
-                    navController.navigate(route.toReturnConfirm()) {
-                        launchSingleTop = true
-                    }
-                },
+                onNextClick = { navController.navigate(ReturnConfirm) { launchSingleTop = true } },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        composable<ReturnManual> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
+            ReturnManualScreen(
+                viewModel = viewModel<ReturnScanViewModel>(listEntry),
+                onBackClick = safeBack,
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<ReturnConfirm> { entry ->
-            val route = entry.toRoute<ReturnConfirm>()
+            val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnConfirmScreen(
-                order = route,
+                viewModel = viewModel<ReturnScanViewModel>(listEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<ReturnList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
@@ -268,41 +277,40 @@ fun AppNavHost() {
             )
         }
         // 报废出库
-        composable<ScrapOutList> {
+        composable<ScrapOutList> { entry ->
+            val flowViewModel = viewModel<ScrapOutFlowViewModel>(entry)
             ScrapOutListScreen(
                 onBackClick = safeBack,
                 onCheckClick = { order ->
-                    navController.navigate(order.toScrapOutCheck())
+                    flowViewModel.selectOrder(order)
+                    navController.navigate(ScrapOutCheck)
                 }
             )
         }
         composable<ScrapOutCheck> { entry ->
-            val route = entry.toRoute<ScrapOutCheck>()
+            val listEntry = remember(entry) { navController.getBackStackEntry<ScrapOutList>() }
             ScrapOutCheckScreen(
-                order = ScrapOrder(
-                    orderNo = route.orderNo,
-                    applicant = route.applicant,
-                    warehouse = route.warehouse,
-                    toolCount = route.toolCount,
-                    outboundStatus = route.outboundStatus
-                ),
+                viewModel = viewModel<ScrapOutFlowViewModel>(listEntry),
                 onBackClick = safeBack,
                 onNextClick = { navController.popBackStack<ScrapOutList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         // 盘点管理
-        composable<InventoryList> {
+        composable<InventoryList> { entry ->
+            val flowViewModel = viewModel<InventoryFlowViewModel>(entry)
             InventoryListScreen(
                 onBackClick = safeBack,
                 onStartInventoryClick = { record ->
-                    navController.navigate(record.toInventoryScan())
+                    flowViewModel.selectOrder(record)
+                    navController.navigate(InventoryScan)
                 }
             )
         }
         composable<InventoryScan> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<InventoryList>() }
             InventoryScanScreen(
-                order = entry.toRoute<InventoryScan>(),
+                viewModel = viewModel<InventoryFlowViewModel>(listEntry),
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(InventoryResult) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }

@@ -1,6 +1,5 @@
 package com.hxb.myandroidapp_1021.ui.returns
 
-import com.hxb.myandroidapp_1021.data.models.FilterType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -35,4 +34,31 @@ data class ReturnListUiState(
             }
             matchesStatus && order.orderNo.contains(searchQuery.trim(), ignoreCase = true)
         }
+}
+
+data class ReturnToolScanItem(
+    val id: Int,
+    val name: String,
+    val itemCode: String,
+    val rfid: String,
+    val unit: String = "件",
+    val isRead: Boolean = false,
+    val readDate: String = ""
+) {
+    val statusLabel: String get() = if (isRead) "已读取" else "未读取"
+}
+
+data class ReturnScanUiState(
+    val order: ReturnOrder,
+    val tools: List<ReturnToolScanItem> = emptyList(),
+    val isLoading: Boolean = false
+) {
+    val readList: List<ReturnToolScanItem> get() = tools.filter { it.isRead }
+    val unreadList: List<ReturnToolScanItem> get() = tools.filterNot { it.isRead }
+}
+
+enum class FilterType(val label: String) {
+    ALL("全部"),
+    PARTIAL("部分归还"),
+    UNRETURNED("未归还")
 }

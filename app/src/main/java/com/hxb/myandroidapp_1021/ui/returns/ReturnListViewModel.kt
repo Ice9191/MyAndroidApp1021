@@ -1,7 +1,6 @@
 package com.hxb.myandroidapp_1021.ui.returns
 
 import androidx.lifecycle.ViewModel
-import com.hxb.myandroidapp_1021.data.models.FilterType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

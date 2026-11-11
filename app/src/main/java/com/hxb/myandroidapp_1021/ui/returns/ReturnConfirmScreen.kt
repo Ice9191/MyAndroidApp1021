@@ -52,14 +52,40 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.ToolInfoRow
-import com.hxb.myandroidapp_1021.data.models.ToolScanItem
-import com.hxb.myandroidapp_1021.navigation.ReturnConfirm
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
+
+@Composable
+fun ReturnConfirmScreen(
+    viewModel: ReturnScanViewModel = viewModel(),
+    onBackClick: () -> Unit = {},
+    onConfirmClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ReturnConfirmContent(
+        order = uiState.order,
+        tools = uiState.readList.map { tool ->
+            ToolScanItem(
+                id = tool.id.toString(),
+                name = tool.name,
+                code = tool.itemCode,
+                rfid = tool.rfid,
+                pickDate = tool.readDate
+            )
+        },
+        onBackClick = onBackClick,
+        onConfirmClick = onConfirmClick,
+        onHomeClick = onHomeClick
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReturnConfirmScreen(
-    order: ReturnConfirm? = null,
+fun ReturnConfirmContent(
+    order: ReturnOrder? = null,
     tools: List<ToolScanItem> = listOf(
         ToolScanItem("GJ-01118", rfid = "E200 1118 B001"),
         ToolScanItem("GJ-01155", rfid = "E200 1155 B002"),
@@ -193,7 +219,7 @@ fun ReturnConfirmScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+            HorizontalDivider(thickness = 8.dp, color = Color(0xFFE0E0E0))
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -244,7 +270,7 @@ fun ReturnConfirmScreen(
                     )
                 }
             }
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+            HorizontalDivider(thickness = 8.dp, color = Color(0xFFE0E0E0))
             Column(
                 Modifier
                     .fillMaxWidth()

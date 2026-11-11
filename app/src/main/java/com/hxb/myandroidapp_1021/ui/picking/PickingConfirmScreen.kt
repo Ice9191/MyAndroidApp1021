@@ -47,8 +47,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
-import com.hxb.myandroidapp_1021.data.models.DisplayField
-import com.hxb.myandroidapp_1021.data.models.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
 
 @Composable
 fun PickingConfirmScreen(

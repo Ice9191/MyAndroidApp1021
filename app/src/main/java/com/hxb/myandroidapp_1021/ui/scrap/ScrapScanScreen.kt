@@ -50,10 +50,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.DisplayField
-import com.hxb.myandroidapp_1021.data.models.InfoRow
-import com.hxb.myandroidapp_1021.data.models.ScanTab
-import com.hxb.myandroidapp_1021.data.models.ToolScanItem
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.InfoRow
+import com.hxb.myandroidapp_1021.ui.common.ScanTab
+import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

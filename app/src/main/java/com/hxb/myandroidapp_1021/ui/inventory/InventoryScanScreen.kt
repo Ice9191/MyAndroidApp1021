@@ -37,6 +37,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -50,23 +52,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.DisplayField
-import com.hxb.myandroidapp_1021.data.models.InfoRow
-import com.hxb.myandroidapp_1021.data.models.ScanTab
-import com.hxb.myandroidapp_1021.data.models.ToolScanItem
-import com.hxb.myandroidapp_1021.navigation.InventoryScan
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.InfoRow
+import com.hxb.myandroidapp_1021.ui.common.ScanTab
+import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryScanScreen(
+    viewModel: InventoryFlowViewModel = viewModel(),
+    onBackClick: () -> Unit = {},
+    onNextClick: () -> Unit = {},
+    onSettingsClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {}
+) {
+    val order by viewModel.selectedOrder.collectAsStateWithLifecycle()
+    InventoryScanContent(
+        order = order,
+        onBackClick = onBackClick,
+        onNextClick = onNextClick,
+        onSettingsClick = onSettingsClick,
+        onHomeClick = onHomeClick
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InventoryScanContent(
     onBackClick: () -> Unit = {},
     onNextClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    order: InventoryScan? = null
+    order: InventoryRecord? = null
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)

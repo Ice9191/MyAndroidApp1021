@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
 
 /**
  * 展示调用页面提供的单据信息，不持有业务状态。

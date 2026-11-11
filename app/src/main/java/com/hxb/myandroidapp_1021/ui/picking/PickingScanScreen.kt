@@ -45,8 +45,8 @@ import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
 import com.hxb.myandroidapp_1021.components.ScanTopInfo
 import com.hxb.myandroidapp_1021.components.ToolsScanList
-import com.hxb.myandroidapp_1021.data.models.DisplayField
-import com.hxb.myandroidapp_1021.data.models.ScanTab
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.common.ScanTab
 
 @Composable
 fun PickingScanScreen(

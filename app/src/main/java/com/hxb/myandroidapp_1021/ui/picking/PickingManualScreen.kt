@@ -22,14 +22,10 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -49,7 +45,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.data.models.DisplayField
+import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.ui.common.DisplayField
 
 @Composable
 fun PickingManualScreen(
@@ -148,32 +145,11 @@ fun PickingManualContent(
                 .padding(paddingValues)
         ) {
             val tabLabels = listOf("已读取 ${readList.size}", "未读取 ${unreadList.size}")
-            SecondaryTabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = Color.White,
-                contentColor = themeBlue,
-                indicator = {
-                    TabRowDefaults.SecondaryIndicator(
-                        modifier = Modifier.tabIndicatorOffset(selectedTab),
-                        color = themeBlue
-                    )
-                },
-                divider = { HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0)) }
-            ) {
-                tabLabels.forEachIndexed { index, label ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = {
-                            Text(
-                                text = label,
-                                color = if (selectedTab == index) themeBlue else textGray,
-                                fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    )
-                }
-            }
+            ScanTabs(
+                labels = tabLabels,
+                selectedIndex = selectedTab,
+                onTabSelected = { selectedTab = it }
+            )
             val visibleTools = if (selectedTab == 0) readList else unreadList
 
             OrderList(

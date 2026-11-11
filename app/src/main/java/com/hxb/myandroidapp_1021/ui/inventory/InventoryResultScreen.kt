@@ -40,9 +40,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.data.models.InventoryResultItem
-import com.hxb.myandroidapp_1021.data.models.ToolInfoRow
-import com.hxb.myandroidapp_1021.data.models.ToolScanItem
+import com.hxb.myandroidapp_1021.ui.inventory.InventoryResultItem
+import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -74,17 +74,4 @@ data class ToolScanItem(
     val pickDate: String = ""
 )
 
-data class PickingToolScanItem(
-    val id: Int,
-    val name: String = "",
-    val status: ToolScanItemStatus = ToolScanItemStatus.UNPICKED,
-    val itemCode: String = "",
-    val rfid: String,
-    val recommendedLocation: String,
-    val unit: String
-)
 
-enum class ToolScanItemStatus(val label: String) {
-    PICKED("已拣选"),
-    UNPICKED("未拣选")
-}

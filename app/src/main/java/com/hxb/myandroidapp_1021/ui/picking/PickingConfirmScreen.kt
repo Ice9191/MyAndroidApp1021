@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.data.models.DisplayField
 import com.hxb.myandroidapp_1021.data.models.ToolInfoRow
 
@@ -55,16 +57,17 @@ fun PickingConfirmScreen(
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
+    val uiState by state.uiState.collectAsStateWithLifecycle()
     val themeBlue = Color(0xFF1E71C8)
     val focusManager = LocalFocusManager.current
     val bgColor = Color(0xFFF5F6F8)
     val textDark = Color(0xFF222222)
     val textGray = Color(0xFF888888)
     val employeeIdState = rememberTextFieldState("")
-    val toolList = state.readList
+    val toolList = uiState.readList
     val infoFields = listOf(
-        DisplayField("姓名", state.borrower),
-        DisplayField("班组", state.workshop),
+        DisplayField("姓名", uiState.borrower),
+        DisplayField("班组", uiState.workshop),
         DisplayField("经办人", "王芳（材料员）"),
         DisplayField("出库时间", "2026-10-30 09:30")
     )
@@ -166,16 +169,16 @@ fun PickingConfirmScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "拣选单号：${state.orderNo}",
+                        text = "拣选单号：${uiState.orderNo}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = textDark
                     )
-                    Text(text = state.orderStatus, fontSize = 14.sp, color = themeBlue)
+                    Text(text = uiState.orderStatus.label, fontSize = 14.sp, color = themeBlue)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "已读取${toolList.size}件 / 未读取${state.unreadList.size}件",
+                    text = "已读取${toolList.size}件 / 未读取${uiState.unreadList.size}件",
                     fontSize = 14.sp,
                     color = textDark
                 )

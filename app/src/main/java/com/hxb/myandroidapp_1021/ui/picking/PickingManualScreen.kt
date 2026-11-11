@@ -47,8 +47,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.data.models.DisplayField
-import com.hxb.myandroidapp_1021.data.models.ToolScanItemStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,14 +57,15 @@ fun PickingManualScreen(
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
+    val uiState by state.uiState.collectAsStateWithLifecycle()
     val themeBlue = Color(0xFF1E71C8)
     val bgColor = Color(0xFFF5F6F8)
     val textGray = Color(0xFF888888)
     var selectedTab by remember { mutableStateOf(0) }
     var selectedIds by remember { mutableStateOf(emptySet<Int>()) }
     var showConfirmDialog by remember { mutableStateOf(false) }
-    val readList = state.readList
-    val unreadList = state.unreadList
+    val readList = uiState.readList
+    val unreadList = uiState.unreadList
 
     Scaffold(
         containerColor = bgColor,

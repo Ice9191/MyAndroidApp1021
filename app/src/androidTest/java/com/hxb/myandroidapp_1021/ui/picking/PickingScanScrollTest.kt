@@ -23,12 +23,15 @@ class PickingScanScrollTest {
 
     @Test
     fun listGesturesStayInsideListAndTabGesturesScrollPage() {
+        val viewModel = PickingScanViewModel()
         composeRule.setContent {
             MaterialTheme {
-                PickingScanScreen(state = PickingScanViewModel(), onManualClick = {})
+                PickingScanScreen(viewModel = viewModel, onManualClick = {})
             }
         }
 
+        composeRule.waitUntil { !viewModel.uiState.value.isLoading }
+        composeRule.waitForIdle()
         val scrollables = composeRule.onAllNodes(hasScrollAction())
         fun scrollPosition(index: Int): Float = scrollables[index].fetchSemanticsNode()
             .config[SemanticsProperties.VerticalScrollAxisRange].value()

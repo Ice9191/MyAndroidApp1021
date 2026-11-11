@@ -146,7 +146,7 @@ fun AppNavHost() {
         }
         composable<PickingScan> { entry ->
             PickingScanScreen(
-                state = viewModel<PickingScanViewModel>(entry),
+                viewModel = viewModel<PickingScanViewModel>(entry),
                 onManualClick = {
                     navController.navigate(PickingManual) {
                         launchSingleTop = true

@@ -24,19 +24,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 搜索值和提示由调用页面传入，输入变化通过 onValueChange 上报。
+ * 输入值、提示和错误由调用页面传入，输入变化通过 onValueChange 上报。
  */
 @Composable
 fun InputFieldOne(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showSearchIcon: Boolean = true,
+    errorMessage: String? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -57,17 +62,19 @@ fun InputFieldOne(
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { if (errorMessage != null) error(errorMessage) },
             textStyle = LocalTextStyle.current.copy(color = Color(0xFF333333)),
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardOptions = keyboardOptions,
             interactionSource = searchInteractionSource,
             cursorBrush = SolidColor(themeBlue),
             decorationBox = { innerTextField ->
                 Box {
                     OutlinedTextFieldDefaults.Container(
                         enabled = true,
-                        isError = false,
+                        isError = errorMessage != null,
                         interactionSource = searchInteractionSource,
                         modifier = Modifier.matchParentSize(),
                         colors = searchColors,
@@ -81,12 +88,14 @@ fun InputFieldOne(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color(0xFF999999),
-                            modifier = Modifier.size(20.dp)
-                        )
+                        if (showSearchIcon) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = Color(0xFF999999),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                         Box(
                             modifier = Modifier.weight(1f),
                             contentAlignment = Alignment.CenterStart

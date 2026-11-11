@@ -161,15 +161,13 @@ fun AppNavHost() {
         composable<PickingManual> { entry ->
             val scanEntry = remember(entry) { navController.getBackStackEntry<PickingScan>() }
             PickingManualScreen(
-                state = viewModel<PickingScanViewModel>(scanEntry),
+                viewModel = viewModel<PickingScanViewModel>(scanEntry),
                 onBackClick = safeBack,
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
-        composable<PickingConfirm> { entry ->
-            val scanEntry = remember(entry) { navController.getBackStackEntry<PickingScan>() }
+        composable<PickingConfirm> {
             PickingConfirmScreen(
-                state = viewModel<PickingScanViewModel>(scanEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<PickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }

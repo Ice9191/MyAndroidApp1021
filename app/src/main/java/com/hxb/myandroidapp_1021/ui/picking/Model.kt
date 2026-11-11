@@ -52,3 +52,18 @@ data class PickingScanUiState(
     val unreadList: List<PickingToolScanItem>
         get() = tools.filter { it.status == ToolScanItemStatus.UNPICKED }
 }
+
+data class PickingConfirmUiState(
+    val isLoading: Boolean = true,           // 初始加载中
+    val orderNo: String = "",
+    val orderStatus: PickingStatus = PickingStatus.UNPICKED,
+    val borrower: String = "",
+    val workshop: String = "",
+    val handler: String = "",
+    val outboundTime: String = "",
+    val employeeId: String = "",             // 输入框工号
+    val readTools: List<PickingToolScanItem> = emptyList(), // 已读取的工具列表
+    val unreadCount: Int = 0,                // 未读取数量，用于顶部展示
+    val isSubmitting: Boolean = false,       // 提交中状态
+    val errorMessage: String? = null         // 错误提示
+)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,16 +48,124 @@ fun <T> OrderList(
     val textGray = Color(0xFF888888)
     val pageBg = Color(0xFFF5F6F8)
 
+    OrderList(
+        orders = orders,
+        listState = listState,
+        emptyText = emptyText,
+        modifier = modifier
+    ) { order ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 1.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title(order),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = statusText(order),
+                        fontSize = 13.sp,
+                        color = themeBlue,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+
+                    Button(
+                        onClick = { onActionClick(order) },
+                        modifier = Modifier
+                            .height(30.dp)
+                            .wrapContentWidth(),
+                        shape = RoundedCornerShape(4.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
+                    ) {
+                        Text(
+                            text = actionText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = 16.dp,
+                    vertical = 1.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(1.dp)
+            ) {
+                fields(order).forEach { field ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = field.label,
+                            fontSize = 13.sp,
+                            color = textGray,
+                            maxLines = 1,
+                            modifier = Modifier.alignByBaseline()
+                        )
+                        Text(
+                            text = field.value,
+                            fontSize = 13.sp,
+                            color = textDark,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .padding(start = 16.dp)
+                                .alignByBaseline()
+                        )
+                    }
+                }
+            }
+
+            HorizontalDivider(thickness = 8.dp, color = pageBg)
+        }
+    }
+}
+
+/**
+ * 自定义条目内容的列表入口，滚动状态和条目事件由调用页面管理。
+ */
+@Composable
+fun <T> OrderList(
+    orders: List<T>,
+    listState: LazyListState,
+    emptyText: String,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    key: ((T) -> Any)? = null,
+    itemContent: @Composable LazyItemScope.(T) -> Unit
+) {
     LazyColumn(
         modifier = modifier,
-        state = listState
+        state = listState,
+        contentPadding = contentPadding,
+        verticalArrangement = verticalArrangement
     ) {
         if (orders.isEmpty()) {
             item {
                 Text(
                     text = emptyText,
                     fontSize = 14.sp,
-                    color = textGray,
+                    color = Color(0xFF888888),
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White)
@@ -64,91 +173,7 @@ fun <T> OrderList(
                 )
             }
         } else {
-            items(orders) { order ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 1.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = title(order),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = textDark,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = statusText(order),
-                                fontSize = 13.sp,
-                                color = themeBlue,
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-
-                            Button(
-                                onClick = { onActionClick(order) },
-                                modifier = Modifier
-                                    .height(30.dp)
-                                    .wrapContentWidth(),
-                                shape = RoundedCornerShape(4.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
-                            ) {
-                                Text(
-                                    text = actionText,
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                            }
-                        }
-                    }
-
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
-
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = 16.dp,
-                            vertical = 1.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(1.dp)
-                    ) {
-                        fields(order).forEach { field ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = field.label,
-                                    fontSize = 13.sp,
-                                    color = textGray,
-                                    maxLines = 1,
-                                    modifier = Modifier.alignByBaseline()
-                                )
-                                Text(
-                                    text = field.value,
-                                    fontSize = 13.sp,
-                                    color = textDark,
-                                    maxLines = 1,
-                                    modifier = Modifier
-                                        .padding(start = 16.dp)
-                                        .alignByBaseline()
-                                )
-                            }
-                        }
-                    }
-
-                    HorizontalDivider(thickness = 8.dp, color = pageBg)
-                }
-            }
+            items(orders, key = key, itemContent = itemContent)
         }
     }
 }

@@ -6,7 +6,9 @@ data class PickingOrder(
     val workshop: String,
     val borrower: String,
     val pendingCount: Int,
-    val creationDate: String
+    val plannedDate: String,
+    val totalCount: Int,
+    val pickedCount: Int
 )
 
 enum class PickingStatus(val label: String) {
@@ -20,7 +22,8 @@ data class PickingListUiState(
     val isLoading: Boolean = false,
     val searchQuery: String = "",
     val orders: List<PickingOrder> = emptyList(), // 原始数据
-    val filteredOrders: List<PickingOrder> = emptyList()  // 过滤后的数据
+    val filteredOrders: List<PickingOrder> = emptyList(), // 过滤后的数据
+    val selectedStatus: PickingStatus? = null
 )
 
 data class PickingToolScanItem(

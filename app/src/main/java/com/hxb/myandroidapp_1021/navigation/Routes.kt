@@ -1,9 +1,9 @@
 package com.hxb.myandroidapp_1021.navigation
 
 import com.hxb.myandroidapp_1021.data.models.InventoryRecord
-import com.hxb.myandroidapp_1021.data.models.ReturnOrder
-import com.hxb.myandroidapp_1021.data.models.ReturnStatus
 import com.hxb.myandroidapp_1021.data.models.ScrapOrder
+import com.hxb.myandroidapp_1021.ui.returns.ReturnOrder
+import com.hxb.myandroidapp_1021.ui.returns.ReturnStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,10 +20,13 @@ data object ServerConfig
  */
 @Serializable
 data object PickingList
+
 @Serializable
 data object PickingScan
+
 @Serializable
 data object PickingManual
+
 @Serializable
 data object PickingConfirm
 
@@ -55,11 +58,11 @@ data class ReturnConfirm(
 fun ReturnOrder.toReturnScan(): ReturnScan = ReturnScan(
     orderNo = orderNo,
     status = status,
-    team = team,
-    person = person,
+    team = workshop,
+    person = returner,
     totalCount = totalCount,
     returnedCount = returnedCount,
-    unreturnedCount = unreturnedCount
+    unreturnedCount = pendingCount
 )
 
 fun ReturnScan.toReturnConfirm(): ReturnConfirm = ReturnConfirm(

@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.data.models.DisplayField
 import kotlinx.coroutines.launch
@@ -50,6 +51,7 @@ fun PickingListScreen(
     PickingListContent(
         uiState = uiState,
         onSearchQueryChange = viewModel::onSearchQueryChange,
+        onStatusChange = viewModel::onStatusChange,
         onBackClick = onBackClick,
         onStartPickClick = onStartPickClick
     )
@@ -61,7 +63,8 @@ fun PickingListContent(
     uiState: PickingListUiState,
     onSearchQueryChange: (String) -> Unit,
     onBackClick: () -> Unit = {},
-    onStartPickClick: (PickingOrder) -> Unit = {}
+    onStartPickClick: (PickingOrder) -> Unit = {},
+    onStatusChange: (PickingStatus?) -> Unit = {}
 ) {
     val themeBlue = Color(0xFF1E71C8)
     val pageBg = Color(0xFFF5F6F8)
@@ -138,13 +141,16 @@ fun PickingListContent(
                             DisplayField("单据状态", order.status.label),
                             DisplayField("车间/工班", order.workshop),
                             DisplayField("借用人", order.borrower),
-                            DisplayField("拣选进度", order.pendingCount.toString()),
-                            DisplayField("创建时间", order.creationDate)
+                            DisplayField("计划日期", order.plannedDate)
                         )
                     },
+                    progress = { OrderProgress("拣选进度", it.pickedCount, it.totalCount) },
                     actionText = "开始拣选",
                     onActionClick = onStartPickClick,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    filterOptions = listOf("全部") + PickingStatus.entries.map { it.label },
+                    selectedFilterIndex = uiState.selectedStatus?.let { it.ordinal + 1 } ?: 0,
+                    onFilterChange = { onStatusChange(PickingStatus.entries.getOrNull(it - 1)) }
                 )
             }
 

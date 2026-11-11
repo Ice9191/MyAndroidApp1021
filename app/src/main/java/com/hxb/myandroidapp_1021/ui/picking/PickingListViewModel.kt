@@ -30,7 +30,9 @@ class PickingListViewModel : ViewModel() {
                     "架大修一车间",
                     "张三",
                     3,
-                    "2023-10-30 09:30"
+                    "2023-10-30 09:30",
+                    totalCount = 3,
+                    pickedCount = 3
                 ),
                 PickingOrder(
                     "JC20261028002",
@@ -38,7 +40,9 @@ class PickingListViewModel : ViewModel() {
                     "架大修二车间",
                     "李四",
                     2,
-                    "2023-10-30 10:00"
+                    "2023-10-30 10:00",
+                    totalCount = 2,
+                    pickedCount = 2
                 ),
                 PickingOrder(
                     "JC20261028003",
@@ -46,36 +50,34 @@ class PickingListViewModel : ViewModel() {
                     "架大修一车间",
                     "王五",
                     1,
-                    "2023-10-30 10:30"
+                    "2023-10-30 10:30",
+                    totalCount = 1,
+                    pickedCount = 1
                 )
             )
 
-            // 加载成功后，原始列表和过滤列表都赋值为全量数据
+            // 加载成功后，按当前搜索词和状态筛选。
             _uiState.update { oldState ->
                 oldState.copy(
                     isLoading = false,
-                    orders = mockOrders,
-                    filteredOrders = mockOrders
-                )
+                    orders = mockOrders
+                ).filterOrders()
             }
         }
     }
 
     fun onSearchQueryChange(query: String) {
-        val currentOrders = _uiState.value.orders
-
-        // 过滤
-        val filtered = if (query.isBlank()) {
-            currentOrders
-        } else {
-            currentOrders.filter { it.orderNo.contains(query, ignoreCase = true) }
-        }
-
-        _uiState.update { oldState ->
-            oldState.copy(
-                searchQuery = query,
-                filteredOrders = filtered
-            )
-        }
+        _uiState.update { it.copy(searchQuery = query).filterOrders() }
     }
+
+    fun onStatusChange(status: PickingStatus?) {
+        _uiState.update { it.copy(selectedStatus = status).filterOrders() }
+    }
+
+    private fun PickingListUiState.filterOrders(): PickingListUiState = copy(
+        filteredOrders = orders.filter { order ->
+            (selectedStatus == null || order.status == selectedStatus) &&
+                    order.orderNo.contains(searchQuery.trim(), ignoreCase = true)
+        }
+    )
 }

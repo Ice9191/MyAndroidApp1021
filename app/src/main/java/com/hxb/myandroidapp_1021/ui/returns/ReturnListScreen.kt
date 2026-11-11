@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.data.models.DisplayField
 import com.hxb.myandroidapp_1021.data.models.FilterType
@@ -146,7 +146,7 @@ fun ReturnListContent(
                         )
                     },
                     progress = { OrderProgress("归还进度", it.returnedCount, it.totalCount) },
-                    actionText = "开始归还",
+                    actionText = "开始上架",
                     onActionClick = onStartReturnClick,
                     modifier = Modifier.fillMaxSize(),
                     filterOptions = FilterType.entries.map { it.label },

@@ -1,13 +1,17 @@
 package com.hxb.myandroidapp_1021.ui.picking
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.swipe
 import androidx.compose.ui.test.swipeDown
 import androidx.compose.ui.test.swipeUp
@@ -20,6 +24,40 @@ import org.junit.Test
 class PickingScanScrollTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun tabsFilterToolsAndButtonsReportEventsWithCurrentEnabledState() {
+        val tools = listOf(
+            PickingToolScanItem(1, "已读工具", ToolScanItemStatus.PICKED, rfid = "R1", recommendedLocation = "A1", unit = "件"),
+            PickingToolScanItem(2, "未读工具", ToolScanItemStatus.UNPICKED, rfid = "R2", recommendedLocation = "A2", unit = "件")
+        )
+        val uiState = mutableStateOf(PickingScanUiState(tools = tools))
+        var manualClicked = false
+        var nextClicked = false
+        composeRule.setContent {
+            MaterialTheme {
+                PickingScanContent(
+                    uiState = uiState.value,
+                    onManualClick = { manualClicked = true },
+                    onNextClick = { nextClicked = true }
+                )
+            }
+        }
+        composeRule.onNodeWithText("RFID 待开放").assertIsNotEnabled()
+        composeRule.onNodeWithText("下一步").assertIsNotEnabled()
+        composeRule.onNodeWithText("人工拣选").performClick()
+        composeRule.onNodeWithText("已读取 1").performClick()
+        composeRule.onNodeWithText("已读工具").assertIsDisplayed()
+        composeRule.onNodeWithText("未读工具").assertDoesNotExist()
+        composeRule.onNodeWithText("未读取 1").performClick()
+        composeRule.onNodeWithText("未读工具").assertIsDisplayed()
+        composeRule.onNodeWithText("已读工具").assertDoesNotExist()
+        composeRule.runOnIdle {
+            uiState.value = uiState.value.copy(tools = tools.map { it.copy(status = ToolScanItemStatus.PICKED) })
+        }
+        composeRule.onNodeWithText("下一步").performClick()
+        composeRule.runOnIdle { assertTrue(manualClicked && nextClicked) }
+    }
 
     @Test
     fun listGesturesStayInsideListAndTabGesturesScrollPage() {

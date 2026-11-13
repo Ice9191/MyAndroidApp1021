@@ -23,7 +23,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * 对外只提供 [start] 方法：
  * - 屏幕按钮每次点击调用 start()，内部按调用次数切换：第 1 次开始扫描，第 2 次停止并释放资源，第 3 次重新开始，如此反复。
  * - 构造时绑定 PDA 扳机与侧边 SCAN 键：按下开始扫描，全部松开后停止扫描并释放 UHF 资源。
- * - 扫描结果与状态通过 Logcat 标签 [TAG] 输出，便于在没有界面接入时验证硬件读签。
+ * - 调用次数、扫描状态、实体键事件和读到的 EPC 全部输出到 Logcat 标签 [TAG]，用 `adb logcat -s TestRfidScan` 查看。
+ * - 按需求对外只暴露 start()，因此实体键监听会保留到进程结束；测试工具只创建一个实例即可。
  */
 class TestRfidScan {
     // UHF 与实体键操作统一在单线程执行，避免并发打开、关闭设备
@@ -34,7 +35,7 @@ class TestRfidScan {
     private var pollJob: Job? = null
     private var scanning = false
     private var startedByKey = false
-    private var keyService: ScanKeyService? = null
+    private var callCount = 0
     private var keyCallback: IKeyEventCallback? = null
     private val heldKeys = mutableSetOf<Int>()
     private val sessionTags = mutableSetOf<String>()
@@ -49,11 +50,19 @@ class TestRfidScan {
      *
      * 内部按调用次数切换扫描状态：第 1、3、5… 次开启，第 2、4、6… 次关闭。
      * 关闭时停止盘点并关闭 UHF 设备，释放读头资源；实体键监听保留，便于下次按下重新开始。
+     * 每次调用都会在 Logcat 中输出是第几次调用以及本次是开启还是关闭。
      */
     fun start() {
         scope.launch {
+            callCount++
             if (keyCallback == null) registerKeys()
-            if (scanning) stopAndRelease() else startScan()
+            if (scanning) {
+                Log.i(TAG, "start() 第 $callCount 次调用：停止扫描")
+                stopAndRelease()
+            } else {
+                Log.i(TAG, "start() 第 $callCount 次调用：开始扫描")
+                startScan()
+            }
         }
     }
 
@@ -70,7 +79,7 @@ class TestRfidScan {
             check(device.inventoryStart()) { "启动盘点失败" }
             scanning = true
             sessionTags.clear()
-            Log.i(TAG, "开始扫描")
+            Log.i(TAG, "扫描开始，等待标签进入读区")
             pollJob = scope.launch {
                 try {
                     val binder = serverBinder(device)
@@ -84,7 +93,7 @@ class TestRfidScan {
                             .mapNotNull { it?.getId()?.trim()?.takeIf(String::isNotEmpty) }
                         epcs.forEach { epc ->
                             if (sessionTags.add(epc)) {
-                                Log.i(TAG, "读到标签：$epc")
+                                Log.i(TAG, "读到标签：$epc（本次第 ${sessionTags.size} 个）")
                             }
                         }
                         delay(POLL_INTERVAL.milliseconds)
@@ -127,7 +136,8 @@ class TestRfidScan {
         } finally {
             service = null
             if (wasScanning) {
-                Log.i(TAG, "扫描已停止，UHF 资源已释放，本次共读到 ${sessionTags.size} 个标签")
+                val tags = if (sessionTags.isEmpty()) "无" else sessionTags.joinToString()
+                Log.i(TAG, "扫描已停止，UHF 资源已释放，本次共读到 ${sessionTags.size} 个标签：$tags")
             }
             sessionTags.clear()
         }
@@ -205,13 +215,11 @@ class TestRfidScan {
                 override fun onKeyDown(keyCode: Int) = handleKey(keyCode, true)
                 override fun onKeyUp(keyCode: Int) = handleKey(keyCode, false)
             }
-            keyService = keys
             keyCallback = callback
             keys.registerCallback(callback, SCAN_KEYS.joinToString(","))
             Log.i(TAG, "实体键已绑定：按住扳机或侧边 SCAN 键开始扫描，松开停止")
         } catch (t: Throwable) {
             keyCallback = null
-            keyService = null
             Log.e(TAG, "实体键绑定失败（非 PDA 设备可忽略）", t)
         }
     }

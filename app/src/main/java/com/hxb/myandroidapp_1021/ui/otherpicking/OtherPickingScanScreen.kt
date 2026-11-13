@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,10 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.InputFieldOne
+import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.ScanTopInfo
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopNotification
@@ -118,7 +118,10 @@ fun OtherPickingScanContent(
             )
         }
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues).clipToBounds()) {
+        Box(Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .clipToBounds()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -127,24 +130,17 @@ fun OtherPickingScanContent(
             ) {
                 item {
                     Column {
-                        ScanTopInfo(
-                            listOf(
+                        TopInfo(
+                            fields = listOf(
                                 DisplayField(
                                     "来源",
                                     "${state.task?.sourceType?.label.orEmpty()} · ${state.task?.sourceNo.orEmpty()}"
                                 )
-                            )
+                            ),
+                            progress = state.task?.let {
+                                OrderProgress("拣选进度", it.completedCount, it.tools.size)
+                            }
                         )
-                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                            Text("拣选进度 ${state.task?.completedCount ?: 0} / ${tools.size} 件")
-                            LinearProgressIndicator(
-                                progress = {
-                                    if (tools.isEmpty()) 0f else
-                                        ((state.task?.completedCount ?: 0).toFloat() / tools.size).coerceIn(0f, 1f)
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                            )
-                        }
 
                         HorizontalDivider(thickness = 8.dp, color = bgColor)
                         InputFieldOne(

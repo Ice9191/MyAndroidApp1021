@@ -27,7 +27,7 @@
 ## Picking / Returns 一致性约束
 
 - List：相同的 Screen/Content 分层；相同 `InputFieldOne`、`OrderList`、`ScrollToTopButton`；相同查询/状态事件与组合筛选函数。
-- Scan：相同的三字段扫描状态、单据加载流程、`selectOrder`、`toggleRead`；相同 `ScanTopInfo`、`ScanControlButtons`、`ScanTabs`、`ToolsScanList` 与嵌套滚动实现。
+- Scan：相同的三字段扫描状态、单据加载流程、`selectOrder`、`toggleRead`；相同 `TopInfo`、`ScanControlButtons`、`ScanTabs`、`ToolsScanList` 与嵌套滚动实现。
 - Manual：相同的勾选生命周期、Tab、工具卡片、确认弹窗和读取/取消读取操作。
 - ViewModel：私有 `MutableStateFlow`、公开只读 `StateFlow`，`init -> loadData -> viewModelScope.launch -> delay -> mock* -> update` 的加载写法一致。模拟单据和工具直接列出，不按件数生成数据。
 - Confirm：保留业务差异，均使用共享扫描状态；拣选需要领料人工号，归还需要归还人工号及重新绑定后的库位。

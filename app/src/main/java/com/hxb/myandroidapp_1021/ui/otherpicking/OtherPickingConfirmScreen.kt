@@ -18,7 +18,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.ScanTopInfo
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
@@ -86,7 +86,7 @@ fun OtherPickingConfirmContent(
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
             ) {
-                ScanTopInfo(
+                TopInfo(
                     listOf(
                         DisplayField("来源类型", state.task?.sourceType?.label.orEmpty()),
                         DisplayField("来源单号", state.task?.sourceNo.orEmpty()),

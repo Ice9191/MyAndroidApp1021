@@ -34,6 +34,32 @@ data class TempBorrowOrder(
     val status: String get() = if (lines.isNotEmpty() && lines.all { it.borrowed }) "已借出" else "草稿"
 }
 
+/**
+ * 临时借出页面状态；列表、所选单据等由 ViewModel 刷新后写入，页面只读取。
+ */
+data class TempBorrowUiState(
+    val orders: List<TempBorrowOrder> = emptyList(),
+    val inventory: List<TempTool> = emptyList(),
+    val selectedOrderNo: String? = null,
+    val editing: Boolean = false,
+    val selectedTab: Int = 0,
+    val query: String = "",
+    val borrower: String = "",
+    val workOrderNo: String = "",
+    val workshop: String = "",
+    val team: String = "",
+    val remark: String = "",
+    val selectedRfids: Set<String> = emptySet(),
+    val pickedRfids: Set<String> = emptySet(),
+    val confirmationRfid: String? = null,
+    val notificationMessage: String? = null,
+    val notificationId: Int = 0,
+    val selectedOrder: TempBorrowOrder? = null,
+    val visibleOrders: List<TempBorrowOrder> = emptyList(),
+    val visibleTools: List<TempTool> = emptyList(),
+    val allPicked: Boolean = false
+)
+
 data class TempReturnLine(
     val lineNo: Int,
     val tool: TempTool,
@@ -57,47 +83,9 @@ data class TempReturnOrder(
     val status: String get() = if (lines.isNotEmpty() && lines.all { it.returned }) "已归还" else "待确认"
 }
 
-// 表单、搜索、弹窗等仅供本模块展示，不属于后端业务字段。
-data class TempBorrowUiState(
-    val orders: List<TempBorrowOrder> = emptyList(),
-    val inventory: List<TempTool> = emptyList(),
-    val selectedOrderNo: String? = null,
-    val editing: Boolean = false,
-    val selectedTab: Int = 0,
-    val query: String = "",
-    val borrower: String = "",
-    val workOrderNo: String = "",
-    val workshop: String = "",
-    val team: String = "",
-    val remark: String = "",
-    val selectedRfids: Set<String> = emptySet(),
-    val pickedRfids: Set<String> = emptySet(),
-    val confirmationRfid: String? = null,
-    val message: String? = null
-) {
-    val selectedOrder: TempBorrowOrder? get() = orders.firstOrNull { it.orderNo == selectedOrderNo }
-    val visibleOrders: List<TempBorrowOrder>
-        get() = orders.filter {
-            (query.isBlank() || listOf(
-                it.orderNo,
-                it.workOrderNo,
-                it.borrower
-            ).any { value -> value.contains(query.trim(), true) }) &&
-                    when (selectedTab) {
-                        1 -> it.status == "草稿"; 2 -> it.status == "已借出"; else -> true
-                    }
-        }
-    val visibleTools: List<TempTool>
-        get() = inventory.filter {
-            query.isBlank() || listOf(it.rfid, it.itemCode, it.name).any { value ->
-                value.contains(
-                    query.trim(),
-                    true
-                )
-            }
-        }
-}
-
+/**
+ * 临时归还页面状态；列表、所选单据等由 ViewModel 刷新后写入，页面只读取。
+ */
 data class TempReturnUiState(
     val orders: List<TempReturnOrder> = emptyList(),
     val selectedOrderNo: String? = null,
@@ -108,17 +96,9 @@ data class TempReturnUiState(
     val location: String = "",
     val remark: String = "",
     val confirmationRfid: String? = null,
-    val message: String? = null
-) {
-    val selectedOrder: TempReturnOrder? get() = orders.firstOrNull { it.orderNo == selectedOrderNo }
-    val visibleOrders: List<TempReturnOrder>
-        get() = orders.filter {
-            (query.isBlank() || listOf(it.orderNo, it.workOrderNo, it.returner).plus(
-                it.lines.flatMap { line -> listOf(line.borrower, line.borrowOrderNo) }
-            ).any { value -> value.contains(query.trim(), true) }) &&
-                    when (selectedTab) {
-                        1 -> it.status == "待确认"; 2 -> it.status == "已归还"; else -> true
-                    }
-        }
-}
-
+    val notificationMessage: String? = null,
+    val notificationId: Int = 0,
+    val selectedOrder: TempReturnOrder? = null,
+    val visibleOrders: List<TempReturnOrder> = emptyList(),
+    val hasReturned: Boolean = false
+)

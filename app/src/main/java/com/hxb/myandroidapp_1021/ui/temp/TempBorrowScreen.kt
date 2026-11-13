@@ -2,29 +2,34 @@ package com.hxb.myandroidapp_1021.ui.temp
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.components.InputFieldOne
+import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TempCard
-import com.hxb.myandroidapp_1021.components.TempMessage
+import com.hxb.myandroidapp_1021.components.TempListCard
 import com.hxb.myandroidapp_1021.components.TopAppBar
-import com.hxb.myandroidapp_1021.components.fields
+import com.hxb.myandroidapp_1021.components.TopNotification
 import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 
 @Composable
@@ -55,7 +60,8 @@ fun TempBorrowScreen(
         onSaveOrder = viewModel::saveOrder,
         onPickingClick = onPickingClick,
         onRequestConfirmation = viewModel::requestConfirmation,
-        onConfirm = viewModel::confirmLine
+        onConfirm = viewModel::confirmLine,
+        onNotificationDismiss = viewModel::dismissNotification
     )
 }
 
@@ -77,10 +83,12 @@ fun TempBorrowContent(
     onSaveOrder: () -> Unit,
     onPickingClick: () -> Unit,
     onRequestConfirmation: (String?) -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    onNotificationDismiss: () -> Unit
 ) {
     val order = state.selectedOrder
-    val allPicked = order != null && order.lines.all { it.tool.rfid in state.pickedRfids }
+    val listState = rememberLazyListState()
+
     Scaffold(
         modifier = Modifier.imePadding(), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -97,175 +105,202 @@ fun TempBorrowContent(
                 )
 
                 order == null -> BottomButton("新建临时借出", onNewOrder)
-                !allPicked -> BottomButton("前往 PDA 拣选", onPickingClick)
+                !state.allPicked -> BottomButton("前往 PDA 拣选", onPickingClick)
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .clipToBounds()
         ) {
-            TempMessage(state.message)
-            LazyColumn(
-                modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+            Column(Modifier.fillMaxSize()) {
                 when {
-                    state.editing -> {
-                        item {
-                            Column {
-                                Text(
-                                    "借用信息",
-                                    Modifier.padding(8.dp),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                InputFieldOne(
-                                    state.borrower,
-                                    onBorrowerChange,
-                                    "借用人（必填）",
-                                    showSearchIcon = false
-                                )
-                                InputFieldOne(
-                                    state.workOrderNo,
-                                    onWorkOrderChange,
-                                    "工单号（必填）",
-                                    showSearchIcon = false
-                                )
-                                InputFieldOne(
-                                    state.workshop,
-                                    onWorkshopChange,
-                                    "车间",
-                                    showSearchIcon = false
-                                )
-                                InputFieldOne(
-                                    state.team,
-                                    onTeamChange,
-                                    "工班",
-                                    showSearchIcon = false
-                                )
-                                InputFieldOne(
-                                    state.remark,
-                                    onRemarkChange,
-                                    "备注",
-                                    showSearchIcon = false
-                                )
-                                Text(
-                                    "选择在库器具 · 已选 ${state.selectedRfids.size} 件",
-                                    Modifier.padding(8.dp)
-                                )
-                                InputFieldOne(
-                                    state.query,
-                                    onQueryChange,
-                                    "工具编码 / 名称 / 标签 ID"
-                                )
+                    state.editing -> OrderList(
+                        orders = state.visibleTools,
+                        listState = listState,
+                        emptyText = "暂无匹配的在库器具",
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        key = { it.rfid },
+                        header = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.surface
+                                ) {
+                                    Column {
+                                        Text(
+                                            "借用信息",
+                                            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        InputFieldOne(
+                                            state.borrower,
+                                            onBorrowerChange,
+                                            "借用人（必填）",
+                                            showSearchIcon = false
+                                        )
+                                        InputFieldOne(
+                                            state.workOrderNo,
+                                            onWorkOrderChange,
+                                            "工单号（必填）",
+                                            showSearchIcon = false
+                                        )
+                                        InputFieldOne(
+                                            state.workshop,
+                                            onWorkshopChange,
+                                            "车间",
+                                            showSearchIcon = false
+                                        )
+                                        InputFieldOne(
+                                            state.team,
+                                            onTeamChange,
+                                            "工班",
+                                            showSearchIcon = false
+                                        )
+                                        InputFieldOne(
+                                            state.remark,
+                                            onRemarkChange,
+                                            "备注",
+                                            showSearchIcon = false
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.surface
+                                ) {
+                                    Column {
+                                        Text(
+                                            "选择在库器具 · 已选 ${state.selectedRfids.size} 件",
+                                            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        InputFieldOne(
+                                            state.query,
+                                            onQueryChange,
+                                            "工具编码 / 名称 / 标签 ID"
+                                        )
+                                    }
+                                }
                             }
                         }
-                        if (state.visibleTools.isEmpty()) item {
-                            Text(
-                                "暂无匹配的在库器具",
-                                Modifier.padding(8.dp)
-                            )
-                        }
-                        items(state.visibleTools, key = { it.rfid }) { tool ->
-                            val selected = tool.rfid in state.selectedRfids
-                            TempCard(
-                                title = tool.name,
-                                status = if (selected) "已选择" else "在库",
-                                fields = tool.fields(),
-                                actionText = if (selected) "移除选择" else "添加器具",
-                                onAction = { onToggleTool(tool.rfid) }
-                            )
-                        }
+                    ) { tool ->
+                        val selected = tool.rfid in state.selectedRfids
+                        TempListCard(
+                            title = tool.name,
+                            status = if (selected) "已选择" else "在库",
+                            fields = listOf(
+                                DisplayField("物资编码", tool.itemCode),
+                                DisplayField("RFID 编码", tool.rfid),
+                                DisplayField("存放货位", tool.location),
+                                DisplayField("单位", tool.unit)
+                            ),
+                            actionText = if (selected) "移除选择" else "添加器具",
+                            onAction = { onToggleTool(tool.rfid) }
+                        )
                     }
 
-                    order != null -> {
-                        item {
-                            TempCard(
-                                title = order.orderNo, status = order.status,
-                                fields = listOf(
-                                    DisplayField("工单号", order.workOrderNo),
-                                    DisplayField("借用人", order.borrower),
-                                    DisplayField(
-                                        "车间 / 工班",
-                                        "${order.workshop} / ${order.team}"
+                    order != null -> OrderList(
+                        orders = order.lines,
+                        listState = listState,
+                        emptyText = "暂无器具明细",
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        key = { it.lineNo },
+                        header = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TempListCard(
+                                    title = order.orderNo,
+                                    status = order.status,
+                                    fields = listOf(
+                                        DisplayField("工单号", order.workOrderNo),
+                                        DisplayField("借用人", order.borrower),
+                                        DisplayField(
+                                            "车间 / 工班",
+                                            "${order.workshop} / ${order.team}"
+                                        ),
+                                        DisplayField("经办人", order.createdBy),
+                                        DisplayField("创建时间", order.createdAt),
+                                        DisplayField("备注", order.remark),
+                                        DisplayField(
+                                            "拣选进度",
+                                            "${order.lines.count { it.tool.rfid in state.pickedRfids }} / ${order.lines.size}"
+                                        )
                                     ),
-                                    DisplayField("经办人", order.createdBy),
-                                    DisplayField("创建时间", order.createdAt),
-                                    DisplayField("备注", order.remark),
-                                    DisplayField(
-                                        "拣选进度",
-                                        "${order.lines.count { it.tool.rfid in state.pickedRfids }} / ${order.lines.size}"
-                                    ),
-                                    DisplayField(
+                                    progress = OrderProgress(
                                         "借出进度",
-                                        "${order.lines.count { it.borrowed }} / ${order.lines.size}"
+                                        order.lines.count { it.borrowed },
+                                        order.lines.size
                                     )
                                 )
-                            )
-                        }
-                        item {
-                            Text(
-                                if (allPicked) "拣选已完成，请核对实物后逐条确认借出" else "先完成本单全部器具的 PDA 拣选，再逐条确认借出",
-                                Modifier.padding(8.dp)
-                            )
-                        }
-                        items(order.lines, key = { it.lineNo }) { line ->
-                            TempCard(
-                                title = line.tool.name,
-                                status = if (line.borrowed) "已借出" else if (line.tool.rfid in state.pickedRfids) "已拣选 · 待确认借出" else "待拣选",
-                                fields = listOf(
-                                    DisplayField(
-                                        "行号",
-                                        line.lineNo.toString()
-                                    )
-                                ) + line.tool.fields() +
-                                        if (line.borrowed) listOf(
-                                            DisplayField(
-                                                "借出时间",
-                                                line.borrowedAt
-                                            )
-                                        ) else emptyList(),
-                                actionText = if (line.borrowed) null else "确认借出",
-                                enabled = allPicked,
-                                onAction = { onRequestConfirmation(line.tool.rfid) }
-                            )
-                        }
-                    }
-
-                    else -> {
-                        item {
-                            Column {
-                                InputFieldOne(
-                                    state.query,
-                                    onQueryChange,
-                                    "借出单号 / 工单号 / 借用人"
-                                )
-                                ScanTabs(
-                                    listOf("全部", "草稿", "已借出"),
-                                    state.selectedTab,
-                                    onTabSelected
+                                Text(
+                                    if (state.allPicked) "拣选已完成，请核对实物后逐条确认借出" else "先完成本单全部器具的 PDA 拣选，再逐条确认借出",
+                                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
                             }
                         }
-                        if (state.visibleOrders.isEmpty()) item {
-                            Text(
-                                "暂无临时借出单，点击下方按钮新建",
-                                Modifier.padding(8.dp)
+                    ) { line ->
+                        TempListCard(
+                            title = line.tool.name,
+                            status = when {
+                                line.borrowed -> "已借出"
+                                line.tool.rfid in state.pickedRfids -> "已拣选 · 待确认借出"
+                                else -> "待拣选"
+                            },
+                            fields = listOf(DisplayField("行号", line.lineNo.toString())) + listOf(
+                                DisplayField("物资编码", line.tool.itemCode),
+                                DisplayField("RFID 编码", line.tool.rfid),
+                                DisplayField("存放货位", line.tool.location),
+                                DisplayField("单位", line.tool.unit)
+                            ) + if (line.borrowed) listOf(
+                                DisplayField("借出时间", line.borrowedAt)
+                            ) else emptyList(),
+                            actionText = if (line.borrowed) null else "确认借出",
+                            enabled = state.allPicked,
+                            onAction = { onRequestConfirmation(line.tool.rfid) }
+                        )
+                    }
+
+                    else -> Column(Modifier.weight(1f)) {
+                        Column(Modifier.fillMaxWidth()) {
+                            InputFieldOne(
+                                state.query,
+                                onQueryChange,
+                                "借出单号 / 工单号 / 借用人"
+                            )
+                            ScanTabs(
+                                listOf("全部", "草稿", "已借出"),
+                                state.selectedTab,
+                                onTabSelected
                             )
                         }
-                        items(state.visibleOrders, key = { it.orderNo }) { current ->
-                            TempCard(
+                        OrderList(
+                            orders = state.visibleOrders,
+                            listState = listState,
+                            emptyText = "暂无临时借出单，点击下方按钮新建",
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            key = { it.orderNo }
+                        ) { current ->
+                            TempListCard(
                                 title = current.orderNo,
                                 status = current.status,
                                 fields = listOf(
                                     DisplayField("工单号", current.workOrderNo),
                                     DisplayField("借用人", current.borrower),
-                                    DisplayField("创建时间", current.createdAt),
-                                    DisplayField(
-                                        "借出进度",
-                                        "${current.lines.count { it.borrowed }} / ${current.lines.size}"
-                                    )
+                                    DisplayField("创建时间", current.createdAt)
+                                ),
+                                progress = OrderProgress(
+                                    "借出进度",
+                                    current.lines.count { it.borrowed },
+                                    current.lines.size
                                 ),
                                 actionText = "查看单据",
                                 onAction = { onSelectOrder(current.orderNo) }
@@ -274,6 +309,11 @@ fun TempBorrowContent(
                     }
                 }
             }
+            TopNotification(
+                message = state.notificationMessage,
+                notificationId = state.notificationId,
+                onDismiss = onNotificationDismiss
+            )
         }
     }
     val line = order?.lines?.firstOrNull { it.tool.rfid == state.confirmationRfid && !it.borrowed }
@@ -283,4 +323,3 @@ fun TempBorrowContent(
         }
     }
 }
-

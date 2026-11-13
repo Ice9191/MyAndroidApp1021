@@ -38,54 +38,55 @@ class TempReturnViewModel : ViewModel() {
                 )
             )
         )
-        _uiState.update { it.copy(orders = listOf(mockOrder)) }
+        updateState { it.copy(orders = listOf(mockOrder)) }
     }
 
     fun onQueryChange(value: String) {
-        _uiState.update { it.copy(query = value) }
+        updateState { it.copy(query = value) }
     }
 
     fun onTabSelected(value: Int) {
-        _uiState.update { it.copy(selectedTab = value) }
+        updateState { it.copy(selectedTab = value) }
     }
 
     fun onReturnerChange(value: String) {
-        _uiState.update { it.copy(returner = value, message = null) }
+        updateState { it.copy(returner = value, notificationMessage = null) }
     }
 
     fun onWorkOrderChange(value: String) {
-        _uiState.update { it.copy(workOrderNo = value, message = null) }
+        updateState { it.copy(workOrderNo = value, notificationMessage = null) }
     }
 
     fun onLocationChange(value: String) {
-        _uiState.update { it.copy(location = value, message = null) }
+        updateState { it.copy(location = value, notificationMessage = null) }
     }
 
     fun onRemarkChange(value: String) {
-        _uiState.update { it.copy(remark = value, message = null) }
+        updateState { it.copy(remark = value, notificationMessage = null) }
     }
 
     fun selectOrder(orderNo: String) {
-        _uiState.update { state ->
-            val order = state.orders.firstOrNull { it.orderNo == orderNo } ?: return@update state
+        updateState { state ->
+            val order =
+                state.orders.firstOrNull { it.orderNo == orderNo } ?: return@updateState state
             state.copy(
                 selectedOrderNo = orderNo,
                 returner = order.returner,
                 workOrderNo = order.workOrderNo,
                 location = order.location,
                 remark = order.remark,
-                message = null
+                notificationMessage = null
             )
         }
     }
 
     fun showList() {
-        _uiState.update {
+        updateState {
             it.copy(
                 selectedOrderNo = null,
                 query = "",
                 confirmationRfid = null,
-                message = null
+                notificationMessage = null
             )
         }
     }
@@ -94,7 +95,7 @@ class TempReturnViewModel : ViewModel() {
      * 模拟借出后生成归还单；追加新借出明细时保留已经登记的归还信息和核销结果。
      */
     fun syncBorrowedOrders(orders: List<TempBorrowOrder>) {
-        _uiState.update { state ->
+        updateState { state ->
             var nextOrders = state.orders
             orders.forEach { borrow ->
                 val lines = borrow.lines.filter { it.borrowed }
@@ -132,7 +133,7 @@ class TempReturnViewModel : ViewModel() {
     }
 
     fun requestConfirmation(rfid: String?) {
-        _uiState.update { state ->
+        updateState { state ->
             val error = when {
                 rfid == null -> null
                 state.returner.isBlank() -> "请填写归还人"
@@ -140,7 +141,11 @@ class TempReturnViewModel : ViewModel() {
                 state.location.isBlank() -> "请填写归还库位"
                 else -> null
             }
-            state.copy(confirmationRfid = if (error == null) rfid else null, message = error)
+            state.copy(
+                confirmationRfid = if (error == null) rfid else null,
+                notificationMessage = error,
+                notificationId = if (error == null) state.notificationId else state.notificationId + 1
+            )
         }
     }
 
@@ -148,10 +153,10 @@ class TempReturnViewModel : ViewModel() {
      * 依据临时归还库存状态图，确认只完成归还核销，随后交给其他上架；不直接恢复在库。
      */
     fun confirmLine() {
-        _uiState.update { state ->
-            val order = state.selectedOrder ?: return@update state
-            val rfid = state.confirmationRfid ?: return@update state
-            if (state.returner.isBlank() || state.workOrderNo.isBlank() || state.location.isBlank()) return@update state
+        updateState { state ->
+            val order = state.selectedOrder ?: return@updateState state
+            val rfid = state.confirmationRfid ?: return@updateState state
+            if (state.returner.isBlank() || state.workOrderNo.isBlank() || state.location.isBlank()) return@updateState state
             state.copy(
                 orders = state.orders.map { current ->
                     if (current.orderNo != order.orderNo) current else current.copy(
@@ -165,7 +170,8 @@ class TempReturnViewModel : ViewModel() {
                         }
                     )
                 },
-                confirmationRfid = null, message = "已确认归还，器具待上架"
+                confirmationRfid = null, notificationMessage = "已确认归还，器具待上架",
+                notificationId = state.notificationId + 1
             )
         }
     }
@@ -181,6 +187,39 @@ class TempReturnViewModel : ViewModel() {
         )
     }
 
+    fun dismissNotification() {
+        updateState { it.copy(notificationMessage = null) }
+    }
+
     private fun now(): String =
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+    /**
+     * 所有状态变更统一走这里，先改业务状态，再刷新筛选列表和派生状态。
+     */
+    private fun updateState(transform: (TempReturnUiState) -> TempReturnUiState) {
+        _uiState.update { transform(it).withDerivedState() }
+    }
+
+    /**
+     * 刷新查询条件、标签页对应的列表，以及所选单据和归还状态；展示字段由页面拼装。
+     */
+    private fun TempReturnUiState.withDerivedState(): TempReturnUiState {
+        val visibleOrders = orders.filter { order ->
+            (query.isBlank() || listOf(order.orderNo, order.workOrderNo, order.returner).plus(
+                order.lines.flatMap { line -> listOf(line.borrower, line.borrowOrderNo) }
+            ).any { value -> value.contains(query.trim(), true) }) &&
+                    when (selectedTab) {
+                        1 -> order.status == "待确认"
+                        2 -> order.status == "已归还"
+                        else -> true
+                    }
+        }
+        val order = orders.firstOrNull { it.orderNo == selectedOrderNo }
+        return copy(
+            selectedOrder = order,
+            visibleOrders = visibleOrders,
+            hasReturned = order?.lines?.any { it.returned } ?: false
+        )
+    }
 }

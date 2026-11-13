@@ -41,7 +41,7 @@ import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.ManualScanCard
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.ScanTopInfo
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.theme.AppColors
@@ -175,7 +175,7 @@ fun PutawayConfirmContent(
                             .fillMaxWidth()
                             .background(MaterialTheme.colorScheme.surface)
                     ) {
-                        ScanTopInfo(
+                        TopInfo(
                             fields = listOf(
                                 DisplayField("上架单号", order.orderNo),
                                 DisplayField("入库单号", order.inboundOrderNo),
@@ -245,7 +245,7 @@ fun PutawayConfirmContent(
                                     )
                                 ), title = "当前工具"
                             )
-                            ScanTopInfo(
+                            TopInfo(
                                 fields = listOf(
                                     DisplayField("物资编码", current.itemCode),
                                     DisplayField("批次号", current.batchNo),

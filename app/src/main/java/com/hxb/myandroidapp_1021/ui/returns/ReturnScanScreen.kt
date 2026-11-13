@@ -30,7 +30,7 @@ import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.ScanTopInfo
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.ui.commonmodel.ScanTab
@@ -129,7 +129,7 @@ fun ReturnScanContent(
             item {
                 Column {
                     // === 1. 顶部信息卡片 ===
-                    ScanTopInfo(fields = infoFields)
+                    TopInfo(fields = infoFields)
                     HorizontalDivider(thickness = 8.dp, color = bgColor)
 
                     Column(

@@ -22,67 +22,81 @@ class TempBorrowViewModel : ViewModel() {
             TempTool("E280 1001 0003", "280000000001", "数显游标卡尺 0–150mm", "把", "B0101"),
             TempTool("E280 1001 0004", "280000000006", "数字万用表", "台", "B0102")
         )
-        _uiState.update { it.copy(inventory = mockInventory) }
+        updateState { it.copy(inventory = mockInventory) }
     }
 
     fun onQueryChange(value: String) {
-        _uiState.update { it.copy(query = value) }
+        updateState { it.copy(query = value) }
     }
 
     fun onTabSelected(value: Int) {
-        _uiState.update { it.copy(selectedTab = value) }
+        updateState { it.copy(selectedTab = value) }
     }
 
     fun onBorrowerChange(value: String) {
-        _uiState.update { it.copy(borrower = value, message = null) }
+        updateState { it.copy(borrower = value, notificationMessage = null) }
     }
 
     fun onWorkOrderChange(value: String) {
-        _uiState.update { it.copy(workOrderNo = value, message = null) }
+        updateState { it.copy(workOrderNo = value, notificationMessage = null) }
     }
 
     fun onWorkshopChange(value: String) {
-        _uiState.update { it.copy(workshop = value) }
+        updateState { it.copy(workshop = value) }
     }
 
     fun onTeamChange(value: String) {
-        _uiState.update { it.copy(team = value) }
+        updateState { it.copy(team = value) }
     }
 
     fun onRemarkChange(value: String) {
-        _uiState.update { it.copy(remark = value) }
+        updateState { it.copy(remark = value) }
     }
 
     fun startNewOrder() {
-        _uiState.update {
+        updateState {
             it.copy(
-                editing = true, selectedOrderNo = null, query = "", borrower = "", workOrderNo = "",
-                workshop = "", team = "", remark = "", selectedRfids = emptySet(), message = null
+                editing = true,
+                selectedOrderNo = null,
+                query = "",
+                borrower = "",
+                workOrderNo = "",
+                workshop = "",
+                team = "",
+                remark = "",
+                selectedRfids = emptySet(),
+                notificationMessage = null
             )
         }
     }
 
     fun selectOrder(orderNo: String) {
-        _uiState.update { it.copy(selectedOrderNo = orderNo, editing = false, message = null) }
+        updateState {
+            it.copy(
+                selectedOrderNo = orderNo,
+                editing = false,
+                notificationMessage = null
+            )
+        }
     }
 
     fun showList() {
-        _uiState.update {
+        updateState {
             it.copy(
                 selectedOrderNo = null,
                 editing = false,
                 query = "",
                 confirmationRfid = null,
-                message = null
+                notificationMessage = null
             )
         }
     }
 
     fun toggleTool(rfid: String) {
-        _uiState.update { state ->
+        updateState { state ->
             if (state.inventory.none { it.rfid == rfid }) state else state.copy(
                 selectedRfids = if (rfid in state.selectedRfids) state.selectedRfids - rfid else state.selectedRfids + rfid,
-                message = null
+                notificationMessage = null
             )
         }
     }
@@ -91,12 +105,24 @@ class TempBorrowViewModel : ViewModel() {
      * 先保存器具清单再执行拣选；模拟单号只用于页面流程，不推定后端生成规则。
      */
     fun saveOrder() {
-        _uiState.update { state ->
+        updateState { state ->
             val tools = state.inventory.filter { it.rfid in state.selectedRfids }
             when {
-                state.borrower.isBlank() -> state.copy(message = "请填写借用人")
-                state.workOrderNo.isBlank() -> state.copy(message = "请填写工单号")
-                tools.isEmpty() -> state.copy(message = "请至少选择一件在库器具")
+                state.borrower.isBlank() -> state.copy(
+                    notificationMessage = "请填写借用人",
+                    notificationId = state.notificationId + 1
+                )
+
+                state.workOrderNo.isBlank() -> state.copy(
+                    notificationMessage = "请填写工单号",
+                    notificationId = state.notificationId + 1
+                )
+
+                tools.isEmpty() -> state.copy(
+                    notificationMessage = "请至少选择一件在库器具",
+                    notificationId = state.notificationId + 1
+                )
+
                 else -> {
                     val mockOrder = TempBorrowOrder(
                         orderNo = "LSJC${System.currentTimeMillis()}",
@@ -110,9 +136,13 @@ class TempBorrowViewModel : ViewModel() {
                         lines = tools.mapIndexed { index, tool -> TempBorrowLine(index + 1, tool) }
                     )
                     state.copy(
-                        orders = state.orders + mockOrder, selectedOrderNo = mockOrder.orderNo,
+                        orders = state.orders + mockOrder,
+                        selectedOrderNo = mockOrder.orderNo,
                         inventory = state.inventory.filterNot { it.rfid in state.selectedRfids },
-                        editing = false, selectedRfids = emptySet(), query = "", message = null
+                        editing = false,
+                        selectedRfids = emptySet(),
+                        query = "",
+                        notificationMessage = null
                     )
                 }
             }
@@ -139,7 +169,7 @@ class TempBorrowViewModel : ViewModel() {
      * 只接收本模块来源任务的拣选结果，拣选完成不等同于确认借出。
      */
     fun syncPicking(tasks: List<OtherPickingTaskUi>) {
-        _uiState.update { state ->
+        updateState { state ->
             val orderNos = state.orders.map { it.orderNo }.toSet()
             state.copy(pickedRfids = tasks.filter { it.sourceType == SourceType.TEMPORARY && it.sourceNo in orderNos }
                 .flatMap { it.tools }.filter { it.completed }.map { it.rfid }.toSet())
@@ -147,20 +177,21 @@ class TempBorrowViewModel : ViewModel() {
     }
 
     fun requestConfirmation(rfid: String?) {
-        _uiState.update { it.copy(confirmationRfid = rfid, message = null) }
+        updateState { it.copy(confirmationRfid = rfid, notificationMessage = null) }
     }
 
     /**
      * 按用户确认的顺序，整单拣选完成后才允许逐条借出，重复确认不改变结果。
      */
     fun confirmLine() {
-        _uiState.update { state ->
-            val order = state.selectedOrder ?: return@update state
-            val rfid = state.confirmationRfid ?: return@update state
+        updateState { state ->
+            val order = state.selectedOrder ?: return@updateState state
+            val rfid = state.confirmationRfid ?: return@updateState state
             if (!order.lines.all { it.tool.rfid in state.pickedRfids }) {
-                return@update state.copy(
+                return@updateState state.copy(
                     confirmationRfid = null,
-                    message = "请先完成本单全部器具的 PDA 拣选"
+                    notificationMessage = "请先完成本单全部器具的 PDA 拣选",
+                    notificationId = state.notificationId + 1
                 )
             }
             state.copy(
@@ -172,11 +203,57 @@ class TempBorrowViewModel : ViewModel() {
                         )
                     })
                 },
-                confirmationRfid = null, message = "已确认借出，可在临时归还中查看待还记录"
+                confirmationRfid = null,
+                notificationMessage = "已确认借出，可在临时归还中查看待还记录",
+                notificationId = state.notificationId + 1
             )
         }
     }
 
+    fun dismissNotification() {
+        updateState { it.copy(notificationMessage = null) }
+    }
+
     private fun now(): String =
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
+
+    /**
+     * 所有状态变更统一走这里，先改业务状态，再刷新筛选列表和派生状态。
+     */
+    private fun updateState(transform: (TempBorrowUiState) -> TempBorrowUiState) {
+        _uiState.update { transform(it).withDerivedState() }
+    }
+
+    /**
+     * 刷新查询条件、标签页对应的列表，以及所选单据和整单拣选进度；展示字段由页面拼装。
+     */
+    private fun TempBorrowUiState.withDerivedState(): TempBorrowUiState {
+        val visibleOrders = orders.filter { order ->
+            (query.isBlank() || listOf(
+                order.orderNo,
+                order.workOrderNo,
+                order.borrower
+            ).any { value -> value.contains(query.trim(), true) }) &&
+                    when (selectedTab) {
+                        1 -> order.status == "草稿"
+                        2 -> order.status == "已借出"
+                        else -> true
+                    }
+        }
+        val visibleTools = inventory.filter { tool ->
+            query.isBlank() || listOf(tool.rfid, tool.itemCode, tool.name).any { value ->
+                value.contains(
+                    query.trim(),
+                    true
+                )
+            }
+        }
+        val order = orders.firstOrNull { it.orderNo == selectedOrderNo }
+        return copy(
+            selectedOrder = order,
+            visibleOrders = visibleOrders,
+            visibleTools = visibleTools,
+            allPicked = order?.lines?.all { it.tool.rfid in pickedRfids } ?: false
+        )
+    }
 }

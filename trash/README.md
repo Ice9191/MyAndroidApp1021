@@ -19,3 +19,5 @@
 
 - `ui/inventory/`：停用的盘点单模块，包含列表、扫描、结果页面及 Model、ViewModel，原位置为源码根目录下的 `ui/inventory/`。
 - `navigation/InventoryRoutes.kt`、`navigation/InventoryNavGraph.kt.txt`：盘点模块移出的路由和导航注册片段。
+
+- `components/TempComponents.kt`：临时借还的共用消息提示已内联到借出/归还页面，`TempTool.fields()` 已迁入 `ui/temp/Model.kt`；原位置为源码根目录下的 `components/TempComponents.kt`。卡片外观由 `components/TempListCard.kt` 保留使用。

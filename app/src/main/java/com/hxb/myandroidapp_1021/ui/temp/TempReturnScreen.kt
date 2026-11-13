@@ -2,29 +2,34 @@ package com.hxb.myandroidapp_1021.ui.temp
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.components.InputFieldOne
+import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TempCard
-import com.hxb.myandroidapp_1021.components.TempMessage
+import com.hxb.myandroidapp_1021.components.TempListCard
 import com.hxb.myandroidapp_1021.components.TopAppBar
-import com.hxb.myandroidapp_1021.components.fields
+import com.hxb.myandroidapp_1021.components.TopNotification
 import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 
 @Composable
@@ -50,7 +55,8 @@ fun TempReturnScreen(
         onRemarkChange = viewModel::onRemarkChange,
         onPutawayClick = onPutawayClick,
         onRequestConfirmation = viewModel::requestConfirmation,
-        onConfirm = viewModel::confirmLine
+        onConfirm = viewModel::confirmLine,
+        onNotificationDismiss = viewModel::dismissNotification
     )
 }
 
@@ -68,10 +74,12 @@ fun TempReturnContent(
     onRemarkChange: (String) -> Unit,
     onPutawayClick: () -> Unit,
     onRequestConfirmation: (String?) -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    onNotificationDismiss: () -> Unit
 ) {
     val order = state.selectedOrder
-    val hasReturned = order?.lines?.any { it.returned } == true
+    val listState = rememberLazyListState()
+
     Scaffold(
         modifier = Modifier.imePadding(), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -82,20 +90,19 @@ fun TempReturnContent(
             )
         },
         bottomBar = {
-            if (order != null) BottomButton("前往 PDA 上架", onPutawayClick, hasReturned)
+            if (order != null) BottomButton("前往 PDA 上架", onPutawayClick, state.hasReturned)
         }
     ) { paddingValues ->
-        Column(Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) {
-            TempMessage(state.message)
-            LazyColumn(
-                modifier = Modifier.weight(1f), contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .clipToBounds()
+        ) {
+            Column(Modifier.fillMaxSize()) {
                 if (order == null) {
-                    item {
-                        Column {
+                    Column(Modifier.weight(1f)) {
+                        Column(Modifier.fillMaxWidth()) {
                             InputFieldOne(
                                 state.query,
                                 onQueryChange,
@@ -107,104 +114,124 @@ fun TempReturnContent(
                                 onTabSelected
                             )
                         }
-                    }
-                    if (state.visibleOrders.isEmpty()) item {
-                        Text(
-                            "暂无匹配的归还记录",
-                            Modifier.padding(8.dp)
-                        )
-                    }
-                    items(state.visibleOrders, key = { it.orderNo }) { current ->
-                        TempCard(
-                            title = current.orderNo,
-                            status = current.status,
-                            fields = listOf(
-                                DisplayField("工单号", current.workOrderNo),
-                                DisplayField(
-                                    "借用人",
-                                    current.lines.map { it.borrower }.distinct().joinToString("、")
+                        OrderList(
+                            orders = state.visibleOrders,
+                            listState = listState,
+                            emptyText = "暂无匹配的归还记录",
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            key = { it.orderNo }
+                        ) { current ->
+                            TempListCard(
+                                title = current.orderNo,
+                                status = current.status,
+                                fields = listOf(
+                                    DisplayField("工单号", current.workOrderNo),
+                                    DisplayField(
+                                        "借用人",
+                                        current.lines.map { it.borrower }.distinct()
+                                            .joinToString("、")
+                                    ),
+                                    DisplayField(
+                                        "原借用单",
+                                        current.lines.map { it.borrowOrderNo }.distinct()
+                                            .joinToString("、")
+                                    )
                                 ),
-                                DisplayField(
-                                    "原借用单",
-                                    current.lines.map { it.borrowOrderNo }.distinct()
-                                        .joinToString("、")
+                                progress = OrderProgress(
+                                    "归还进度",
+                                    current.lines.count { it.returned },
+                                    current.lines.size
                                 ),
-                                DisplayField(
-                                    "归还进度",
-                                    "${current.lines.count { it.returned }} / ${current.lines.size}"
-                                )
-                            ),
-                            actionText = "查看待还器具",
-                            onAction = { onSelectOrder(current.orderNo) }
-                        )
-                    }
-                } else {
-                    item {
-                        TempCard(
-                            title = order.orderNo, status = order.status,
-                            fields = listOf(
-                                DisplayField("经办人", order.createdBy),
-                                DisplayField(
-                                    "归还进度",
-                                    "${order.lines.count { it.returned }} / ${order.lines.size}"
-                                )
-                            )
-                        )
-                    }
-                    item {
-                        Column {
-                            InputFieldOne(
-                                state.returner,
-                                onReturnerChange,
-                                "归还人（必填）",
-                                showSearchIcon = false,
-                                enabled = !hasReturned
-                            )
-                            InputFieldOne(
-                                state.workOrderNo,
-                                onWorkOrderChange,
-                                "工单号（必填）",
-                                showSearchIcon = false,
-                                enabled = !hasReturned
-                            )
-                            InputFieldOne(
-                                state.location,
-                                onLocationChange,
-                                "归还库位（必填）",
-                                showSearchIcon = false,
-                                enabled = !hasReturned
-                            )
-                            InputFieldOne(
-                                state.remark,
-                                onRemarkChange,
-                                "备注",
-                                showSearchIcon = false,
-                                enabled = !hasReturned
-                            )
-                            Text(
-                                "逐条核对实物后确认归还；归还后仍需 PDA 上架",
-                                Modifier.padding(8.dp)
+                                actionText = "查看待还器具",
+                                onAction = { onSelectOrder(current.orderNo) }
                             )
                         }
                     }
-                    items(order.lines, key = { it.lineNo }) { line ->
-                        TempCard(
+                } else {
+                    OrderList(
+                        orders = order.lines,
+                        listState = listState,
+                        emptyText = "暂无归还明细",
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        key = { it.lineNo },
+                        header = {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TempListCard(
+                                    title = order.orderNo,
+                                    status = order.status,
+                                    fields = listOf(
+                                        DisplayField("经办人", order.createdBy)
+                                    ),
+                                    progress = OrderProgress(
+                                        "归还进度",
+                                        order.lines.count { it.returned },
+                                        order.lines.size
+                                    )
+                                )
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.surface
+                                ) {
+                                    Column {
+                                        Text(
+                                            "归还信息",
+                                            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        InputFieldOne(
+                                            state.returner,
+                                            onReturnerChange,
+                                            "归还人（必填）",
+                                            showSearchIcon = false,
+                                            enabled = !state.hasReturned
+                                        )
+                                        InputFieldOne(
+                                            state.workOrderNo,
+                                            onWorkOrderChange,
+                                            "工单号（必填）",
+                                            showSearchIcon = false,
+                                            enabled = !state.hasReturned
+                                        )
+                                        InputFieldOne(
+                                            state.location,
+                                            onLocationChange,
+                                            "归还库位（必填）",
+                                            showSearchIcon = false,
+                                            enabled = !state.hasReturned
+                                        )
+                                        InputFieldOne(
+                                            state.remark,
+                                            onRemarkChange,
+                                            "备注",
+                                            showSearchIcon = false,
+                                            enabled = !state.hasReturned
+                                        )
+                                        Text(
+                                            "逐条核对实物后确认归还；归还后仍需 PDA 上架",
+                                            Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    ) { line ->
+                        TempListCard(
                             title = line.tool.name,
                             status = if (line.returned) "已归还" else "待确认归还",
-                            fields = listOf(
-                                DisplayField(
-                                    "行号",
-                                    line.lineNo.toString()
-                                )
-                            ) + line.tool.fields() + listOf(
+                            fields = listOf(DisplayField("行号", line.lineNo.toString())) + listOf(
+                                DisplayField("物资编码", line.tool.itemCode),
+                                DisplayField("RFID 编码", line.tool.rfid),
+                                DisplayField("存放货位", line.tool.location),
+                                DisplayField("单位", line.tool.unit),
                                 DisplayField("原借用单", line.borrowOrderNo),
                                 DisplayField("借用人", line.borrower),
                                 DisplayField("借出时间", line.borrowedAt)
                             ) + if (line.returned) listOf(
-                                DisplayField(
-                                    "归还时间",
-                                    line.returnedAt
-                                )
+                                DisplayField("归还时间", line.returnedAt)
                             ) else emptyList(),
                             actionText = if (line.returned) null else "确认归还",
                             onAction = { onRequestConfirmation(line.tool.rfid) }
@@ -212,6 +239,11 @@ fun TempReturnContent(
                     }
                 }
             }
+            TopNotification(
+                message = state.notificationMessage,
+                notificationId = state.notificationId,
+                onDismiss = onNotificationDismiss
+            )
         }
     }
     val line = order?.lines?.firstOrNull { it.tool.rfid == state.confirmationRfid && !it.returned }
@@ -221,4 +253,3 @@ fun TempReturnContent(
         }
     }
 }
-

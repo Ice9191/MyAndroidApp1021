@@ -263,7 +263,11 @@ fun AppNavHost() {
             TempBorrowScreen(
                 viewModel = borrowViewModel,
                 onBackClick = safeBack,
-                onHomeClick = { navController.popBackStack<Dashboard>(false) },
+                onHomeClick = {
+                    // 从首页再进入时始终回到列表页，不在路由里自动打开表单。
+                    borrowViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
+                },
                 onPickingClick = {
                     borrowViewModel.pickingTask()?.let { task ->
                         listViewModel.openTemporaryTask(task)

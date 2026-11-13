@@ -36,3 +36,34 @@ fun TaskPage(
             .padding(padding), content = content)
     }
 }
+
+
+@composable
+fun taskPage(
+    title: String,
+    onBackClick: () -> Unit,
+    bottomBar:@Composable () -> Unit = {},
+    content:@Composable ColumnScope.()-> Unit
+){
+    Scaffold(
+        modifier = Modifier.imePadding(),
+        containerColor = Color(0xFFF5F6F8),
+        topBar = {
+            TopAppBar(
+                title = title,
+                onBackClick = onBackClick
+            )
+        },
+        bottomBar = bottomBar
+    ){padding ->
+        Column(
+            Modifier.fillMaxSize().padding(padding),
+            content = content
+        )
+    }
+}
+
+@Composable
+fun taskPage(
+
+)

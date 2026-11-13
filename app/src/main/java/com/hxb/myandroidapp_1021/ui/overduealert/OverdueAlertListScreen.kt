@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -95,9 +94,6 @@ fun OverdueAlertListContent(
                     onValueChange = onSearchQueryChange,
                     placeholder = "借用人 / 单号 / RFID"
                 )
-                if (uiState.isLoading) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                }
                 OrderList(
                     orders = uiState.filteredAlerts,
                     listState = listState,

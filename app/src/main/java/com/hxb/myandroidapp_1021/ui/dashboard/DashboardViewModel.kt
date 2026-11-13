@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
@@ -15,6 +16,7 @@ import com.hxb.myandroidapp_1021.navigation.PutawayList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
 import com.hxb.myandroidapp_1021.navigation.TempBorrow
 import com.hxb.myandroidapp_1021.navigation.TempReturn
+import com.hxb.myandroidapp_1021.navigation.StockDetailList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -80,6 +82,12 @@ class DashboardViewModel : ViewModel() {
             items = listOf(
                 MenuItemData("其他拣选", Icons.AutoMirrored.Filled.ExitToApp, OtherPickingList),
                 MenuItemData("其他上架", Icons.Filled.QrCodeScanner, OtherPutawayList)
+            )
+        ),
+        MenuSectionData(
+            title = "库存管理",
+            items = listOf(
+                MenuItemData("库存明细", Icons.AutoMirrored.Filled.ListAlt, StockDetailList)
             )
         ),
         MenuSectionData(

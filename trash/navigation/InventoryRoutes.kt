@@ -10,4 +10,3 @@ data object InventoryScan
 
 @Serializable
 data object InventoryResult
-

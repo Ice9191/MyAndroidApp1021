@@ -313,7 +313,7 @@ fun InventoryListScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "回到顶部"
+                            contentDescription = "Back to top"
                         )
                     }
                 }

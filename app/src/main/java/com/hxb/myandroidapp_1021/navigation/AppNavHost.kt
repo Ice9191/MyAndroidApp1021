@@ -50,6 +50,7 @@ import com.hxb.myandroidapp_1021.ui.temp.TempBorrowScreen
 import com.hxb.myandroidapp_1021.ui.temp.TempBorrowViewModel
 import com.hxb.myandroidapp_1021.ui.temp.TempReturnScreen
 import com.hxb.myandroidapp_1021.ui.temp.TempReturnViewModel
+import com.hxb.myandroidapp_1021.ui.stockdetail.StockDetailListScreen
 
 @Composable
 fun AppNavHost() {
@@ -136,6 +137,9 @@ fun AppNavHost() {
         // 超期告警仅查询展示，不在 PDA 配置参数或处理告警。
         composable<OverdueAlertList> {
             OverdueAlertListScreen(onBackClick = safeBack)
+        }
+        composable<StockDetailList> {
+            StockDetailListScreen(onBackClick = safeBack)
         }
         // 服务器配置页
         composable<ServerConfig> {

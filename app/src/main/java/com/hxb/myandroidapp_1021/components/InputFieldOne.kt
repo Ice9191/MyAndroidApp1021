@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,10 +30,12 @@ import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 
 /**
  * 输入值、提示和错误由调用页面传入，输入变化通过 onValueChange 上报。
+ * width 包含组件两侧留白，默认占满父布局可用宽度，与原布局一致。
  */
 @Composable
 fun InputFieldOne(
@@ -43,7 +46,9 @@ fun InputFieldOne(
     showSearchIcon: Boolean = true,
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    width: Dp = Dp.Unspecified,
+    horizontalPadding: Dp = 16.dp
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -57,9 +62,9 @@ fun InputFieldOne(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
+            .then(if (width == Dp.Unspecified) Modifier.fillMaxWidth() else Modifier.width(width))
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = horizontalPadding, vertical = 8.dp)
     ) {
         BasicTextField(
             enabled = enabled,

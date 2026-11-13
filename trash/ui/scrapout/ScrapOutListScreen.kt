@@ -343,7 +343,7 @@ fun ScrapOutListScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "回到顶部"
+                            contentDescription = "Back top top"
                         )
                     }
                 }

@@ -67,3 +67,6 @@ data object TempReturn
 
 @Serializable
 data object OverdueAlertList
+
+@Serializable
+data object StockDetailList

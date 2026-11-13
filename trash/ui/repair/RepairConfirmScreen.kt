@@ -118,7 +118,7 @@ fun RepairConfirmScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
+                            contentDescription = "Back"
                         )
                     }
                 },
@@ -235,7 +235,7 @@ fun RepairConfirmScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = "选择预计返回时间",
+                                contentDescription = "Select expected return time",
                                 tint = themeBlue
                             )
                         }

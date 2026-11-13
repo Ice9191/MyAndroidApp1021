@@ -122,7 +122,7 @@ fun ScrapConfirmScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
+                            contentDescription = "Back"
                         )
                     }
                 },
@@ -253,7 +253,7 @@ fun ScrapConfirmScreen(
                         }) {
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
-                                contentDescription = "选择报废日期",
+                                contentDescription = "Select scrap date",
                                 tint = themeBlue
                             )
                         }

@@ -331,7 +331,7 @@ fun InspectionListScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
-                            contentDescription = "回到顶部"
+                            contentDescription = "Back to top"
                         )
                     }
                 }
@@ -344,7 +344,7 @@ fun InspectionListScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "新增"
+                        contentDescription = "Add"
                     )
                 }
             }

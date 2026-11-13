@@ -16,9 +16,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -60,9 +60,13 @@ fun TopAppBar(
             Text(
                 text = title,
                 modifier = if (onLogoutClick != null) {
-                    Modifier.align(Alignment.CenterStart).padding(start = 16.dp, end = 144.dp)
+                    Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 16.dp, end = 144.dp)
                 } else {
-                    Modifier.align(Alignment.Center).padding(horizontal = titleInset)
+                    Modifier
+                        .align(Alignment.Center)
+                        .padding(horizontal = titleInset)
                 },
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -87,7 +91,11 @@ fun TopAppBar(
             Row(modifier = Modifier.align(Alignment.CenterEnd)) {
                 if (onLogoutClick != null) {
                     TextButton(onClick = onLogoutClick, shape = RoundedCornerShape(4.dp)) {
-                        Text("退出登录", color = MaterialTheme.colorScheme.onPrimary, fontSize = 14.sp)
+                        Text(
+                            "退出登录",
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontSize = 14.sp
+                        )
                     }
                 }
                 if (onHomeClick != null) {
@@ -97,7 +105,7 @@ fun TopAppBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Home,
-                            contentDescription = "首页"
+                            contentDescription = "Dashboard"
                         )
                     }
                 }
@@ -108,7 +116,7 @@ fun TopAppBar(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
-                            contentDescription = "设置"
+                            contentDescription = "Setting"
                         )
                     }
                 }

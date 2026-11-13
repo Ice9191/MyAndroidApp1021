@@ -42,48 +42,6 @@ data object ReturnManual
 data object ReturnConfirm
 
 @Serializable
-data object InspectionList
-
-@Serializable
-data object InspectionScan
-
-@Serializable
-data object InspectionConfirm
-
-@Serializable
-data object RepairList
-
-@Serializable
-data object RepairScan
-
-@Serializable
-data object RepairConfirm
-
-@Serializable
-data object ScrapList
-
-@Serializable
-data object ScrapScan
-
-@Serializable
-data object ScrapConfirm
-
-@Serializable
-data object ScrapOutList
-
-@Serializable
-data object ScrapOutCheck
-
-@Serializable
-data object InventoryList
-
-@Serializable
-data object InventoryScan
-
-@Serializable
-data object InventoryResult
-
-@Serializable
 data object OtherPickingList
 
 @Serializable
@@ -96,4 +54,13 @@ data object OtherPickingConfirm
 data object OtherPutawayList
 
 @Serializable
-data object OtherPutaway
+data object OtherPutawayScan
+
+@Serializable
+data object OtherPutawayConfirm
+
+@Serializable
+data object TempBorrow
+
+@Serializable
+data object TempReturn

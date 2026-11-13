@@ -1,12 +1,12 @@
 package com.hxb.myandroidapp_1021.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -27,15 +27,15 @@ fun ConfirmDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = content,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         confirmButton = {
             TextButton(shape = RoundedCornerShape(4.dp), onClick = onConfirm) {
-                Text(confirmText, color = Color(0xFF1E71C8))
+                Text(confirmText, color = MaterialTheme.colorScheme.primary)
             }
         },
         dismissButton = {
             TextButton(shape = RoundedCornerShape(4.dp), onClick = onDismiss) {
-                Text(dismissText, color = Color(0xFF888888))
+                Text(dismissText, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )

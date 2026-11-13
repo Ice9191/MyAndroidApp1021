@@ -7,15 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.commonmodel.ToolInfoRow
 
 /**
  * 只展示传入的工器具行数据，滚动与业务状态由调用页面管理。
@@ -25,20 +25,20 @@ fun ToolsInfoList(
     rows: List<ToolInfoRow>,
     modifier: Modifier = Modifier,
     title: String = "工器具信息",
-    valueTitle: String = "数量/件"
+    valueTitle: String = "数量"
 ) {
-    val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(Color(0xFFF5F6F8))
+                .background(MaterialTheme.colorScheme.background)
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -56,7 +56,7 @@ fun ToolsInfoList(
                 color = textGray
             )
         }
-        HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+        HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
         rows.forEach { row ->
             Row(
@@ -82,7 +82,7 @@ fun ToolsInfoList(
                     color = row.valueColor ?: textDark
                 )
             }
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
         }
     }
 }

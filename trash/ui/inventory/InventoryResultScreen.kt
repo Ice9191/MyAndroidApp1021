@@ -8,26 +8,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,16 +27,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.ui.inventory.InventoryResultItem
 import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
-import com.hxb.myandroidapp_1021.ui.common.ToolScanItem
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryResultScreen(
     items: List<InventoryResultItem> = listOf(
@@ -65,10 +56,10 @@ fun InventoryResultScreen(
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val bgColor = Color(0xFFF5F6F8)
-    val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val bgColor = MaterialTheme.colorScheme.background
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
     var showConfirmDialog by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val bookCount = items.size
@@ -91,51 +82,16 @@ fun InventoryResultScreen(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
-                title = {
-                    Text(
-                        text = "盘点结果",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = {
-                            focusManager.clearFocus()
-                            onHomeClick()
-                        },
-                        modifier = Modifier.offset(x = (-4).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1E71C8),
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "盘点结果",
+                onBackClick = { focusManager.clearFocus(); onBackClick() },
+                onHomeClick = { focusManager.clearFocus(); onHomeClick() }
             )
         },
         bottomBar = {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Button(
@@ -147,14 +103,14 @@ fun InventoryResultScreen(
                     shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = themeBlue,
-                        disabledContainerColor = Color(0xFFB0BEC5)
+                        disabledContainerColor = AppColors.DisabledContainer
                     )
                 ) {
                     Text(
                         "提交盘点结果",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -170,7 +126,7 @@ fun InventoryResultScreen(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -190,7 +146,7 @@ fun InventoryResultScreen(
                             text = value,
                             fontSize = 13.sp,
                             color = if (label == "盘点差异" && shortage > 0) {
-                                Color(0xFFE53935)
+                                MaterialTheme.colorScheme.error
                             } else {
                                 textDark
                             },
@@ -207,20 +163,20 @@ fun InventoryResultScreen(
                     rfid = it.tool.rfid,
                     name = it.tool.name,
                     value = it.result,
-                    valueColor = if (it.result == "已盘") themeBlue else Color(0xFFE53935)
+                    valueColor = if (it.result == "已盘") themeBlue else MaterialTheme.colorScheme.error
                 )
             }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
             ) {
                 // 表头
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(40.dp)
-                        .background(Color(0xFFF5F6F8))
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -238,7 +194,7 @@ fun InventoryResultScreen(
                         color = textGray
                     )
                 }
-                HorizontalDivider(thickness = 1.dp, color = Color(0xFFE0E0E0))
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
                 // 数据行
                 toolRows.forEach { row ->
@@ -272,7 +228,7 @@ fun InventoryResultScreen(
                             color = row.valueColor ?: textDark
                         )
                     }
-                    HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+                    HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -281,7 +237,7 @@ fun InventoryResultScreen(
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.surface,
             title = { Text("确认提交盘点结果") },
             text = {
                 Text(
@@ -296,7 +252,7 @@ fun InventoryResultScreen(
             },
             dismissButton = {
                 TextButton(shape = RoundedCornerShape(4.dp), onClick = { showConfirmDialog = false }) {
-                    Text("取消", color = Color(0xFF888888))
+                    Text("取消", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )

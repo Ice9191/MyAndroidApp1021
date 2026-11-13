@@ -1,52 +1,74 @@
 package com.hxb.myandroidapp_1021.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = AppColors.Primary,
+    onPrimary = AppColors.OnPrimary,
+    primaryContainer = AppColors.DarkPrimaryContainer,
+    onPrimaryContainer = AppColors.DarkOnSurface,
+    secondary = AppColors.Primary,
+    onSecondary = AppColors.OnPrimary,
+    tertiary = AppColors.Success,
+    onTertiary = AppColors.OnPrimary,
+    background = AppColors.DarkBackground,
+    onBackground = AppColors.DarkOnSurface,
+    secondaryContainer = AppColors.DarkPrimaryContainer,
+    onSecondaryContainer = AppColors.DarkOnSurface,
+    surface = AppColors.DarkSurface,
+    surfaceContainerLowest = AppColors.DarkBackground,
+    surfaceContainerLow = AppColors.DarkSurface,
+    surfaceContainer = AppColors.DarkSurface,
+    surfaceContainerHigh = AppColors.DarkSurface,
+    surfaceContainerHighest = AppColors.DarkSurface,
+    onSurface = AppColors.DarkOnSurface,
+    surfaceVariant = AppColors.DarkBackground,
+    onSurfaceVariant = AppColors.DarkOnSurfaceVariant,
+    outline = AppColors.DarkOutline,
+    outlineVariant = AppColors.DarkOutlineVariant,
+    error = AppColors.Error,
+    onError = AppColors.OnPrimary
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-
-    // Other default colors to override
-    // background = Color(0xFFFFFBFE),
-    // surface = Color(0xFFFFFBFE),
-    // onPrimary = Color.White,
-    // onSecondary = Color.White,
-    // onTertiary = Color.White,
-    // onBackground = Color(0xFF1C1B1F),
-    // onSurface = Color(0xFF1C1B1F),
+    primary = AppColors.Primary,
+    onPrimary = AppColors.OnPrimary,
+    primaryContainer = AppColors.PrimaryContainer,
+    onPrimaryContainer = AppColors.Primary,
+    secondary = AppColors.Primary,
+    onSecondary = AppColors.OnPrimary,
+    tertiary = AppColors.Success,
+    onTertiary = AppColors.OnPrimary,
+    background = AppColors.Background,
+    onBackground = AppColors.OnSurface,
+    secondaryContainer = AppColors.PrimaryContainer,
+    onSecondaryContainer = AppColors.Primary,
+    surface = AppColors.Surface,
+    surfaceContainerLowest = AppColors.Surface,
+    surfaceContainerLow = AppColors.Background,
+    surfaceContainer = AppColors.Surface,
+    surfaceContainerHigh = AppColors.Background,
+    surfaceContainerHighest = AppColors.Background,
+    onSurface = AppColors.OnSurface,
+    surfaceVariant = AppColors.Background,
+    onSurfaceVariant = AppColors.OnSurfaceVariant,
+    outline = AppColors.Outline,
+    outlineVariant = AppColors.OutlineVariant,
+    error = AppColors.Error,
+    onError = AppColors.OnPrimary
 )
 
 @Composable
 fun ToolSystemPdaProjectTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    // 固定使用项目色板，不再根据系统壁纸动态取色。
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

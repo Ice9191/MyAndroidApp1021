@@ -8,23 +8,29 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hxb.myandroidapp_1021.ui.dashboard.DashboardScreen
-import com.hxb.myandroidapp_1021.ui.inspection.InspectionConfirmScreen
-import com.hxb.myandroidapp_1021.ui.inspection.InspectionListScreen
-import com.hxb.myandroidapp_1021.ui.inspection.InspectionScanScreen
-import com.hxb.myandroidapp_1021.ui.inventory.InventoryFlowViewModel
-import com.hxb.myandroidapp_1021.ui.inventory.InventoryListScreen
-import com.hxb.myandroidapp_1021.ui.inventory.InventoryResultScreen
-import com.hxb.myandroidapp_1021.ui.inventory.InventoryScanScreen
 import com.hxb.myandroidapp_1021.ui.login.LoginScreen
+import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingConfirmScreen
+import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListScreen
+import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListViewModel
+import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingScanScreen
+import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingScanViewModel
+import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayConfirmScreen
+import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayListScreen
+import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayListViewModel
+import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayScanScreen
+import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayScanViewModel
 import com.hxb.myandroidapp_1021.ui.picking.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.ui.picking.PickingListScreen
 import com.hxb.myandroidapp_1021.ui.picking.PickingManualScreen
@@ -33,31 +39,16 @@ import com.hxb.myandroidapp_1021.ui.picking.PickingScanViewModel
 import com.hxb.myandroidapp_1021.ui.putaway.PutawayConfirmScreen
 import com.hxb.myandroidapp_1021.ui.putaway.PutawayListScreen
 import com.hxb.myandroidapp_1021.ui.putaway.PutawayListViewModel
-import com.hxb.myandroidapp_1021.ui.repair.RepairConfirmScreen
-import com.hxb.myandroidapp_1021.ui.repair.RepairListScreen
-import com.hxb.myandroidapp_1021.ui.repair.RepairScanScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnConfirmScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnListScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnManualScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnScanScreen
 import com.hxb.myandroidapp_1021.ui.returns.ReturnScanViewModel
-import com.hxb.myandroidapp_1021.ui.scrap.ScrapConfirmScreen
-import com.hxb.myandroidapp_1021.ui.scrap.ScrapListScreen
-import com.hxb.myandroidapp_1021.ui.scrap.ScrapScanScreen
-import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutCheckScreen
-import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutFlowViewModel
-import com.hxb.myandroidapp_1021.ui.scrapout.ScrapOutListScreen
 import com.hxb.myandroidapp_1021.ui.serverconfig.ServerConfigScreen
-
-import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListScreen
-import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListViewModel
-import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingScanScreen
-import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingScanViewModel
-import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingConfirmScreen
-import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayListScreen
-import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayListViewModel
-import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayScreen
-import com.hxb.myandroidapp_1021.ui.otherputaway.OtherPutawayViewModel
+import com.hxb.myandroidapp_1021.ui.temp.TempBorrowScreen
+import com.hxb.myandroidapp_1021.ui.temp.TempBorrowViewModel
+import com.hxb.myandroidapp_1021.ui.temp.TempReturnScreen
+import com.hxb.myandroidapp_1021.ui.temp.TempReturnViewModel
 
 @Composable
 fun AppNavHost() {
@@ -74,7 +65,7 @@ fun AppNavHost() {
         startDestination = Dashboard,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF5F6F8)),
+            .background(MaterialTheme.colorScheme.background),
         // 新页面从右向左完全滑入
         enterTransition = {
             slideInHorizontally(
@@ -154,7 +145,11 @@ fun AppNavHost() {
             PutawayListScreen(
                 flowViewModel = flowViewModel,
                 onBackClick = safeBack,
-                onStartPutawayClick = { navController.navigate(PutawayConfirm) { launchSingleTop = true } }
+                onStartPutawayClick = {
+                    navController.navigate(PutawayConfirm) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
         composable<PutawayConfirm> { entry ->
@@ -186,6 +181,11 @@ fun AppNavHost() {
                 },
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(PickingConfirm) { launchSingleTop = true } },
+                onSettingsClick = {
+                    navController.navigate(ServerConfig) {
+                        launchSingleTop = true
+                    }
+                },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -224,6 +224,11 @@ fun AppNavHost() {
                 onManualClick = { navController.navigate(ReturnManual) { launchSingleTop = true } },
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(ReturnConfirm) { launchSingleTop = true } },
+                onSettingsClick = {
+                    navController.navigate(ServerConfig) {
+                        launchSingleTop = true
+                    }
+                },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -244,13 +249,64 @@ fun AppNavHost() {
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
-        // 其他业务按文档共用 PDA 执行入口，任务数据保存在列表作用域的共享 ViewModel。
+        // 临时借还与其他作业共享首页作用域的任务列表，返回首页保留进度，退出登录后随首页销毁。
+        composable<TempBorrow> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val borrowViewModel = viewModel<TempBorrowViewModel>(dashboardEntry)
+            val listViewModel = viewModel<OtherPickingListViewModel>(dashboardEntry)
+            val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
+            val borrowState by borrowViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(borrowState.orders) {
+                borrowViewModel.pickingTasks().forEach(listViewModel::upsertTemporaryTask)
+            }
+            LaunchedEffect(taskState.tasks) { borrowViewModel.syncPicking(taskState.tasks) }
+            TempBorrowScreen(
+                viewModel = borrowViewModel,
+                onBackClick = safeBack,
+                onHomeClick = { navController.popBackStack<Dashboard>(false) },
+                onPickingClick = {
+                    borrowViewModel.pickingTask()?.let { task ->
+                        listViewModel.openTemporaryTask(task)
+                        navController.navigate(OtherPickingList) { launchSingleTop = true }
+                    }
+                }
+            )
+        }
+        composable<TempReturn> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val borrowViewModel = viewModel<TempBorrowViewModel>(dashboardEntry)
+            val returnViewModel = viewModel<TempReturnViewModel>(dashboardEntry)
+            val listViewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry)
+            val borrowState by borrowViewModel.uiState.collectAsStateWithLifecycle()
+            val returnState by returnViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(borrowState.orders) { returnViewModel.syncBorrowedOrders(borrowState.orders) }
+            LaunchedEffect(returnState.orders) {
+                returnViewModel.putawayTasks().forEach(listViewModel::upsertTemporaryTask)
+            }
+            TempReturnScreen(
+                viewModel = returnViewModel,
+                onBackClick = safeBack,
+                onHomeClick = { navController.popBackStack<Dashboard>(false) },
+                onPutawayClick = {
+                    returnViewModel.putawayTask()?.let { task ->
+                        listViewModel.openTemporaryTask(task)
+                        navController.navigate(OtherPutawayList) { launchSingleTop = true }
+                    }
+                }
+            )
+        }
+        // 其他作业的核对记录仍保存在列表作用域，不通过路由传递业务数据。
         composable<OtherPickingList> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
             OtherPickingListScreen(
-                viewModel = viewModel<OtherPickingListViewModel>(entry),
+                viewModel = viewModel<OtherPickingListViewModel>(dashboardEntry),
                 flowViewModel = viewModel<OtherPickingScanViewModel>(entry),
                 onBackClick = safeBack,
-                onStartClick = { navController.navigate(OtherPickingScan) { launchSingleTop = true } }
+                onStartClick = {
+                    navController.navigate(OtherPickingScan) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
         composable<OtherPickingScan> { entry ->
@@ -258,141 +314,59 @@ fun AppNavHost() {
             OtherPickingScanScreen(
                 viewModel = viewModel<OtherPickingScanViewModel>(listEntry),
                 onBackClick = safeBack,
-                onNextClick = { navController.navigate(OtherPickingConfirm) { launchSingleTop = true } }
+                onNextClick = {
+                    navController.navigate(OtherPickingConfirm) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<OtherPickingConfirm> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<OtherPickingList>() }
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
             OtherPickingConfirmScreen(
                 flowViewModel = viewModel<OtherPickingScanViewModel>(listEntry),
-                listViewModel = viewModel<OtherPickingListViewModel>(listEntry),
+                listViewModel = viewModel<OtherPickingListViewModel>(dashboardEntry),
                 onBackClick = safeBack,
-                onComplete = { navController.popBackStack<OtherPickingScan>(false) }
+                onComplete = { navController.popBackStack<OtherPickingList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<OtherPutawayList> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
             OtherPutawayListScreen(
-                viewModel = viewModel<OtherPutawayListViewModel>(entry),
-                flowViewModel = viewModel<OtherPutawayViewModel>(entry),
+                viewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry),
+                flowViewModel = viewModel<OtherPutawayScanViewModel>(entry),
                 onBackClick = safeBack,
-                onStartClick = { navController.navigate(OtherPutaway) { launchSingleTop = true } }
+                onStartClick = {
+                    navController.navigate(OtherPutawayScan) {
+                        launchSingleTop = true
+                    }
+                }
             )
         }
-        composable<OtherPutaway> { entry ->
+        composable<OtherPutawayScan> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<OtherPutawayList>() }
-            OtherPutawayScreen(
-                viewModel = viewModel<OtherPutawayViewModel>(listEntry),
-                listViewModel = viewModel<OtherPutawayListViewModel>(listEntry),
-                onBackClick = safeBack
-            )
-        }
-        // 工具送检
-        composable<InspectionList> {
-            InspectionListScreen(
+            OtherPutawayScanScreen(
+                viewModel = viewModel<OtherPutawayScanViewModel>(listEntry),
                 onBackClick = safeBack,
-                onAddApplyClick = { navController.navigate(InspectionScan) }
-            )
-        }
-        composable<InspectionScan> {
-            InspectionScanScreen(
-                onBackClick = safeBack,
-                onNextClick = { navController.navigate(InspectionConfirm) },
+                onNextClick = {
+                    navController.navigate(OtherPutawayConfirm) {
+                        launchSingleTop = true
+                    }
+                },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
-        composable<InspectionConfirm> {
-            InspectionConfirmScreen(
+        composable<OtherPutawayConfirm> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<OtherPutawayList>() }
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            OtherPutawayConfirmScreen(
+                flowViewModel = viewModel<OtherPutawayScanViewModel>(listEntry),
+                listViewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry),
                 onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<InspectionList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        // 工具送修
-        composable<RepairList> {
-            RepairListScreen(
-                onBackClick = safeBack,
-                onAddApplyClick = { navController.navigate(RepairScan) }
-            )
-        }
-        composable<RepairScan> {
-            RepairScanScreen(
-                onBackClick = safeBack,
-                onNextClick = { navController.navigate(RepairConfirm) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<RepairConfirm> {
-            RepairConfirmScreen(
-                onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<RepairList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        // 工具报废
-        composable<ScrapList> {
-            ScrapListScreen(
-                onBackClick = safeBack,
-                onAddApplyClick = { navController.navigate(ScrapScan) }
-            )
-        }
-        composable<ScrapScan> {
-            ScrapScanScreen(
-                onBackClick = safeBack,
-                onNextClick = { navController.navigate(ScrapConfirm) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<ScrapConfirm> {
-            ScrapConfirmScreen(
-                onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<ScrapList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        // 报废出库
-        composable<ScrapOutList> { entry ->
-            val flowViewModel = viewModel<ScrapOutFlowViewModel>(entry)
-            ScrapOutListScreen(
-                onBackClick = safeBack,
-                onCheckClick = { order ->
-                    flowViewModel.selectOrder(order)
-                    navController.navigate(ScrapOutCheck)
-                }
-            )
-        }
-        composable<ScrapOutCheck> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<ScrapOutList>() }
-            ScrapOutCheckScreen(
-                viewModel = viewModel<ScrapOutFlowViewModel>(listEntry),
-                onBackClick = safeBack,
-                onNextClick = { navController.popBackStack<ScrapOutList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        // 盘点管理
-        composable<InventoryList> { entry ->
-            val flowViewModel = viewModel<InventoryFlowViewModel>(entry)
-            InventoryListScreen(
-                onBackClick = safeBack,
-                onStartInventoryClick = { record ->
-                    flowViewModel.selectOrder(record)
-                    navController.navigate(InventoryScan)
-                }
-            )
-        }
-        composable<InventoryScan> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<InventoryList>() }
-            InventoryScanScreen(
-                viewModel = viewModel<InventoryFlowViewModel>(listEntry),
-                onBackClick = safeBack,
-                onNextClick = { navController.navigate(InventoryResult) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<InventoryResult> {
-            InventoryResultScreen(
-                onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<InventoryList>(false) },
+                onComplete = { navController.popBackStack<OtherPutawayList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }

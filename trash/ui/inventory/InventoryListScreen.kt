@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -27,22 +26,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -58,11 +53,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.ui.common.DisplayField
-import com.hxb.myandroidapp_1021.ui.inventory.InventoryRecord
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryListScreen(
     onBackClick: () -> Unit = {},
@@ -81,10 +75,10 @@ fun InventoryListScreen(
         InventoryRecord("PD20261028010", "锅炉辅机班", "郑爽", 7, "10-28 15:30", "未盘点")
     )
 
-    val themeBlue = Color(0xFF1E71C8)
-    val textDark = Color(0xFF222222)
-    val pageBg = Color(0xFFF5F6F8)
-    val textGray = Color(0xFF888888)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val pageBg = MaterialTheme.colorScheme.background
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
 
     val focusManager = LocalFocusManager.current
     val searchState = rememberTextFieldState()
@@ -108,37 +102,9 @@ fun InventoryListScreen(
         containerColor = pageBg,
         topBar = {
             TopAppBar(
-                modifier = Modifier
-                    .height(75.dp)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { clearFocus() }) },
-                title = {
-                    Text(
-                        text = "盘点",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = {
-                            clearFocus()
-                            onBackClick()
-                        },
-                        modifier = Modifier.offset(x = (-7).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "盘点单",
+                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { clearFocus() }) },
+                onBackClick = { clearFocus(); onBackClick() }
             )
         }
     ) { paddingValues ->
@@ -153,7 +119,7 @@ fun InventoryListScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     OutlinedTextField(
@@ -164,30 +130,30 @@ fun InventoryListScreen(
                         textStyle = TextStyle(
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
-                            color = Color(0xFF333333)
+                            color = MaterialTheme.colorScheme.onSurface
                         ),
                         placeholder = {
                             Text(
                                 text = "请输入盘点单号",
                                 fontSize = 14.sp,
-                                color = Color(0xFF999999)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
-                                tint = Color(0xFF999999),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         },
                         lineLimits = TextFieldLineLimits.SingleLine,
                         shape = RoundedCornerShape(4.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color(0xFF333333),
-                            unfocusedTextColor = Color(0xFF333333),
-                            focusedContainerColor = Color(0xFFF5F6F8),
-                            unfocusedContainerColor = Color(0xFFF5F6F8),
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedContainerColor = MaterialTheme.colorScheme.background,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
                             focusedBorderColor = themeBlue,
                             unfocusedBorderColor = Color.Transparent,
                             cursorColor = themeBlue
@@ -227,7 +193,7 @@ fun InventoryListScreen(
                                 color = textGray,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.White)
+                                    .background(MaterialTheme.colorScheme.surface)
                                     .padding(16.dp)
                             )
                         }
@@ -236,7 +202,7 @@ fun InventoryListScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(Color.White)
+                                    .background(MaterialTheme.colorScheme.surface)
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -258,7 +224,7 @@ fun InventoryListScreen(
                                         Text(
                                             text = order.status,
                                             fontSize = 13.sp,
-                                            color = if (order.status == "未盘点") Color(0xFFE53935) else themeBlue,
+                                            color = if (order.status == "未盘点") MaterialTheme.colorScheme.error else themeBlue,
                                             modifier = Modifier.padding(end = 8.dp)
                                         )
 
@@ -280,10 +246,13 @@ fun InventoryListScreen(
                                     }
                                 }
 
-                                HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+                                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
                                 Column(
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 12.dp
+                                    ),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     listOf(
@@ -339,7 +308,7 @@ fun InventoryListScreen(
                     SmallFloatingActionButton(
                         onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } },
                         containerColor = themeBlue,
-                        contentColor = Color.White,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Icon(

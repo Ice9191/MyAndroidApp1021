@@ -3,23 +3,16 @@ package com.hxb.myandroidapp_1021.ui.dashboard
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Login
-import androidx.compose.material.icons.automirrored.outlined.FactCheck
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.outlined.Build
-import androidx.compose.material.icons.outlined.DeleteForever
-import androidx.compose.material.icons.outlined.Outbox
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hxb.myandroidapp_1021.navigation.InspectionList
-import com.hxb.myandroidapp_1021.navigation.InventoryList
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
 import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
 import com.hxb.myandroidapp_1021.navigation.PickingList
 import com.hxb.myandroidapp_1021.navigation.PutawayList
-import com.hxb.myandroidapp_1021.navigation.RepairList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
-import com.hxb.myandroidapp_1021.navigation.ScrapList
-import com.hxb.myandroidapp_1021.navigation.ScrapOutList
+import com.hxb.myandroidapp_1021.navigation.TempBorrow
+import com.hxb.myandroidapp_1021.navigation.TempReturn
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -63,15 +56,21 @@ class DashboardViewModel : ViewModel() {
         MenuSectionData(
             title = "入库管理",
             items = listOf(
-                // 原入口误指向盘点；文档“上架单”要求独立的 PDA 上架作业入口。
                 MenuItemData("工器具上架", Icons.Filled.QrCodeScanner, PutawayList)
             )
         ),
         MenuSectionData(
-            title = "借用归还",
+            title = "工单作业",
             items = listOf(
-                MenuItemData("拣选", Icons.AutoMirrored.Filled.ExitToApp, PickingList),
-                MenuItemData("归还", Icons.AutoMirrored.Filled.Login, ReturnList)
+                MenuItemData("工单拣选", Icons.AutoMirrored.Filled.ExitToApp, PickingList),
+                MenuItemData("工单归还上架", Icons.AutoMirrored.Filled.Login, ReturnList)
+            )
+        ),
+        MenuSectionData(
+            title = "临时借还",
+            items = listOf(
+                MenuItemData("临时借出", Icons.AutoMirrored.Filled.ExitToApp, TempBorrow),
+                MenuItemData("临时归还", Icons.AutoMirrored.Filled.Login, TempReturn)
             )
         ),
         MenuSectionData(
@@ -79,26 +78,6 @@ class DashboardViewModel : ViewModel() {
             items = listOf(
                 MenuItemData("其他拣选", Icons.AutoMirrored.Filled.ExitToApp, OtherPickingList),
                 MenuItemData("其他上架", Icons.Filled.QrCodeScanner, OtherPutawayList)
-            )
-        ),
-        MenuSectionData(
-            title = "库存管理",
-            items = listOf(
-                MenuItemData("工具送检", Icons.AutoMirrored.Outlined.FactCheck, InspectionList),
-                MenuItemData("工具送修", Icons.Outlined.Build, RepairList)
-            )
-        ),
-        MenuSectionData(
-            title = "库存核减",
-            items = listOf(
-                MenuItemData("工具报废", Icons.Outlined.DeleteForever, ScrapList),
-                MenuItemData("报废出库", Icons.Outlined.Outbox, ScrapOutList)
-            )
-        ),
-        MenuSectionData(
-            title = "盘点管理",
-            items = listOf(
-                MenuItemData("盘点单", Icons.Filled.QrCodeScanner, InventoryList)
             )
         )
     )

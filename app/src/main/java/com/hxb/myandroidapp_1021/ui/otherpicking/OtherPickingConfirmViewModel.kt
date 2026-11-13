@@ -9,5 +9,14 @@ class OtherPickingConfirmViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(OtherPickingConfirmUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun onDialogChange(value: Boolean) { _uiState.update { it.copy(showDialog = value) } }
+    fun onDialogChange(value: Boolean) {
+        _uiState.update { it.copy(showDialog = value) }
+    }
+    fun onConfirm() {
+        _uiState.update { it.copy(showDialog = false, completionPending = true) }
+    }
+
+    fun onCompletionHandled() {
+        _uiState.update { it.copy(completionPending = false) }
+    }
 }

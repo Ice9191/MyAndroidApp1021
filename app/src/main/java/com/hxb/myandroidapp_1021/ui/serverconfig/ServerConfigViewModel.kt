@@ -12,7 +12,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class ServerConfigViewModel : ViewModel() {
     private val mockConfig = ServerConfig(ipAddress = "192.168.1.100", port = "8080")
-    private val _uiState = MutableStateFlow(ServerConfigUiState(ipAddress = mockConfig.ipAddress, port = mockConfig.port))
+    private val _uiState = MutableStateFlow(
+        ServerConfigUiState(
+            ipAddress = mockConfig.ipAddress,
+            port = mockConfig.port
+        )
+    )
     val uiState: StateFlow<ServerConfigUiState> = _uiState.asStateFlow()
 
     fun onIpAddressChange(newIp: String) {
@@ -37,9 +42,11 @@ class ServerConfigViewModel : ViewModel() {
         _uiState.update { it.copy(isTesting = true, connectionStatus = ConnectionStatus.TESTING) }
         viewModelScope.launch {
             delay(1500.milliseconds)
-            val mockConnectionSucceeded = request.ipAddress.isNotBlank() && request.port.isNotBlank()
+            val mockConnectionSucceeded =
+                request.ipAddress.isNotBlank() && request.port.isNotBlank()
             _uiState.update { current ->
-                val configUnchanged = current.ipAddress == request.ipAddress && current.port == request.port
+                val configUnchanged =
+                    current.ipAddress == request.ipAddress && current.port == request.port
                 current.copy(
                     isTesting = false,
                     connectionStatus = when {

@@ -1,5 +1,6 @@
 package com.hxb.myandroidapp_1021.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
@@ -7,7 +8,6 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -21,12 +21,12 @@ fun ScanTabs(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val textGray = Color(0xFF888888)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
     SecondaryTabRow(
         modifier = modifier,
         selectedTabIndex = selectedIndex,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
         contentColor = themeBlue,
         indicator = {
             TabRowDefaults.SecondaryIndicator(
@@ -37,7 +37,7 @@ fun ScanTabs(
         divider = {
             HorizontalDivider(
                 thickness = 1.dp,
-                color = Color(0xFFF0F0F0)
+                color = MaterialTheme.colorScheme.outlineVariant
             )
         }
     ) {

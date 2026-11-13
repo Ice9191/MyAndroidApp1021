@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -44,12 +45,12 @@ fun InputFieldOne(
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
     enabled: Boolean = true
 ) {
-    val themeBlue = Color(0xFF1E71C8)
+    val themeBlue = MaterialTheme.colorScheme.primary
     val searchInteractionSource = remember { MutableInteractionSource() }
     val searchShape = RoundedCornerShape(4.dp)
     val searchColors = OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color(0xFFF5F6F8),
-        unfocusedContainerColor = Color(0xFFF5F6F8),
+        focusedContainerColor = MaterialTheme.colorScheme.background,
+        unfocusedContainerColor = MaterialTheme.colorScheme.background,
         focusedBorderColor = themeBlue,
         unfocusedBorderColor = Color.Transparent
     )
@@ -57,7 +58,7 @@ fun InputFieldOne(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         BasicTextField(
@@ -67,7 +68,7 @@ fun InputFieldOne(
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { if (errorMessage != null) error(errorMessage) },
-            textStyle = LocalTextStyle.current.copy(color = Color(0xFF333333)),
+            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
             singleLine = true,
             keyboardOptions = keyboardOptions,
             interactionSource = searchInteractionSource,
@@ -94,7 +95,7 @@ fun InputFieldOne(
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Search",
-                                tint = Color(0xFF999999),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -106,7 +107,7 @@ fun InputFieldOne(
                                 Text(
                                     text = placeholder,
                                     fontSize = 14.sp,
-                                    color = Color(0xFF999999)
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             innerTextField()

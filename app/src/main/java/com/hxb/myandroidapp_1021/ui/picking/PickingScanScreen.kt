@@ -4,22 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -29,24 +18,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
 import com.hxb.myandroidapp_1021.components.ScanTopInfo
 import com.hxb.myandroidapp_1021.components.ToolsScanList
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
-import com.hxb.myandroidapp_1021.ui.common.ScanTab
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.ScanTab
 
 @Composable
 fun PickingScanScreen(
@@ -69,7 +56,6 @@ fun PickingScanScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PickingScanContent(
     uiState: PickingScanUiState,
@@ -79,8 +65,7 @@ fun PickingScanContent(
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val bgColor = Color(0xFFF5F6F8)
+    val bgColor = MaterialTheme.colorScheme.background
     val order = uiState.order
     val infoFields = listOf(
         DisplayField("拣选单号", order?.orderNo.orEmpty()),
@@ -128,46 +113,10 @@ fun PickingScanContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
-                title = {
-                    Text(
-                        text = "借出·拣选",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onSettingsClick, modifier = Modifier.offset(x = (-4).dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Setting",
-                            tint = Color.White
-                        )
-                    }
-
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                title = "工单拣选",
+                onBackClick = onBackClick,
+                onHomeClick = onHomeClick,
+                onConfigClick = onSettingsClick
             )
         }
     ) { paddingValues ->

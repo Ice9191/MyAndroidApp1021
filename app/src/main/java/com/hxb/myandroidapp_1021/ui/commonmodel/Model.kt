@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.ui.common
+package com.hxb.myandroidapp_1021.ui.commonmodel
 
 import androidx.compose.ui.graphics.Color
 
@@ -8,16 +8,6 @@ import androidx.compose.ui.graphics.Color
 data class DisplayField(
     val label: String,
     val value: String
-)
-
-/**
- * 两个以上业务模块使用的双列展示配置，颜色与排版不由后端返回。
- */
-data class InfoRow(
-    val left: DisplayField,
-    val right: DisplayField,
-    val leftBold: Boolean = false,
-    val rightColor: Color? = null
 )
 
 /**
@@ -44,16 +34,4 @@ data class ToolInfoRow(
     val quantity: Int = 1,
     val value: String? = null,
     val valueColor: Color? = null
-)
-
-/**
- * 归还、送检、送修、报废、报废出库和盘点共用的工器具数据
- */
-data class ToolScanItem(
-    val id: String,
-    val name: String = "",
-    val code: String = "",
-    val rfid: String,
-    var isChecked: Boolean = false,
-    val pickDate: String = ""
 )

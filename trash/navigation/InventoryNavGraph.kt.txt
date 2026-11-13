@@ -1,0 +1,32 @@
+        // 盘点管理
+        composable<InventoryList> { entry ->
+            val flowViewModel = viewModel<InventoryFlowViewModel>(entry)
+            InventoryListScreen(
+                onBackClick = safeBack,
+                onStartInventoryClick = { record ->
+                    flowViewModel.selectOrder(record)
+                    navController.navigate(InventoryScan)
+                }
+            )
+        }
+        composable<InventoryScan> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<InventoryList>() }
+            InventoryScanScreen(
+                viewModel = viewModel<InventoryFlowViewModel>(listEntry),
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(InventoryResult) },
+                onSettingsClick = {
+                    navController.navigate(ServerConfig) {
+                        launchSingleTop = true
+                    }
+                },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        composable<InventoryResult> {
+            InventoryResultScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack<InventoryList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }

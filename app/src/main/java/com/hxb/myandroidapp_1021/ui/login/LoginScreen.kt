@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -69,8 +69,8 @@ fun LoginContent(
 ) {
     // 状态管理
     val imageUrl = "https://img.icons8.com/color/96/000000/toolbox.png"
-    val backgroundColor = Color(0xFFF7F8FA)
-    val themeBlue = Color(0xFF1E71C8)
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val themeBlue = MaterialTheme.colorScheme.primary
     val image =
         if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
     val focusManager = LocalFocusManager.current
@@ -102,7 +102,7 @@ fun LoginContent(
                 text = "工器具库系统：PDA端",
                 fontSize = 26.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF222222)
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -112,13 +112,13 @@ fun LoginContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color.White),
+                    .background(MaterialTheme.colorScheme.surface),
                 verticalArrangement = Arrangement.Center
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 24.dp)
                         .padding(top = 16.dp, bottom = 32.dp)
                 ) {
@@ -126,30 +126,30 @@ fun LoginContent(
                         text = "账号登录",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF222222)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // 账号输入
-                    Text(text = "账号", fontSize = 14.sp, color = Color(0xFF666666))
+                    Text(text = "账号", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = uiState.username,
                         onValueChange = onUsernameChange,
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("请输入账号", color = Color(0xFFCCCCCC)) },
+                        placeholder = { Text("请输入账号", color = MaterialTheme.colorScheme.outline) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Person,
                                 contentDescription = "Account",
-                                tint = Color(0xFF999999)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
                         singleLine = true,
                         shape = RoundedCornerShape(4.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                             focusedBorderColor = themeBlue,
                             cursorColor = themeBlue
                         )
@@ -158,18 +158,18 @@ fun LoginContent(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 密码输入
-                    Text(text = "密码", fontSize = 14.sp, color = Color(0xFF666666))
+                    Text(text = "密码", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = uiState.password,
                         onValueChange = onPasswordChange,
                         modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("请输入密码", color = Color(0xFFCCCCCC)) },
+                        placeholder = { Text("请输入密码", color = MaterialTheme.colorScheme.outline) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = "Password",
-                                tint = Color(0xFF999999)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
                         trailingIcon = {
@@ -177,7 +177,7 @@ fun LoginContent(
                                 Icon(
                                     imageVector = image,
                                     contentDescription = "Toggle password visibility",
-                                    tint = Color(0xFF999999)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         },
@@ -186,7 +186,7 @@ fun LoginContent(
                         singleLine = true,
                         shape = RoundedCornerShape(4.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color(0xFFE0E0E0),
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                             focusedBorderColor = themeBlue,
                             cursorColor = themeBlue
                         )
@@ -195,7 +195,7 @@ fun LoginContent(
                     // 错误提示
                     uiState.errorMessage?.let { msg ->
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = msg, fontSize = 13.sp, color = Color(0xFFE53935))
+                        Text(text = msg, fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -216,7 +216,7 @@ fun LoginContent(
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
                         } else {

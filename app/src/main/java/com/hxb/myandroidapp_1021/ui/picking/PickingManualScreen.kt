@@ -5,38 +5,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.components.ManualScanCard
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 
 @Composable
 fun PickingManualScreen(
@@ -55,7 +43,6 @@ fun PickingManualScreen(
 }
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PickingManualContent(
     uiState: PickingScanUiState,
@@ -63,8 +50,7 @@ fun PickingManualContent(
     onHomeClick: () -> Unit,
     onConfirmToggleRead: (Set<Int>) -> Unit
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val bgColor = Color(0xFFF5F6F8)
+    val bgColor = MaterialTheme.colorScheme.background
     var selectedTab by remember { mutableStateOf(0) }
     var selectedIds by remember(selectedTab) { mutableStateOf(emptySet<Int>()) }
     var showConfirmDialog by remember { mutableStateOf(false) }
@@ -76,38 +62,9 @@ fun PickingManualContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
-                title = {
-                    Text(
-                        text = "借出·拣选",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick, modifier = Modifier.offset(x = (-7).dp)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onHomeClick, modifier = Modifier.offset(x = (-4).dp)) {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = "Home",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                title = "工单拣选",
+                onBackClick = onBackClick,
+                onHomeClick = onHomeClick
             )
         },
         bottomBar = {

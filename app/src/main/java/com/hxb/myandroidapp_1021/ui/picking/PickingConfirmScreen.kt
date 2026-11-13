@@ -11,32 +11,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -45,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
-import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.ToolInfoRow
 
 @Composable
 fun PickingConfirmScreen(
@@ -77,7 +69,6 @@ fun PickingConfirmScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PickingConfirmContent(
     uiState: PickingConfirmUiState,
@@ -87,11 +78,11 @@ fun PickingConfirmContent(
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
-    val themeBlue = Color(0xFF1E71C8)
+    val themeBlue = MaterialTheme.colorScheme.primary
     val focusManager = LocalFocusManager.current
-    val bgColor = Color(0xFFF5F6F8)
-    val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
+    val bgColor = MaterialTheme.colorScheme.background
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
     // 根据状态生成展示字段
     val infoFields = listOf(
         DisplayField("姓名", scanState.order?.borrower.orEmpty()),
@@ -106,50 +97,17 @@ fun PickingConfirmContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier
-                    .height(75.dp)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-                title = {
-                    Text(
-                        text = "借出·出库确认",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = { focusManager.clearFocus(); onBackClick() },
-                        modifier = Modifier.offset(x = (-7).dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = { focusManager.clearFocus(); onHomeClick() },
-                        modifier = Modifier.offset(x = (-4).dp)
-                    ) {
-                        Icon(Icons.Default.Home, contentDescription = "Home", tint = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "工单拣选·确认",
+                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
+                onBackClick = { focusManager.clearFocus(); onBackClick() },
+                onHomeClick = { focusManager.clearFocus(); onHomeClick() }
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Button(
@@ -164,7 +122,7 @@ fun PickingConfirmContent(
                     if (uiState.isSubmitting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -172,7 +130,7 @@ fun PickingConfirmContent(
                             "确认出库",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -193,7 +151,7 @@ fun PickingConfirmContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .verticalScroll(rememberScrollState())
                     .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
             ) {
@@ -227,7 +185,7 @@ fun PickingConfirmContent(
                         color = textDark
                     )
                 }
-                HorizontalDivider(thickness = 8.dp, color = Color(0xFFE0E0E0))
+                HorizontalDivider(thickness = 8.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
                 // === 2. 领料人工号 + 信息行 ===
                 Column(
@@ -253,7 +211,7 @@ fun PickingConfirmContent(
                     if (uiState.errorMessage != null) {
                         Text(
                             text = uiState.errorMessage,
-                            color = Color.Red,
+                            color = MaterialTheme.colorScheme.error,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(start = 20.dp, top = 4.dp)
                         )

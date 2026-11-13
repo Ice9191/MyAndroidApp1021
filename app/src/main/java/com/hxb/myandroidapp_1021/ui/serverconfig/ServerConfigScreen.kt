@@ -9,26 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -41,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.theme.AppColors
 
 @Composable
 fun ServerConfigScreen(
@@ -60,7 +55,6 @@ fun ServerConfigScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServerConfigContent(
     uiState: ServerConfigUiState,
@@ -70,8 +64,8 @@ fun ServerConfigContent(
     onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val bgColor = Color(0xFFF7F8FA)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val bgColor = MaterialTheme.colorScheme.background
     val statusText = when (uiState.connectionStatus) {
         ConnectionStatus.UNTESTED -> "尚未测试"
         ConnectionStatus.TESTING -> "正在测试..."
@@ -79,8 +73,8 @@ fun ServerConfigContent(
         ConnectionStatus.FAILURE -> "连接失败"
     }
     val statusColor = when (uiState.connectionStatus) {
-        ConnectionStatus.SUCCESS -> Color(0xFF4CAF50)
-        ConnectionStatus.FAILURE -> Color(0xFFF44336)
+        ConnectionStatus.SUCCESS -> AppColors.Success
+        ConnectionStatus.FAILURE -> MaterialTheme.colorScheme.error
         else -> themeBlue
     }
     val focusManager = LocalFocusManager.current
@@ -89,43 +83,15 @@ fun ServerConfigContent(
         modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
-                modifier = Modifier
-                    .height(75.dp)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
-                title = {
-                    Text(
-                        "服务器配置",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = {
-                            focusManager.clearFocus()
-                            onBackClick()
-                        },
-                        modifier = Modifier.offset(x = (-7).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "服务器配置",
+                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
+                onBackClick = { focusManager.clearFocus(); onBackClick() }
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 OutlinedButton(
@@ -175,11 +141,15 @@ fun ServerConfigContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
                 // IP 地址输入框
-                Text(text = "IP地址", fontSize = 14.sp, color = Color(0xFF666666))
+                Text(
+                    text = "IP地址",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = uiState.ipAddress,
@@ -188,7 +158,7 @@ fun ServerConfigContent(
                     singleLine = true,
                     shape = RoundedCornerShape(4.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                         focusedBorderColor = themeBlue,
                         cursorColor = themeBlue
                     )
@@ -197,7 +167,11 @@ fun ServerConfigContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 端口号输入框
-                Text(text = "端口号", fontSize = 14.sp, color = Color(0xFF666666))
+                Text(
+                    text = "端口号",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = uiState.port,
@@ -207,7 +181,7 @@ fun ServerConfigContent(
                     shape = RoundedCornerShape(4.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = Color(0xFFE0E0E0),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                         focusedBorderColor = themeBlue,
                         cursorColor = themeBlue
                     )

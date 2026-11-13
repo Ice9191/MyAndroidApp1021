@@ -6,13 +6,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @SuppressLint("ModifierParameter")
@@ -23,7 +23,7 @@ fun BottomButton(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    Surface(modifier = modifier, color = Color.White) {
+    Surface(modifier = modifier, color = MaterialTheme.colorScheme.surface) {
         Button(
             onClick = onClick,
             enabled = enabled,
@@ -33,7 +33,7 @@ fun BottomButton(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
                 .height(44.dp),
             shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E71C8))
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text(text)
         }

@@ -13,7 +13,7 @@ class OtherPutawayListViewModel : ViewModel() {
         val mockTasks = listOf(
             OtherPutawayTaskUi(
                 "QT20261111001", SourceType.TEMPORARY, "2026-11-11", listOf(
-                    OtherPutawayToolUi("E280 0001 0001", "绝缘扳手", "A1-01"),
+                    OtherPutawayToolUi("1", "绝缘扳手", "A1-01"),
                     OtherPutawayToolUi("E280 0001 0002", "数字万用表", "A1-02"),
                     OtherPutawayToolUi("E280 0001 0003", "游标卡尺", "A1-03")
                 )
@@ -62,11 +62,37 @@ class OtherPutawayListViewModel : ViewModel() {
         _uiState.update { it.copy(selectedStatus = PutawayStatus.entries.getOrNull(value - 1)) }
     }
 
-    // 只更新演示列表进度，不代表上游单据或库存已变更。
+    // 将当前任务进度同步到列表。
     fun updateTask(task: OtherPutawayTaskUi?) {
         if (task == null) return
         _uiState.update { state ->
             state.copy(tasks = state.tasks.map { if (it.sourceNo == task.sourceNo) task else it })
+        }
+    }
+
+    /**
+     * 接收已经确认归还的器具，追加分批归还明细时保留既有上架进度及实际货位。
+     */
+    fun upsertTemporaryTask(task: OtherPutawayTaskUi) {
+        _uiState.update { state ->
+            val existing = state.tasks.firstOrNull { it.sourceNo == task.sourceNo }
+            val merged = task.copy(tools = task.tools.map { tool ->
+                existing?.tools?.firstOrNull { it.rfid == tool.rfid } ?: tool
+            }, closed = existing?.closed ?: false)
+            state.copy(
+                tasks = state.tasks.filterNot { it.sourceNo == task.sourceNo } + merged
+            )
+        }
+    }
+
+    fun openTemporaryTask(task: OtherPutawayTaskUi) {
+        upsertTemporaryTask(task)
+        _uiState.update {
+            it.copy(
+                query = task.sourceNo,
+                selectedSource = SourceType.TEMPORARY,
+                selectedStatus = null
+            )
         }
     }
 }

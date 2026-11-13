@@ -1,0 +1,83 @@
+        // 工具送检
+        composable<InspectionList> {
+            InspectionListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(InspectionScan) }
+            )
+        }
+        composable<InspectionScan> {
+            InspectionScanScreen(
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(InspectionConfirm) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        composable<InspectionConfirm> {
+            InspectionConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack<InspectionList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        // 工具送修
+        composable<RepairList> {
+            RepairListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(RepairScan) }
+            )
+        }
+        composable<RepairScan> {
+            RepairScanScreen(
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(RepairConfirm) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        composable<RepairConfirm> {
+            RepairConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack<RepairList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        // 工具报废
+        composable<ScrapList> {
+            ScrapListScreen(
+                onBackClick = safeBack,
+                onAddApplyClick = { navController.navigate(ScrapScan) }
+            )
+        }
+        composable<ScrapScan> {
+            ScrapScanScreen(
+                onBackClick = safeBack,
+                onNextClick = { navController.navigate(ScrapConfirm) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        composable<ScrapConfirm> {
+            ScrapConfirmScreen(
+                onBackClick = safeBack,
+                onConfirmClick = { navController.popBackStack<ScrapList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }
+        // 报废出库
+        composable<ScrapOutList> { entry ->
+            val flowViewModel = viewModel<ScrapOutFlowViewModel>(entry)
+            ScrapOutListScreen(
+                onBackClick = safeBack,
+                onCheckClick = { order ->
+                    flowViewModel.selectOrder(order)
+                    navController.navigate(ScrapOutCheck)
+                }
+            )
+        }
+        composable<ScrapOutCheck> { entry ->
+            val listEntry = remember(entry) { navController.getBackStackEntry<ScrapOutList>() }
+            ScrapOutCheckScreen(
+                viewModel = viewModel<ScrapOutFlowViewModel>(listEntry),
+                onBackClick = safeBack,
+                onNextClick = { navController.popBackStack<ScrapOutList>(false) },
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+            )
+        }

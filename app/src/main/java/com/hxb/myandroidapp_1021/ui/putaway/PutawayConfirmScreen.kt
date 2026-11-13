@@ -14,19 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +29,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -50,8 +43,10 @@ import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScanTabs
 import com.hxb.myandroidapp_1021.components.ScanTopInfo
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
-import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
+import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.ToolInfoRow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -84,7 +79,6 @@ fun PutawayConfirmScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PutawayConfirmContent(
     order: PutawayOrder?,
@@ -98,8 +92,8 @@ fun PutawayConfirmContent(
     onConfirmPutaway: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val background = Color(0xFFF5F6F8)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val background = MaterialTheme.colorScheme.background
     val focusManager = LocalFocusManager.current
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -120,37 +114,22 @@ fun PutawayConfirmContent(
         containerColor = background,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
-                title = { Text("上架作业", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(shape = RoundedCornerShape(4.dp), onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "返回"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "上架作业",
+                onBackClick = onBackClick
             )
         },
         bottomBar = {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .navigationBarsPadding()
                     .padding(16.dp)
             ) {
                 if (notice != null) {
                     Text(
                         notice,
-                        color = if (uiState.errorMessage != null) Color(0xFFB3261E) else Color(
-                            0xFF16763C
-                        ),
+                        color = if (uiState.errorMessage != null) MaterialTheme.colorScheme.error else AppColors.ReadText,
                         fontSize = 13.sp,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -191,9 +170,11 @@ fun PutawayConfirmContent(
                     .padding(paddingValues),
                 key = { it.lineNo },
                 header = {
-                    Column(Modifier
-                        .fillMaxWidth()
-                        .background(Color.White)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
                         ScanTopInfo(
                             fields = listOf(
                                 DisplayField("上架单号", order.orderNo),
@@ -213,7 +194,7 @@ fun PutawayConfirmContent(
                             Text(
                                 "上架进度 ${order.completedCount}/${details.size}",
                                 fontSize = 13.sp,
-                                color = Color.Gray
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             LinearProgressIndicator(
                                 progress = { if (details.isEmpty()) 0f else order.completedCount.toFloat() / details.size },
@@ -229,12 +210,12 @@ fun PutawayConfirmContent(
                         if (order.isCompleted) {
                             Text(
                                 "本单已全部上架，工具库存已更新",
-                                color = Color(0xFF16763C),
+                                color = AppColors.ReadText,
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
                         Text(
-                            "1. 识别工具",
+                            "识别工具",
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -273,7 +254,7 @@ fun PutawayConfirmContent(
                             )
                         }
                         Text(
-                            "2. 绑定实际货位",
+                            "绑定实际货位",
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 16.dp, top = 16.dp)
                         )

@@ -8,11 +8,11 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
@@ -24,7 +24,7 @@ fun ScrollToTopButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val themeBlue = Color(0xFF1E71C8)
+    val themeBlue = MaterialTheme.colorScheme.primary
 
     AnimatedVisibility(
         visible = visible,
@@ -35,7 +35,7 @@ fun ScrollToTopButton(
         SmallFloatingActionButton(
             onClick = onClick,
             containerColor = themeBlue,
-            contentColor = Color.White,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             shape = RoundedCornerShape(4.dp)
         ) {
             Icon(

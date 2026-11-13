@@ -4,21 +4,11 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -26,19 +16,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable
@@ -62,7 +50,6 @@ fun ReturnListScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReturnListContent(
     uiState: ReturnListUiState,
@@ -71,8 +58,7 @@ fun ReturnListContent(
     onStartReturnClick: (ReturnOrder) -> Unit = {},
     onStatusChange: (ReturnStatus?) -> Unit = {}
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val pageBg = Color(0xFFF5F6F8)
+    val pageBg = MaterialTheme.colorScheme.background
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val showScrollToTopButton by remember {
@@ -86,37 +72,9 @@ fun ReturnListContent(
         containerColor = pageBg,
         topBar = {
             TopAppBar(
-                modifier = Modifier
-                    .height(75.dp)
-                    .pointerInput(Unit) { detectTapGestures(onTap = { clearFocus() }) },
-                title = {
-                    Text(
-                        text = "归还",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.offset(x = (-16).dp)
-                    )
-                },
-                navigationIcon = {
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = {
-                            clearFocus()
-                            onBackClick()
-                        },
-                        modifier = Modifier.offset(x = (-7).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
-                )
+                title = "工单归还上架",
+                modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { clearFocus() }) },
+                onBackClick = { clearFocus(); onBackClick() }
             )
         }
     ) { paddingValues ->

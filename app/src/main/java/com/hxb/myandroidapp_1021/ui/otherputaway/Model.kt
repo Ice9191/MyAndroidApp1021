@@ -1,32 +1,35 @@
 package com.hxb.myandroidapp_1021.ui.otherputaway
 
 enum class SourceType(val label: String) {
-    TEMPORARY("临时"),
-    INSPECTION("送检"),
-    REPAIR("送修"),
-    SCRAP("报废"),
-    RETURN("退货")
+    TEMPORARY("临时归还"),
+    INSPECTION("送检归还"),
+    REPAIR("送修归还"),
+    SCRAP("报废归还"),
+    RETURN("退货归还")
 }
 
 enum class PutawayStatus(val label: String) {
     PENDING("待上架"),
     PARTIALLY("部分上架"),
-    COMPLETED("已上架")
+    COMPLETED("已上架"),
+    CLOSED("已关闭")
 }
 
 /**
- * 页面草稿展示数据，不是接口 DTO。
+ * 任务页面展示状态，与接口 DTO 分开维护。
  * TODO: 字段未确定，其他任务接口字段名、主键及状态类型需后端确认后建立业务模型。
  */
 data class OtherPutawayTaskUi(
     val sourceNo: String,
     val sourceType: SourceType,
     val date: String,
-    val tools: List<OtherPutawayToolUi>
+    val tools: List<OtherPutawayToolUi>,
+    // 关闭状态独立于完成进度，仅用于页面展示，不推定接口字段。
+    val closed: Boolean = false
 ) {
     val completedCount: Int get() = tools.count { it.completed }
     val status: PutawayStatus
-        get() = when (completedCount) {
+        get() = if (closed) PutawayStatus.CLOSED else when (completedCount) {
             0 -> PutawayStatus.PENDING
             tools.size -> PutawayStatus.COMPLETED
             else -> PutawayStatus.PARTIALLY
@@ -66,15 +69,19 @@ data class OtherPutawayListUiState(
         }
 }
 
-data class OtherPutawayUiState(
+data class OtherPutawayScanUiState(
     val task: OtherPutawayTaskUi? = null,
     val rfid: String = "",
     val location: String = "",
-    val identifiedRfid: String = "",
+    val readLocations: Map<String, String> = emptyMap(),
+    val readRfids: Set<String> = emptySet(),
     val selectedTab: Int = 0,
+    val message: String? = null,
+    val notificationMessage: String? = null,
+    val notificationId: Int = 0
+)
+
+data class OtherPutawayConfirmUiState(
     val showDialog: Boolean = false,
-    val message: String? = null
-) {
-    val current: OtherPutawayToolUi? get() = task?.tools?.firstOrNull { it.rfid == identifiedRfid }
-    val canConfirm: Boolean get() = current?.completed == false && location.isNotBlank()
-}
+    val completionPending: Boolean = false
+)

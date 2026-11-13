@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 
 /**
  * 展示调用页面提供的单据信息，不持有业务状态。
@@ -26,7 +26,7 @@ fun ScanTopInfo(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 1.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
@@ -36,11 +36,11 @@ fun ScanTopInfo(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(field.label, fontSize = 13.sp, color = Color(0xFF888888))
+                Text(field.label, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     text = field.value,
                     fontSize = 13.sp,
-                    color = Color(0xFF222222)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }

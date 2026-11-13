@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -33,12 +34,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
 
 data class OrderProgress(val label: String, val completed: Int, val total: Int)
 
@@ -62,10 +63,10 @@ fun <T> OrderList(
     header: (@Composable () -> Unit)? = null,
     progress: ((T) -> OrderProgress)? = null
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
-    val pageBg = Color(0xFFF5F6F8)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
+    val pageBg = MaterialTheme.colorScheme.background
 
     OrderList(
         orders = orders,
@@ -80,7 +81,7 @@ fun <T> OrderList(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Row(
                 modifier = Modifier
@@ -124,7 +125,7 @@ fun <T> OrderList(
                 }
             }
 
-            HorizontalDivider(thickness = 1.dp, color = Color(0xFFF0F0F0))
+            HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant)
 
             Column(
                 modifier = Modifier.padding(
@@ -183,8 +184,8 @@ fun <T> OrderList(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(4.dp),
-                            color = Color(0xFF4B95F5),
-                            trackColor = Color(0xFFF0F2F5),
+                            color = AppColors.Progress,
+                            trackColor = AppColors.UnreadBackground,
                             gapSize = 0.dp,
                             drawStopIndicator = {}
                         )
@@ -227,7 +228,7 @@ fun <T> OrderList(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFF5F6F8))
+                        .background(MaterialTheme.colorScheme.background)
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -242,19 +243,19 @@ fun <T> OrderList(
                             Text(
                                 text = filterOptions[selectedFilterIndex],
                                 fontSize = 14.sp,
-                                color = Color(0xFF222222),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Medium
                             )
                             Icon(
                                 imageVector = Icons.Default.ArrowDropDown,
                                 contentDescription = "展开筛选",
-                                tint = Color(0xFF222222)
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                         DropdownMenu(
                             expanded = isDropdownExpanded,
                             onDismissRequest = { isDropdownExpanded = false },
-                            containerColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             filterOptions.forEachIndexed { index, label ->
                                 DropdownMenuItem(
@@ -262,9 +263,7 @@ fun <T> OrderList(
                                         Text(
                                             text = label,
                                             fontSize = 14.sp,
-                                            color = if (index == selectedFilterIndex) Color(
-                                                0xFF1E71C8
-                                            ) else Color(0xFF222222)
+                                            color = if (index == selectedFilterIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                         )
                                     },
                                     onClick = {
@@ -278,7 +277,7 @@ fun <T> OrderList(
                     Text(
                         text = "共${orders.size}张",
                         fontSize = 14.sp,
-                        color = Color(0xFF888888)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -291,10 +290,10 @@ fun <T> OrderList(
                 Text(
                     text = emptyText,
                     fontSize = 14.sp,
-                    color = Color(0xFF888888),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(16.dp)
                 )
             }

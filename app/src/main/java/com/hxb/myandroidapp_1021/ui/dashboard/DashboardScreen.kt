@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,23 +16,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,6 +34,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+
+import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.components.TopAppBar
 
 @Composable
 fun DashboardScreen(
@@ -59,7 +55,6 @@ fun DashboardScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardContent(
     uiState: DashboardUiState,
@@ -67,56 +62,22 @@ fun DashboardContent(
     onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}
 ) {
-    val themeBlue = Color(0xFF1E71C8)
-    val bgColor = Color(0xFFF5F6F8)
-    val lightBlueBg = Color(0xFFEDF3FB)
-    val textDark = Color(0xFF222222)
-    val textGray = Color(0xFF888888)
-    val greenColor = Color(0xFF4CAF50)
-    val dividerColor = Color(0xFFF0F0F0)
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val bgColor = MaterialTheme.colorScheme.background
+    val lightBlueBg = MaterialTheme.colorScheme.primaryContainer
+    val textDark = MaterialTheme.colorScheme.onSurface
+    val textGray = MaterialTheme.colorScheme.onSurfaceVariant
+    val greenColor = AppColors.Success
+    val dividerColor = MaterialTheme.colorScheme.outlineVariant
     val serverColor = if (uiState.serverConnected) greenColor else textGray
 
     Scaffold(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                modifier = Modifier.height(75.dp),
-                title = {
-                    Text(
-                        "工器具库系统",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = {
-                    TextButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = onLogoutClick,
-                        modifier = Modifier.padding(end = 4.dp)
-                    ) {
-                        Text(
-                            text = "退出登录",
-                            fontSize = 14.sp,
-                            color = Color.White
-                        )
-                    }
-                    IconButton(
-                        shape = RoundedCornerShape(4.dp),
-                        onClick = onSettingsClick,
-                        modifier = Modifier.offset(x = (-4).dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = Color.White
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = themeBlue,
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                title = "工器具库系统",
+                onConfigClick = onSettingsClick,
+                onLogoutClick = onLogoutClick
             )
         }
     ) { paddingValues ->
@@ -130,7 +91,7 @@ fun DashboardContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -179,14 +140,14 @@ fun DashboardContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White)
+                        .background(MaterialTheme.colorScheme.surface)
                         .padding(16.dp)
                 ) {
                     Text(
                         text = section.title,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF333333),
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                     Row(
@@ -197,7 +158,7 @@ fun DashboardContent(
                             Row(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .background(lightBlueBg, RoundedCornerShape(8.dp))
+                                    .background(lightBlueBg, RoundedCornerShape(4.dp))
                                     .clickable { onMenuClick(item.route) }
                                     .padding(vertical = 16.dp, horizontal = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -213,7 +174,7 @@ fun DashboardContent(
                                     text = item.title,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFF333333)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }

@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hxb.myandroidapp_1021.ui.dashboard.DashboardScreen
 import com.hxb.myandroidapp_1021.ui.login.LoginScreen
+import com.hxb.myandroidapp_1021.ui.overduealert.OverdueAlertListScreen
 import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingConfirmScreen
 import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListScreen
 import com.hxb.myandroidapp_1021.ui.otherpicking.OtherPickingListViewModel
@@ -131,6 +132,10 @@ fun AppNavHost() {
                     }
                 }
             )
+        }
+        // 超期告警仅查询展示，不在 PDA 配置参数或处理告警。
+        composable<OverdueAlertList> {
+            OverdueAlertListScreen(onBackClick = safeBack)
         }
         // 服务器配置页
         composable<ServerConfig> {

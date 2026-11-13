@@ -4,10 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Warning
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
 import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
+import com.hxb.myandroidapp_1021.navigation.OverdueAlertList
 import com.hxb.myandroidapp_1021.navigation.PickingList
 import com.hxb.myandroidapp_1021.navigation.PutawayList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
@@ -78,6 +80,12 @@ class DashboardViewModel : ViewModel() {
             items = listOf(
                 MenuItemData("其他拣选", Icons.AutoMirrored.Filled.ExitToApp, OtherPickingList),
                 MenuItemData("其他上架", Icons.Filled.QrCodeScanner, OtherPutawayList)
+            )
+        ),
+        MenuSectionData(
+            title = "告警记录",
+            items = listOf(
+                MenuItemData("超期告警", Icons.Filled.Warning, OverdueAlertList)
             )
         )
     )

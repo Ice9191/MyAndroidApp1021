@@ -64,3 +64,6 @@ data object TempBorrow
 
 @Serializable
 data object TempReturn
+
+@Serializable
+data object OverdueAlertList

@@ -168,6 +168,12 @@ fun InspectionScanScreen(
                     right = DisplayField("申请日期", today)
                 )
             )
+            val infoRows = listOf(
+                InfoRow(
+                    left = DisplayField("已选工器具", "${readList.list}")
+                    right = DisplayField("申请日期", today)
+                )
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

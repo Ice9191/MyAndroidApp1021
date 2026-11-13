@@ -10,3 +10,6 @@ data object InventoryScan
 
 @Serializable
 data object InventoryResult
+
+@Serializable
+data object InventoryRoutes

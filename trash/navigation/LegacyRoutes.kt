@@ -34,3 +34,6 @@ data object ScrapOutList
 
 @Serializable
 data object ScrapOutCheck
+
+@Serializable
+data object InventoryRoutes

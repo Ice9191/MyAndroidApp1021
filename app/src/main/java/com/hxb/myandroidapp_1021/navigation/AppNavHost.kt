@@ -35,7 +35,6 @@ import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanViewModel
 import com.hxb.myandroidapp_1021.pages.picking.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListViewModel
-import com.hxb.myandroidapp_1021.pages.picking.PickingManualScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanViewModel
 import com.hxb.myandroidapp_1021.pages.putaway.PutawayConfirmScreen
@@ -43,7 +42,6 @@ import com.hxb.myandroidapp_1021.pages.putaway.PutawayListScreen
 import com.hxb.myandroidapp_1021.pages.putaway.PutawayListViewModel
 import com.hxb.myandroidapp_1021.pages.returns.ReturnConfirmScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnListScreen
-import com.hxb.myandroidapp_1021.pages.returns.ReturnManualScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.pages.serverconfig.ServerConfigScreen
@@ -184,11 +182,6 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingScanScreen(
                 viewModel = viewModel<PickingScanViewModel>(listEntry),
-                onManualClick = {
-                    navController.navigate(PickingManual) {
-                        launchSingleTop = true
-                    }
-                },
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(PickingConfirm) { launchSingleTop = true } },
                 onSettingsClick = {
@@ -196,14 +189,6 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<PickingManual> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
-            PickingManualScreen(
-                viewModel = viewModel<PickingScanViewModel>(listEntry),
-                onBackClick = safeBack,
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -232,7 +217,6 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnScanScreen(
                 viewModel = viewModel<ReturnScanViewModel>(listEntry),
-                onManualClick = { navController.navigate(ReturnManual) { launchSingleTop = true } },
                 onBackClick = safeBack,
                 onNextClick = { navController.navigate(ReturnConfirm) { launchSingleTop = true } },
                 onSettingsClick = {
@@ -240,14 +224,6 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<ReturnManual> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
-            ReturnManualScreen(
-                viewModel = viewModel<ReturnScanViewModel>(listEntry),
-                onBackClick = safeBack,
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }

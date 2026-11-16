@@ -24,9 +24,6 @@ data object PickingList
 data object PickingScan
 
 @Serializable
-data object PickingManual
-
-@Serializable
 data object PickingConfirm
 
 @Serializable
@@ -34,9 +31,6 @@ data object ReturnList
 
 @Serializable
 data object ReturnScan
-
-@Serializable
-data object ReturnManual
 
 @Serializable
 data object ReturnConfirm

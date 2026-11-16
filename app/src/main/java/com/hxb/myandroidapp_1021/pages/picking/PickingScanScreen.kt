@@ -1,4 +1,4 @@
-﻿package com.hxb.myandroidapp_1021.pages.picking
+package com.hxb.myandroidapp_1021.pages.picking
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -96,8 +96,8 @@ fun PickingScanContent(
                 available
         }
     }
-    val isNextEnabled =
-        !uiState.isLoading && uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
+    // 本次至少读取一件即可进入确认页，未读完整单时按批次拣选，单据状态由确认结果累加
+    val isNextEnabled = !uiState.isLoading && uiState.readList.isNotEmpty()
     val visibleTools = when (selectedTab) {
         ScanTab.All -> uiState.tools
         ScanTab.Read -> uiState.readList

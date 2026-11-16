@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -52,6 +51,14 @@ import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.components.FilterField
+import com.hxb.myandroidapp_1021.components.FormFilter
+
+// TODO: 字段未确定：库存状态编码及完整枚举待后端确认，空字符串表示“全部”。
+private val inventoryStatusOptions =
+    listOf("", "在库", "待拣选", "已备货", "已借出", "待上架", "已送检", "已送修")
+private val conditionOptions = listOf("", "好件", "坏件")
+
 
 @Composable
 fun StockDetailListScreen(
@@ -94,10 +101,9 @@ fun StockDetailListScreen(
         )
     }
     if (uiState.showFilters) {
-        StockDetailFilter(
-            filter = uiState.draftFilter,
+        FormFilter(
+            fields = stockDetailFilterFields(uiState.draftFilter, viewModel::onFilterChange),
             error = uiState.filterError,
-            onChange = viewModel::onFilterChange,
             onReset = viewModel::resetFilters,
             onConfirm = viewModel::applyFilters,
             onDismiss = viewModel::dismissFilters
@@ -388,185 +394,44 @@ private fun StockDetailBottomDrawer(
     }
 }
 
-
 /**
- * 筛选草稿由页面状态提供；选项自动换行，内容可滚动，底部操作保持可见。
+ * 把筛选草稿映射为筛选面板字段；“全部”用空字符串表示，选项文案沿用页面既有约定。
  */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StockDetailFilter(
+private fun stockDetailFilterFields(
     filter: StockDetailFilterState,
-    error: String?,
-    onChange: (StockDetailFilterState) -> Unit,
-    onReset: () -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp),
-        dragHandle = null
-    ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f)
-                .imePadding()
-        ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("筛选", Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                IconButton(onClick = onDismiss, shape = RoundedCornerShape(4.dp)) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Close filter",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Column(
-                Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text("库存状态", fontSize = 13.sp)
-                // TODO: 字段未确定：选项文案依据页面需求，接口状态编码及完整枚举待确认。
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf(
-                        "",
-                        "在库",
-                        "待拣选",
-                        "已备货",
-                        "已借出",
-                        "待上架",
-                        "已送检",
-                        "已送修"
-                    ).forEach { status ->
-                        StockDetailTabButton(
-                            text = status.ifBlank { "全部" },
-                            selected = filter.status == status,
-                            onClick = { onChange(filter.copy(status = status)) }
-                        )
-                    }
-                }
-                Text("好坏件状态", fontSize = 13.sp)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("", "好件", "坏件").forEach { condition ->
-                        StockDetailTabButton(
-                            text = condition.ifBlank { "全部" },
-                            selected = filter.condition == condition,
-                            onClick = { onChange(filter.copy(condition = condition)) }
-                        )
-                    }
-                }
-                Text("仓库", fontSize = 13.sp)
-                InputFieldOne(
-                    value = filter.warehouse,
-                    onValueChange = { onChange(filter.copy(warehouse = it)) },
-                    placeholder = "请输入仓库名称",
-                    modifier = Modifier.fillMaxWidth(),
-                    showSearchIcon = false,
-                    horizontalPadding = 0.dp
-                )
-                Text("货位", fontSize = 13.sp)
-                InputFieldOne(
-                    value = filter.location,
-                    onValueChange = { onChange(filter.copy(location = it)) },
-                    placeholder = "请输入货位编码，如 A-03-02-01",
-                    modifier = Modifier.fillMaxWidth(),
-                    showSearchIcon = false,
-                    horizontalPadding = 0.dp
-                )
-                Text("下次送检日期", fontSize = 13.sp)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    InputFieldOne(
-                        value = filter.startDate,
-                        onValueChange = { onChange(filter.copy(startDate = it)) },
-                        placeholder = "开始日期",
-                        modifier = Modifier.weight(1f),
-                        showSearchIcon = false,
-                        horizontalPadding = 0.dp
-                    )
-                    Text("至", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-                    InputFieldOne(
-                        value = filter.endDate,
-                        onValueChange = { onChange(filter.copy(endDate = it)) },
-                        placeholder = "结束日期",
-                        modifier = Modifier.weight(1f),
-                        showSearchIcon = false,
-                        horizontalPadding = 0.dp
-                    )
-                }
-                error?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.error) }
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                StockDetailTabButton(
-                    text = "重置",
-                    onClick = onReset,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                )
-                StockDetailTabButton(
-                    text = "确定",
-                    onClick = onConfirm,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    prominent = true
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StockDetailTabButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    selected: Boolean = false,
-    prominent: Boolean = false
-) {
-    TextButton(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-        colors = ButtonDefaults.textButtonColors(
-            containerColor = when {
-                prominent -> MaterialTheme.colorScheme.primary
-                selected -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.background
-            },
-            contentColor = when {
-                prominent -> MaterialTheme.colorScheme.onPrimary
-                selected -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            }
-        )
-    ) { Text(text, fontSize = 13.sp) }
-}
-
-
+    onChange: (StockDetailFilterState) -> Unit
+): List<FilterField> = listOf(
+    FilterField.Chips(
+        label = "库存状态",
+        options = inventoryStatusOptions.map { it.ifBlank { "全部" } },
+        selectedIndex = inventoryStatusOptions.indexOf(filter.status).coerceAtLeast(0),
+        onSelect = { onChange(filter.copy(status = inventoryStatusOptions[it])) }
+    ),
+    FilterField.Chips(
+        label = "好坏件状态",
+        options = conditionOptions.map { it.ifBlank { "全部" } },
+        selectedIndex = conditionOptions.indexOf(filter.condition).coerceAtLeast(0),
+        onSelect = { onChange(filter.copy(condition = conditionOptions[it])) }
+    ),
+    FilterField.Text(
+        label = "仓库",
+        value = filter.warehouse,
+        placeholder = "请输入仓库名称",
+        onChange = { onChange(filter.copy(warehouse = it)) }
+    ),
+    FilterField.Text(
+        label = "货位",
+        value = filter.location,
+        placeholder = "请输入货位编码，如 A-03-02-01",
+        onChange = { onChange(filter.copy(location = it)) }
+    ),
+    FilterField.DateRange(
+        label = "下次送检日期",
+        start = filter.startDate,
+        end = filter.endDate,
+        startPlaceholder = "开始日期",
+        endPlaceholder = "结束日期",
+        onStartChange = { onChange(filter.copy(startDate = it)) },
+        onEndChange = { onChange(filter.copy(endDate = it)) }
+    )
+)

@@ -32,14 +32,30 @@ enum class PickingStatus(val label: String) {
 }
 
 /**
- * 前端列表状态，不作为数据库字段或后端响应对象。
+ * 前端列表筛选条件；工班沿用单据现有车间/工班字段。
+ * TODO: 字段未确定：查询接口的工班、计划开始及结束日期参数名与日期格式待后端确认。
+ */
+data class PickingListFilter(
+    val status: PickingStatus? = null,
+    val workshop: String? = null,
+    val startDate: String = "",
+    val endDate: String = ""
+)
+
+/**
+ * 前端列表状态，不作为数据库字段或后端响应对象；filter 为已应用条件，draftFilter 为抽屉草稿。
  */
 data class PickingListUiState(
     val isLoading: Boolean = false,
     val searchQuery: String = "",
     val orders: List<PickingOrder> = emptyList(),
     val filteredOrders: List<PickingOrder> = emptyList(),
-    val selectedStatus: PickingStatus? = null
+    val filter: PickingListFilter = PickingListFilter(),
+    val draftFilter: PickingListFilter = PickingListFilter(),
+    val showFilters: Boolean = false,
+    val filterError: String? = null,
+    val selectedOrderNo: String? = null,
+    val closingOrderNo: String? = null
 )
 
 /**

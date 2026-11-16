@@ -45,6 +45,7 @@ import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
 @Composable
 fun PickingConfirmScreen(
     scanViewModel: PickingScanViewModel,
+    listViewModel: PickingListViewModel,
     viewModel: PickingConfirmViewModel = viewModel(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
@@ -60,11 +61,14 @@ fun PickingConfirmScreen(
         onBackClick = onBackClick,
         onHomeClick = onHomeClick,
         onConfirmClick = {
-            viewModel.confirmOutbound(
-                scanState.order,
-                scanState.readList,
-                onConfirmClick
-            )
+            // 本批只确认已读取的器具：成功后累加单据数量与状态，再清空本批读签并返回列表
+            val orderNo = scanState.order?.orderNo.orEmpty()
+            val batchCount = scanState.readList.size
+            viewModel.confirmOutbound(scanState.order, scanState.readList) {
+                listViewModel.confirmPicked(orderNo, batchCount)
+                scanViewModel.confirmPicked()
+                onConfirmClick()
+            }
         }
     )
 }

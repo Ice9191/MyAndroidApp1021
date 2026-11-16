@@ -37,9 +37,9 @@ import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.TopNotification
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
@@ -103,7 +103,7 @@ fun OtherPickingScanContent(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = "其他拣选 · 核对工具",
+                title = "其他拣选",
                 modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { dismissInput() }) },
                 onBackClick = { dismissInput(); onBackClick() },
                 onHomeClick = { dismissInput(); onHomeClick() }

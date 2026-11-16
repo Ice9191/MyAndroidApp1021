@@ -34,6 +34,7 @@ import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanScreen
 import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanViewModel
 import com.hxb.myandroidapp_1021.pages.picking.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListScreen
+import com.hxb.myandroidapp_1021.pages.picking.PickingListViewModel
 import com.hxb.myandroidapp_1021.pages.picking.PickingManualScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanViewModel
@@ -210,6 +211,7 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingConfirmScreen(
                 scanViewModel = viewModel<PickingScanViewModel>(listEntry),
+                listViewModel = viewModel<PickingListViewModel>(listEntry),
                 onBackClick = safeBack,
                 onConfirmClick = { navController.popBackStack<PickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }

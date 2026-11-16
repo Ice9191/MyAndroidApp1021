@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.hxb.myandroidapp_1021.components.filterDateError
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -105,22 +106,10 @@ class StockDetailListViewModel : ViewModel() {
      */
     fun applyFilters() {
         _uiState.update { state ->
-            val filter = state.draftFilter
-            val dates = listOf(filter.startDate, filter.endDate)
-            val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.ROOT)
-                .apply { isLenient = false }
-            val validDates = dates.all { value ->
-                value.isBlank() || (value.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) &&
-                        runCatching { format.parse(value) }.isSuccess)
-            }
-            when {
-                !validDates -> state.copy(filterError = "日期请按 yyyy-MM-dd 输入有效日期")
-                filter.startDate.isNotBlank() && filter.endDate.isNotBlank() && filter.startDate > filter.endDate ->
-                    state.copy(filterError = "开始日期不能晚于结束日期")
-
-                else -> state.copy(filter = filter, showFilters = false, filterError = null)
-                    .filterRecords()
-            }
+            val error = filterDateError(state.draftFilter.startDate, state.draftFilter.endDate)
+            if (error != null) state.copy(filterError = error)
+            else state.copy(filter = state.draftFilter, showFilters = false, filterError = null)
+                .filterRecords()
         }
     }
 

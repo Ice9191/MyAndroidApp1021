@@ -26,13 +26,13 @@ class PickingScanViewModel : ViewModel() {
             delay(500.milliseconds)
             val mockOrder = PickingOrder(
                 orderNo = "JC20261028001",
-                status = PickingStatus.PICKED,
+                status = PickingStatus.UNPICKED,
                 workshop = "架大修一车间",
                 borrower = "张三",
-                pendingCount = 0,
+                pendingCount = 3,
                 plannedDate = "2026-11-11 09:30",
                 totalCount = 3,
-                pickedCount = 3,
+                pickedCount = 0,
                 workOrderNo = "GD20261111001",
                 createdBy = "材料员",
                 createdAt = "2026-11-11 08:00"
@@ -77,6 +77,28 @@ class PickingScanViewModel : ViewModel() {
             state.copy(
                 order = order,
                 tools = state.tools.map { it.copy(isRead = false, readDate = "") })
+        }
+    }
+
+    /**
+     * 本批次确认成功后累加已拣数量并移除已确认明细；剩余为 0 时单据状态置为已拣选。
+     * 未完成时保持部分拣选，允许下次继续扫描剩余器具。
+     */
+    fun confirmPicked() {
+        _uiState.update { state ->
+            val order = state.order ?: return@update state
+            val confirmed = state.tools.filter { it.isRead }
+            if (confirmed.isEmpty()) return@update state
+            val picked = (order.pickedCount + confirmed.size).coerceAtMost(order.totalCount)
+            state.copy(
+                order = order.copy(
+                    pickedCount = picked,
+                    pendingCount = order.totalCount - picked,
+                    status = if (picked >= order.totalCount) PickingStatus.PICKED
+                    else PickingStatus.PARTIALLY_PICKED
+                ),
+                tools = state.tools.filterNot { it.isRead }
+            )
         }
     }
 

@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.theme.AppColors
-import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
 /**
  * 展示任意工具类型，字段和读取状态由调用页面映射。

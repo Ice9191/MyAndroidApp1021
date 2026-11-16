@@ -23,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.theme.AppColors
-import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
 /**
  * 单张工具卡片；选中状态由页面持有，组件只上报选择事件并展示选中动画。

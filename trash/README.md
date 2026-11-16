@@ -2,7 +2,7 @@
 
 本目录位于 Android 源码目录之外，不参与编译。原始 package 保留，便于以后迁回。
 
-- `ui/inspection/`：旧送检独立申请流程，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/ui/inspection/`。
+- `ui/inspection/`：旧送检独立申请流程，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/pages/inspection/`。
 - `ui/repair/`：旧送修独立申请流程，原位置为相同源码根目录下的 `ui/repair/`。
 - `ui/scrap/`：旧报废独立申请流程，原位置为相同源码根目录下的 `ui/scrap/`。
 - `ui/scrapout/`：旧报废出库独立流程，原位置为相同源码根目录下的 `ui/scrapout/`。

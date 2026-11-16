@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.ui.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
 /**
  * 展示调用页面提供的单据信息，不持有业务状态；可选在卡片内追加一行左边文字、右边进度条。

@@ -301,7 +301,7 @@ fun PutawayConfirmContent(
                             DisplayField("实际货位", detail.location.ifBlank { "-" }),
                             DisplayField("库存状态", detail.inventoryStatus)
                         ),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
                 TopNotification(

@@ -138,7 +138,7 @@ fun PickingScanContent(
                         // === 2. 读取控制区 ===
                         ScanControlButtons(
                             firstButton = ScanControlButton(
-                                "RFID 待开放",
+                                "RFID 扫描",
                                 onClick = {},
                                 enabled = false
                             ),

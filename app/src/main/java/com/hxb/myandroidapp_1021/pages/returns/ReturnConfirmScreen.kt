@@ -96,7 +96,7 @@ fun ReturnConfirmContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单归还上架·绑定库位",
+                title = "工单归还上架",
                 modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 onBackClick = { focusManager.clearFocus(); onBackClick() },
                 onHomeClick = { focusManager.clearFocus(); onHomeClick() }

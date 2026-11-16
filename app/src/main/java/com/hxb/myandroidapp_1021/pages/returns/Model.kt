@@ -25,9 +25,9 @@ data class ReturnOrder(
 
 @Serializable
 enum class ReturnStatus(val label: String) {
-    RETURNED("已归还"),
-    UNRETURNED("待归还"),
-    PARTIALLY_RETURNED("部分归还")
+    RETURNED("已上架"),
+    UNRETURNED("待上架"),
+    PARTIALLY_RETURNED("部分上架")
 }
 
 /**

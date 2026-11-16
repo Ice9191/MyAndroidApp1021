@@ -1,4 +1,4 @@
-﻿package com.hxb.myandroidapp_1021.pages.returns
+package com.hxb.myandroidapp_1021.pages.returns
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
@@ -134,7 +134,7 @@ fun ReturnScanContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单归还上架·读取",
+                title = "工单归还上架",
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick,
                 onConfigClick = onSettingsClick
@@ -159,7 +159,7 @@ fun ReturnScanContent(
                         // === 2. 读取控制区 ===
                         ScanControlButtons(
                             firstButton = ScanControlButton(
-                                "RFID 待开放",
+                                "RFID 扫描",
                                 onClick = {},
                                 enabled = false
                             ),
@@ -235,7 +235,7 @@ fun ReturnManualContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单归还上架·人工读取",
+                title = "工单归还上架",
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick
             )

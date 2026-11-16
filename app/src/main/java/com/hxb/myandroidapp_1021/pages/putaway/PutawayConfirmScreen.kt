@@ -115,7 +115,7 @@ fun PutawayConfirmContent(
         containerColor = background,
         topBar = {
             TopAppBar(
-                title = "上架作业",
+                title = "工器具上架",
                 onBackClick = onBackClick
             )
         },

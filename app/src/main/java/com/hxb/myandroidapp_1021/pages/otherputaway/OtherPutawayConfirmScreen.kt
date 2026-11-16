@@ -67,7 +67,7 @@ fun OtherPutawayConfirmContent(
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { TopAppBar(title = "其他上架 · 本批次确认", onBackClick = onBackClick, onHomeClick = onHomeClick) },
+        topBar = { TopAppBar(title = "其他上架", onBackClick = onBackClick, onHomeClick = onHomeClick) },
         bottomBar = {
             BottomButton(
                 "确认本批次 ${tools.size} 件",

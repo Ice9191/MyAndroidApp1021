@@ -93,7 +93,7 @@ fun TempBorrowContent(
         modifier = Modifier.imePadding(), containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = if (state.editing) "新建临时借出" else "临时借出",
+                title = "临时借出",
                 onBackClick = onBackClick, onHomeClick = onHomeClick
             )
         },

@@ -101,7 +101,7 @@ fun PickingConfirmContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单拣选·确认",
+                title = "工单拣选",
                 modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
                 onBackClick = { focusManager.clearFocus(); onBackClick() },
                 onHomeClick = { focusManager.clearFocus(); onHomeClick() }

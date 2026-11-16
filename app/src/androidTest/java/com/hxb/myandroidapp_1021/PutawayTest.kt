@@ -89,7 +89,7 @@ class PutawayTest {
         searchField().slowType(orderNo)
         waitForText("共1张")
         composeRule.onAllNodesWithText("开始上架")[0].slowClick()
-        waitForText("上架作业")
+        waitForText("工器具上架")
         // 作业页操作人由 ViewModel 延迟 500ms 加载
         waitForText("材料员")
     }
@@ -161,7 +161,7 @@ class PutawayTest {
         openPutawayList()
         openOrder("SJ20261111001")
 
-        composeRule.onNodeWithText("上架作业").assertIsDisplayed()
+        composeRule.onNodeWithText("工器具上架").assertIsDisplayed()
         assertTrue(textExists("上架单号"))
         assertTrue(textExists("SJ20261111001"))
         assertTrue(textExists("入库单号"))

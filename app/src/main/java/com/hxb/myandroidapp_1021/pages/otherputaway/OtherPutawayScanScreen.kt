@@ -104,7 +104,7 @@ fun OtherPutawayScanContent(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = "其他上架 · 核对工具",
+                title = "其他上架",
                 modifier = Modifier.pointerInput(Unit) { detectTapGestures(onTap = { dismissInput() }) },
                 onBackClick = { dismissInput(); onBackClick() },
                 onHomeClick = { dismissInput(); onHomeClick() }

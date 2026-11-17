@@ -1,16 +1,14 @@
 package com.hxb.myandroidapp_1021.pages.returns
 
-import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -31,11 +30,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.ManualScanCard
-import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.FormFilter
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
@@ -44,17 +41,20 @@ import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ScanTab
+import com.hxb.myandroidapp_1021.pages.returns.components.ConditionBadge
+import com.hxb.myandroidapp_1021.pages.returns.components.DrawerFieldRow
+import com.hxb.myandroidapp_1021.pages.returns.components.DropdownList
+import com.hxb.myandroidapp_1021.pages.returns.components.ReturnManualContent
 
 @Composable
 fun ReturnScanScreen(
     viewModel: ReturnScanViewModel,
+    flowViewModel: ReturnListViewModel,
     onBackClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // 人工读取作为本页子页面展示，不单独跳转；子页面内返回键回到扫描页
     var showManual by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = showManual) { showManual = false }
 
@@ -69,11 +69,89 @@ fun ReturnScanScreen(
         ReturnScanContent(
             uiState = uiState,
             onManualClick = { showManual = true },
+            onToolClick = viewModel::selectTool,
             onBackClick = onBackClick,
-            onNextClick = onNextClick,
             onSettingsClick = onSettingsClick,
             onHomeClick = onHomeClick
         )
+    }
+
+    // 单条上架抽屉：只核对并提交当前选中的一条明细，成功后留在本页继续上架
+    val selectedTool = uiState.selectedTool
+    if (uiState.showConfirmDrawer && selectedTool != null) {
+        FormFilter(
+            error = uiState.submitError,
+            title = "上架确认",
+            resetText = "取消",
+            onReset = viewModel::dismissConfirmDrawer,
+            confirmText = if (uiState.isSubmitting) "提交中" else "确认上架",
+            confirmEnabled = !uiState.isSubmitting && !selectedTool.isPutaway &&
+                    !selectedTool.isBadCondition && selectedTool.isRead &&
+                    uiState.draftLocation.isNotBlank(),
+            onConfirm = { viewModel.confirmPutaway(flowViewModel::updatePutawayProgress) },
+            onDismiss = viewModel::dismissConfirmDrawer
+        ) {
+            DrawerFieldRow("工具编号", selectedTool.itemCode)
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "工具名称",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        selectedTool.name,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    if (selectedTool.condition.isNotBlank()) ConditionBadge(selectedTool.condition)
+                }
+            }
+            DrawerFieldRow("RFID编码", selectedTool.rfid)
+            val editable = !selectedTool.isBadCondition && !selectedTool.isPutaway
+            DropdownList(
+                label = "仓库",
+                options = uiState.warehouseOptions,
+                selected = uiState.draftWarehouse,
+                placeholder = "请选择仓库",
+                onSelect = viewModel::onDraftWarehouseChange,
+                enabled = editable
+            )
+            DropdownList(
+                label = "货位",
+                options = uiState.locationOptions,
+                selected = uiState.draftLocation,
+                placeholder = "请选择货位",
+                onSelect = viewModel::onDraftLocationChange,
+                enabled = editable
+            )
+            when {
+                selectedTool.isBadCondition -> Text(
+                    "该器具归还时已标记为坏件，不允许上架，请转送修或送检流程处理",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+
+                selectedTool.isPutaway -> Text(
+                    "该器具已上架，不能重复确认",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                !selectedTool.isRead -> Text(
+                    "该器具尚未完成 RFID 核对，核对后才能确认上架",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
     }
 }
 
@@ -81,8 +159,8 @@ fun ReturnScanScreen(
 fun ReturnScanContent(
     uiState: ReturnScanUiState,
     onManualClick: () -> Unit,
+    onToolClick: (Int) -> Unit,
     onBackClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
@@ -104,7 +182,6 @@ fun ReturnScanContent(
     var controlsAndTabsHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
 
-    // 防止内外两层 LazyColumn 滚动冲突
     val listScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPostScroll(
@@ -117,8 +194,6 @@ fun ReturnScanContent(
                 available
         }
     }
-    val isNextEnabled =
-        !uiState.isLoading && uiState.readList.isNotEmpty() && uiState.unreadList.isEmpty()
     val visibleTools = when (selectedTab) {
         ScanTab.All -> uiState.tools
         ScanTab.Read -> uiState.readList
@@ -156,7 +231,7 @@ fun ReturnScanContent(
                     Column(
                         modifier = Modifier.onSizeChanged { controlsAndTabsHeight = it.height }
                     ) {
-                        // === 2. 读取控制区 ===
+                        // === 2. 读取控制区：下一步已取消，逐条在抽屉确认 ===
                         ScanControlButtons(
                             firstButton = ScanControlButton(
                                 "RFID 扫描",
@@ -167,11 +242,6 @@ fun ReturnScanContent(
                                 "人工读取",
                                 onClick = onManualClick,
                                 enabled = !uiState.isLoading
-                            ),
-                            thirdButton = ScanControlButton(
-                                "下一步",
-                                onClick = onNextClick,
-                                enabled = isNextEnabled
                             )
                         )
                         HorizontalDivider(thickness = 8.dp, color = bgColor)
@@ -186,20 +256,26 @@ fun ReturnScanContent(
                 }
             }
 
-            // === 4. Tab 内容 ===
+            // === 4. Tab 内容：点击卡片选中并打开单条上架抽屉 ===
             item {
                 ToolsScanList(
                     tools = visibleTools,
                     key = { it.id },
                     title = { it.name },
                     lineLabel = { "行号 ${it.id.toString().padStart(2, '0')}" },
-                    statusText = { if (it.isRead) "已读取" else "未读取" },
-                    isRead = { it.isRead },
+                    statusText = {
+                        when {
+                            it.isPutaway -> "已上架"
+                            it.isRead -> "已读取"
+                            else -> "未读取"
+                        }
+                    },
+                    isRead = { it.isRead || it.isPutaway },
                     fields = { tool ->
                         listOf(
                             DisplayField("物资编码", tool.itemCode),
                             DisplayField("RFID编码", tool.rfid),
-                            DisplayField("存放货位", tool.location),
+                            DisplayField("货位", tool.location),
                             DisplayField("单位", tool.unit)
                         )
                     },
@@ -208,104 +284,11 @@ fun ReturnScanContent(
                         .height(with(density) {
                             (viewportHeight - controlsAndTabsHeight).coerceAtLeast(0).toDp()
                         })
-                        .nestedScroll(listScrollConnection)
+                        .nestedScroll(listScrollConnection),
+                    selectedTool = uiState.selectedTool,
+                    onItemClick = { tool -> onToolClick(tool.id) },
+                    badge = { tool -> tool.condition.ifBlank { null } }
                 )
-            }
-        }
-    }
-}
-
-@SuppressLint("UseOfNonLambdaOffsetOverload")
-@Composable
-fun ReturnManualContent(
-    uiState: ReturnScanUiState,
-    onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onConfirmToggleRead: (Set<Int>) -> Unit
-) {
-    val bgColor = MaterialTheme.colorScheme.background
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var selectedIds by remember(selectedTab) { mutableStateOf(emptySet<Int>()) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-    val readList = uiState.readList
-    val unreadList = uiState.unreadList
-    val listState = rememberLazyListState()
-
-    Scaffold(
-        containerColor = bgColor,
-        topBar = {
-            TopAppBar(
-                title = "工单归还上架",
-                onBackClick = onBackClick,
-                onHomeClick = onHomeClick
-            )
-        },
-        bottomBar = {
-            BottomButton(
-                text = if (selectedTab == 0) "取消读取" else "人工读取",
-                onClick = { showConfirmDialog = true },
-                enabled = selectedIds.isNotEmpty()
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            val tabLabels = listOf("已读取 ${readList.size}", "未读取 ${unreadList.size}")
-            ScanTabs(
-                labels = tabLabels,
-                selectedIndex = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
-            val visibleTools = if (selectedTab == 0) readList else unreadList
-
-            OrderList(
-                orders = visibleTools,
-                listState = listState,
-                emptyText = if (selectedTab == 0) "暂无已读取工具" else "暂无未读取工具",
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                key = { it.id }
-            ) { tool ->
-                ManualScanCard(
-                    title = tool.name,
-                    lineLabel = "行号 ${tool.id.toString().padStart(2, '0')}",
-                    statusText = if (tool.isRead) "已读取" else "未读取",
-                    isRead = tool.isRead,
-                    fields = listOf(
-                        DisplayField("物资编码", tool.itemCode),
-                        DisplayField("RFID编码", tool.rfid),
-                        DisplayField("存放货位", tool.location),
-                        DisplayField("单位", tool.unit)
-                    ),
-                    selected = tool.id in selectedIds,
-                    onSelectedChange = { selected ->
-                        selectedIds = if (selected) selectedIds + tool.id else selectedIds - tool.id
-                    }
-                )
-            }
-        }
-    }
-
-    // 确认弹窗
-    if (showConfirmDialog) {
-        val toReadCount = unreadList.count { it.id in selectedIds }
-        val toUnreadCount = readList.count { it.id in selectedIds }
-        ConfirmDialog(
-            title = "确认操作",
-            onConfirm = {
-                onConfirmToggleRead(selectedIds)
-                selectedIds = emptySet()
-                showConfirmDialog = false
-            },
-            onDismiss = { showConfirmDialog = false }
-        ) {
-            Column {
-                if (toReadCount > 0) Text("人工读取 $toReadCount 件工具")
-                if (toUnreadCount > 0) Text("取消读取 $toUnreadCount 件工具")
             }
         }
     }

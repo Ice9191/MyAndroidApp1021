@@ -55,43 +55,50 @@ data class ReturnToolScanItem(
     val rfid: String,
     val location: String,
     val unit: String,
+    // TODO: 字段未确定：推荐仓库、好坏件状态、本件上架状态及上架时间的接口字段待后端确认。
+    val warehouse: String = "",
+    val condition: String = "",
+    val isPutaway: Boolean = false,
+    val putawayAt: String = "",
     val isRead: Boolean = false,
     val readDate: String = ""
-)
+) {
+    // 坏件按文档不再推荐上架，需转送修或送检流程
+    val isBadCondition: Boolean get() = condition == "坏件"
+}
 
 /**
  * 前端扫描状态；单据和明细是接口数据，加载标记及筛选列表只供页面使用。
  */
+/**
+ * 前端扫描状态；selectedLineId 与 draftLocation 只服务单条上架抽屉，不提交业务数据。
+ */
 data class ReturnScanUiState(
     val isLoading: Boolean = false,
     val order: ReturnOrder? = null,
-    val tools: List<ReturnToolScanItem> = emptyList()
+    val tools: List<ReturnToolScanItem> = emptyList(),
+    val selectedLineId: Int? = null,
+    val showConfirmDrawer: Boolean = false,
+    val draftLocation: String = "",
+    val draftWarehouse: String = "",
+    val warehouseOptions: List<String> = emptyList(),
+    val locationOptions: List<String> = emptyList(),
+    val isSubmitting: Boolean = false,
+    val submitError: String? = null
 ) {
     val readList: List<ReturnToolScanItem> get() = tools.filter { it.isRead }
     val unreadList: List<ReturnToolScanItem> get() = tools.filterNot { it.isRead }
+    val selectedTool: ReturnToolScanItem? get() = tools.firstOrNull { it.id == selectedLineId }
 }
 
 /**
- * 前端确认页状态，不直接作为后端数据模型。
- */
-data class ReturnConfirmUiState(
-    val employeeId: String = "",
-    val locationCode: String = "",
-    val boundLocation: String = "",
-    val isSubmitting: Boolean = false
-) {
-    val canConfirm: Boolean
-        get() = employeeId.isNotBlank() && boundLocation.isNotBlank() && !isSubmitting
-}
-
-/**
- * 归还上架请求：单据号、归还人工号、绑定货位码和已核对 RFID 清单。
- * TODO: 字段未确定：提交接口字段名及货位绑定校验接口需后端确认；依据文档“归还上架”。
+ * 单条上架请求：单据号、明细行、RFID 与实际货位。
+ * TODO: 字段未确定：提交接口字段名、行标识类型、上架人及货位校验接口需后端确认；依据文档“归还上架”。
  */
 @Serializable
 data class ReturnConfirmRequest(
     val orderNo: String,
-    val employeeId: String,
-    val locationCode: String,
-    val rfids: List<String>
+    val lineNo: Int,
+    val rfid: String,
+    val locationCode: String
 )

@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import com.hxb.myandroidapp_1021.components.filterDateError
+import com.hxb.myandroidapp_1021.utils.filterDateError
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -167,8 +167,8 @@ class StockDetailListViewModel : ViewModel() {
                 record.itemCode,
                 record.description
             ).any { it.contains(searchQuery.trim(), true) } &&
-                    (filter.status.isBlank() || record.inventoryStatus == filter.status) &&
-                    (filter.condition.isBlank() || record.condition == filter.condition) &&
+                    (filter.status == null || record.inventoryStatus == filter.status.label) &&
+                    (filter.condition == null || record.condition == filter.condition.label) &&
                     record.warehouse.contains(filter.warehouse.trim(), true) &&
                     record.location.orEmpty().contains(filter.location.trim(), true) &&
                     (filter.startDate.isBlank() || record.nextInspectionDate?.let { it >= filter.startDate } == true) &&

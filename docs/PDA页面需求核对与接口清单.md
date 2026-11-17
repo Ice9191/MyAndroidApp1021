@@ -75,8 +75,6 @@
 | 响应 | 明细[].rfid | 指定 RFID | String |
 | 响应 | 明细[].location | 货位 | String |
 | 响应 | 明细[].unit | 单位 | String |
-| 响应 | handler | 当前确认页经办人 | String；是否直接采用当前登录人员不确定 |
-| 响应 | outboundTime | 当前确认页出库时间 | String；正式接口的时间含义、格式及是否应在提交成功后返回不确定 |
 
 #### 3 确认工单拣选
 
@@ -85,7 +83,6 @@
 | 方向 | 字段 | 含义 | 当前模型类型或不确定项 |
 | --- | --- | --- | --- |
 | 请求 | orderNo | 拣选单号 | String |
-| 请求 | employeeId | 当前确认页的领料人工号 | String；PDA只拣选时是否需要不确定 |
 | 请求 | rfids[] | 本批次核对的 RFID | List<String> |
 | 响应 | orderNo | 拣选单号 | String |
 | 响应 | status | 更新后的单据状态 | PickingStatus；接口编码不确定 |
@@ -138,10 +135,10 @@
 
 | 方向 | 字段 | 含义 | 当前模型类型或不确定项 |
 | --- | --- | --- | --- |
-| 请求 | orderNo | 当前归还单号 | String；正式提交的上架任务标识不确定 |
-| 请求 | employeeId | 归还人工号 | String；上架时是否仍需提交归还人不确定 |
-| 请求 | locationCode | 当前页面整批绑定的货位码 | String |
-| 请求 | rfids[] | 本批次核对的 RFID | List<String> |
+| 请求 | orderNo | 上架单号 | String；正式提交的上架任务标识不确定 |
+| 请求 | lineNo | 单条上架明细行号 | 正式行标识与类型不确定 |
+| 请求 | rfid | 本件 RFID | String |
+| 请求 | locationCode | 本件实际货位 | String |
 
 ## 临时借还
 

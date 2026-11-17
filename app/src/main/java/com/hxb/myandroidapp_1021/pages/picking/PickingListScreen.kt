@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
@@ -48,14 +47,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.FilterField
-import com.hxb.myandroidapp_1021.components.FormFilter
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.pages.picking.components.CloseDialog
+import com.hxb.myandroidapp_1021.pages.picking.components.ClosePickingOrder
+import com.hxb.myandroidapp_1021.pages.picking.components.PickingFormFilter
 import com.hxb.myandroidapp_1021.theme.AppColors
 import kotlinx.coroutines.launch
 
@@ -81,35 +80,12 @@ fun PickingListScreen(
         }
     )
     if (uiState.showFilters) {
-        val draft = uiState.draftFilter
-        val statusValues = listOf<PickingStatus?>(null) + PickingStatus.entries
-        val workshopValues = listOf<String?>(null) + uiState.orders.map { it.workshop }
-            .filter { it.isNotBlank() }.distinct().sorted()
-        FormFilter(
-            fields = listOf(
-                FilterField.Chips(
-                    label = "单据状态",
-                    options = statusValues.map { it?.label ?: "全部" },
-                    selectedIndex = statusValues.indexOf(draft.status).coerceAtLeast(0),
-                    onSelect = { viewModel.onFilterChange(draft.copy(status = statusValues[it])) }
-                ),
-                FilterField.Chips(
-                    label = "车间/工班",
-                    options = workshopValues.map { it ?: "全部" },
-                    selectedIndex = workshopValues.indexOf(draft.workshop).coerceAtLeast(0),
-                    onSelect = { viewModel.onFilterChange(draft.copy(workshop = workshopValues[it])) }
-                ),
-                FilterField.DateRange(
-                    label = "计划日期",
-                    start = draft.startDate,
-                    end = draft.endDate,
-                    startPlaceholder = "开始日期",
-                    endPlaceholder = "结束日期",
-                    onStartChange = { viewModel.onFilterChange(draft.copy(startDate = it)) },
-                    onEndChange = { viewModel.onFilterChange(draft.copy(endDate = it)) }
-                )
-            ),
+        PickingFormFilter(
+            filter = uiState.draftFilter,
+            workshopOptions = uiState.orders.map { it.workshop }
+                .filter { it.isNotBlank() }.distinct().sorted(),
             error = uiState.filterError,
+            onChange = viewModel::onFilterChange,
             onReset = viewModel::resetFilters,
             onConfirm = viewModel::applyFilters,
             onDismiss = viewModel::dismissFilters
@@ -145,7 +121,6 @@ fun PickingListContent(
     val focusManager = LocalFocusManager.current
     val clearFocus = { focusManager.clearFocus() }
     val hasFilter = uiState.filter != PickingListFilter()
-    // 已关闭或没有剩余明细的单据不提供关闭入口
     val selectedOrder = uiState.orders.firstOrNull { it.orderNo == uiState.selectedOrderNo }
     val canCloseSelected = selectedOrder != null &&
             selectedOrder.status != PickingStatus.CLOSED && selectedOrder.pendingCount > 0
@@ -367,50 +342,5 @@ fun PickingListContent(
                     .padding(end = 16.dp, bottom = 32.dp)
             )
         }
-    }
-}
-
-/**
- * 关闭拣选单的悬浮按钮，红色表示不可逆操作。
- */
-@Composable
-private fun ClosePickingOrder(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(32.dp),
-        shape = RoundedCornerShape(4.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors.Error,
-            contentColor = Color.White
-        ),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,
-            pressedElevation = 2.dp
-        )
-    ) {
-        Text("关闭拣选单", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-/**
- * 关闭拣选单前的确认弹窗，提示剩余未拣选明细将无法继续处理。
- */
-@Composable
-private fun CloseDialog(
-    remaining: Int,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    ConfirmDialog(
-        title = "关闭拣选单",
-        confirmText = "确认关闭",
-        onConfirm = onConfirm,
-        onDismiss = onDismiss
-    ) {
-        Text("剩余${remaining}条未拣选明细将无法继续拣选，是否确认关闭？")
     }
 }

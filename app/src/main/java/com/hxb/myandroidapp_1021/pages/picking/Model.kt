@@ -82,37 +82,21 @@ data class PickingToolScanItem(
 data class PickingScanUiState(
     val isLoading: Boolean = false,
     val order: PickingOrder? = null,
-    val tools: List<PickingToolScanItem> = emptyList()
+    val tools: List<PickingToolScanItem> = emptyList(),
+    val showConfirmDrawer: Boolean = false,
+    val isSubmitting: Boolean = false,
+    val submitError: String? = null
 ) {
     val readList: List<PickingToolScanItem> get() = tools.filter { it.isRead }
     val unreadList: List<PickingToolScanItem> get() = tools.filterNot { it.isRead }
 }
 
 /**
- * 确认页元数据：文档“借用交接”中的经办人和出库时间。
- */
-@Serializable
-data class PickingConfirmData(val handler: String, val outboundTime: String)
-
-/**
- * 出库请求字段：单据号、领料人工号、已核对 RFID 清单。
- * TODO: 字段未确定：提交接口字段名、人员标识使用账号或工号、RFID 与行主键的关联方式需后端确认。
+ * 本批次拣选提交字段：单据号与已核对 RFID 清单。
+ * TODO: 字段未确定：提交接口字段名、操作人是否由登录凭证获取、RFID 与行主键的关联方式需后端确认。
  */
 @Serializable
 data class PickingConfirmRequest(
     val orderNo: String,
-    val employeeId: String,
     val rfids: List<String>
-)
-
-/**
- * 前端确认页状态，不作为数据库字段。
- */
-data class PickingConfirmUiState(
-    val isLoading: Boolean = true,
-    val employeeId: String = "",
-    val handler: String = "",
-    val outboundTime: String = "",
-    val isSubmitting: Boolean = false,
-    val errorMessage: String? = null
 )

@@ -1,20 +1,15 @@
 package com.hxb.myandroidapp_1021.pages.picking
 
-import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,24 +27,25 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.ManualScanCard
-import com.hxb.myandroidapp_1021.components.OrderList
+import com.hxb.myandroidapp_1021.components.FormFilter
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ScanTab
+import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
+import com.hxb.myandroidapp_1021.pages.picking.components.PickingManualContent
 
 @Composable
 fun PickingScanScreen(
     viewModel: PickingScanViewModel,
+    flowViewModel: PickingListViewModel,
     onBackClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
+    onSubmittedClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
@@ -69,10 +65,28 @@ fun PickingScanScreen(
             uiState = uiState,
             onManualClick = { showManual = true },
             onBackClick = onBackClick,
-            onNextClick = onNextClick,
+            onConfirmClick = viewModel::openConfirmDrawer,
             onSettingsClick = onSettingsClick,
             onHomeClick = onHomeClick
         )
+    }
+
+    if (uiState.showConfirmDrawer) {
+        FormFilter(
+            error = uiState.submitError,
+            title = "本批次拣选，共 ${uiState.readList.size} 件",
+            confirmText = if (uiState.isSubmitting) "提交中" else "确认本批次拣选",
+            confirmEnabled = !uiState.isSubmitting && uiState.readList.isNotEmpty(),
+            onConfirm = {
+                viewModel.submitBatch { orderNo, count ->
+                    flowViewModel.confirmPicked(orderNo, count)
+                    onSubmittedClick()
+                }
+            },
+            onDismiss = viewModel::dismissConfirmDrawer
+        ) {
+            ToolsInfoList(rows = uiState.readList.map { ToolInfoRow(it.rfid, it.name) })
+        }
     }
 }
 
@@ -81,7 +95,7 @@ fun PickingScanContent(
     uiState: PickingScanUiState,
     onManualClick: () -> Unit,
     onBackClick: () -> Unit = {},
-    onNextClick: () -> Unit = {},
+    onConfirmClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
@@ -103,7 +117,6 @@ fun PickingScanContent(
     var controlsAndTabsHeight by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
 
-    // 防止内外两层 LazyColumn 滚动冲突
     val listScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPostScroll(
@@ -116,8 +129,8 @@ fun PickingScanContent(
                 available
         }
     }
-    // 本次至少读取一件即可进入确认页，未读完整单时按批次拣选，单据状态由确认结果累加
-    val isNextEnabled = !uiState.isLoading && uiState.readList.isNotEmpty()
+    val isConfirmEnabled =
+        !uiState.isLoading && uiState.readList.isNotEmpty() && !uiState.isSubmitting
     val visibleTools = when (selectedTab) {
         ScanTab.All -> uiState.tools
         ScanTab.Read -> uiState.readList
@@ -168,9 +181,9 @@ fun PickingScanContent(
                                 enabled = !uiState.isLoading
                             ),
                             thirdButton = ScanControlButton(
-                                "下一步",
-                                onClick = onNextClick,
-                                enabled = isNextEnabled
+                                "确认",
+                                onClick = onConfirmClick,
+                                enabled = isConfirmEnabled
                             )
                         )
                         HorizontalDivider(thickness = 8.dp, color = bgColor)
@@ -209,102 +222,6 @@ fun PickingScanContent(
                         })
                         .nestedScroll(listScrollConnection)
                 )
-            }
-        }
-    }
-}
-
-@SuppressLint("UseOfNonLambdaOffsetOverload")
-@Composable
-fun PickingManualContent(
-    uiState: PickingScanUiState,
-    onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onConfirmToggleRead: (Set<Int>) -> Unit
-) {
-    val bgColor = MaterialTheme.colorScheme.background
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var selectedIds by remember(selectedTab) { mutableStateOf(emptySet<Int>()) }
-    var showConfirmDialog by remember { mutableStateOf(false) }
-    val readList = uiState.readList
-    val unreadList = uiState.unreadList
-    val listState = rememberLazyListState()
-
-    Scaffold(
-        containerColor = bgColor,
-        topBar = {
-            TopAppBar(
-                title = "工单拣选",
-                onBackClick = onBackClick,
-                onHomeClick = onHomeClick
-            )
-        },
-        bottomBar = {
-            BottomButton(
-                text = if (selectedTab == 0) "取消读取" else "人工读取",
-                onClick = { showConfirmDialog = true },
-                enabled = selectedIds.isNotEmpty()
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            val tabLabels = listOf("已读取 ${readList.size}", "未读取 ${unreadList.size}")
-            ScanTabs(
-                labels = tabLabels,
-                selectedIndex = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
-            val visibleTools = if (selectedTab == 0) readList else unreadList
-
-            OrderList(
-                orders = visibleTools,
-                listState = listState,
-                emptyText = if (selectedTab == 0) "暂无已读取工具" else "暂无未读取工具",
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                key = { it.id }
-            ) { tool ->
-                ManualScanCard(
-                    title = tool.name,
-                    lineLabel = "行号 ${tool.id.toString().padStart(2, '0')}",
-                    statusText = if (tool.isRead) "已读取" else "未读取",
-                    isRead = tool.isRead,
-                    fields = listOf(
-                        DisplayField("物资编码", tool.itemCode),
-                        DisplayField("RFID编码", tool.rfid),
-                        DisplayField("推荐货位", tool.location),
-                        DisplayField("单位", tool.unit)
-                    ),
-                    selected = tool.id in selectedIds,
-                    onSelectedChange = { selected ->
-                        selectedIds = if (selected) selectedIds + tool.id else selectedIds - tool.id
-                    }
-                )
-            }
-        }
-    }
-
-    // 确认弹窗
-    if (showConfirmDialog) {
-        val toReadCount = unreadList.count { it.id in selectedIds }
-        val toUnreadCount = readList.count { it.id in selectedIds }
-        ConfirmDialog(
-            title = "确认操作",
-            onConfirm = {
-                onConfirmToggleRead(selectedIds)
-                selectedIds = emptySet()
-                showConfirmDialog = false
-            },
-            onDismiss = { showConfirmDialog = false }
-        ) {
-            Column {
-                if (toReadCount > 0) Text("人工读取 $toReadCount 件工具")
-                if (toUnreadCount > 0) Text("取消读取 $toUnreadCount 件工具")
             }
         }
     }

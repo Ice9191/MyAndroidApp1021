@@ -20,9 +20,8 @@
 | `ServerConfig` | `ipAddress` 地址、`port` 端口 | 现有配置页；配置接口及端口的后端类型字段未确定，暂保留字符串输入 |
 | `PickingOrder` / `ReturnOrder` | 单号、状态、车间/班组、借用人/归还人、未完成数量、计划日期/归还时间、总数量、已完成数量、工单号、创建人、创建时间 | 两者均为 11 个构造字段；依据工单、借还及现有页面。数量是后端统计结果，不要求一定是物理数据库列；JSON 命名、创建信息和时间格式需确认 |
 | `PickingToolScanItem` / `ReturnToolScanItem` | `id` 行号/标识、`name` 名称、`itemCode` 物资编码、`rfid` 标签码、`location` 货位、`unit` 单位、`isRead` 本次读取标记、`readDate` 本次读取时间 | 两者均为 8 个构造字段；文档明确物资、RFID、货位和单位。行主键类型与读签暂存/提交字段未确定。读取不等于最终借出或归还成功 |
-| `PickingConfirmData` | `handler` 经办人、`outboundTime` 出库时间 | 借用交接章节；具体接口命名沿用 TODO 约束 |
-| `PickingConfirmRequest` | `orderNo`、`employeeId`、`rfids` | 出库确认请求；人员主键和行标识关联需后端确认 |
-| `ReturnConfirmRequest` | `orderNo`、`employeeId`、`locationCode`、`rfids` | 归还上架请求；货位绑定校验接口及字段未确定 |
+| `PickingConfirmRequest` | `orderNo`、`rfids` | 本批次确认请求；操作人由登录凭证决定，行标识关联需后端确认 |
+| `ReturnConfirmRequest` | `orderNo`、`lineNo`、`rfid`、`locationCode` | 单条上架请求；行标识类型、货位校验及上架人来源未确定 |
 
 ## Picking / Returns 一致性约束
 
@@ -30,7 +29,7 @@
 - Scan：相同的三字段扫描状态、单据加载流程、`selectOrder`、`toggleRead`；相同 `TopInfo`、`ScanControlButtons`、`ScanTabs`、`ToolsScanList` 与嵌套滚动实现。
 - Manual：相同的勾选生命周期、Tab、工具卡片、确认弹窗和读取/取消读取操作。
 - ViewModel：私有 `MutableStateFlow`、公开只读 `StateFlow`，`init -> loadData -> viewModelScope.launch -> delay -> mock* -> update` 的加载写法一致。模拟单据和工具直接列出，不按件数生成数据。
-- Confirm：保留业务差异，均使用共享扫描状态；拣选需要领料人工号，归还需要归还人工号及重新绑定后的库位。
+- Confirm：拣选为扫描页内的本批次确认抽屉（只核对本批已读工具，不采集领料人工号）；归还为扫描页内的单条上架抽屉（逐条确认，实际货位按件提交，不采集归还人工号）。
 - 业务状态取值遵循文档：拣选支持关闭，归还文档没有定义关闭，不能为了形式统一而虚构新的业务状态。
 
 目前工具明细仍为固定模拟数据，不是按所选单据查询的真实库存。真实接口接入时，后端应按单号返回匹配的完整工具明细与数量。

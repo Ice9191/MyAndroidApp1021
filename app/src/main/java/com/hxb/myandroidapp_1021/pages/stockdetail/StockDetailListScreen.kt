@@ -51,13 +51,7 @@ import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
-import com.hxb.myandroidapp_1021.components.FilterField
-import com.hxb.myandroidapp_1021.components.FormFilter
-
-// TODO: 字段未确定：库存状态编码及完整枚举待后端确认，空字符串表示“全部”。
-private val inventoryStatusOptions =
-    listOf("", "在库", "待拣选", "已备货", "已借出", "待上架", "已送检", "已送修")
-private val conditionOptions = listOf("", "好件", "坏件")
+import com.hxb.myandroidapp_1021.pages.stockdetail.components.StockDetailFormFilter
 
 
 @Composable
@@ -101,9 +95,10 @@ fun StockDetailListScreen(
         )
     }
     if (uiState.showFilters) {
-        FormFilter(
-            fields = stockDetailFilterFields(uiState.draftFilter, viewModel::onFilterChange),
+        StockDetailFormFilter(
+            filter = uiState.draftFilter,
             error = uiState.filterError,
+            onChange = viewModel::onFilterChange,
             onReset = viewModel::resetFilters,
             onConfirm = viewModel::applyFilters,
             onDismiss = viewModel::dismissFilters
@@ -393,45 +388,3 @@ private fun StockDetailBottomDrawer(
         }
     }
 }
-
-/**
- * 把筛选草稿映射为筛选面板字段；“全部”用空字符串表示，选项文案沿用页面既有约定。
- */
-private fun stockDetailFilterFields(
-    filter: StockDetailFilterState,
-    onChange: (StockDetailFilterState) -> Unit
-): List<FilterField> = listOf(
-    FilterField.Chips(
-        label = "库存状态",
-        options = inventoryStatusOptions.map { it.ifBlank { "全部" } },
-        selectedIndex = inventoryStatusOptions.indexOf(filter.status).coerceAtLeast(0),
-        onSelect = { onChange(filter.copy(status = inventoryStatusOptions[it])) }
-    ),
-    FilterField.Chips(
-        label = "好坏件状态",
-        options = conditionOptions.map { it.ifBlank { "全部" } },
-        selectedIndex = conditionOptions.indexOf(filter.condition).coerceAtLeast(0),
-        onSelect = { onChange(filter.copy(condition = conditionOptions[it])) }
-    ),
-    FilterField.Text(
-        label = "仓库",
-        value = filter.warehouse,
-        placeholder = "请输入仓库名称",
-        onChange = { onChange(filter.copy(warehouse = it)) }
-    ),
-    FilterField.Text(
-        label = "货位",
-        value = filter.location,
-        placeholder = "请输入货位编码，如 A-03-02-01",
-        onChange = { onChange(filter.copy(location = it)) }
-    ),
-    FilterField.DateRange(
-        label = "下次送检日期",
-        start = filter.startDate,
-        end = filter.endDate,
-        startPlaceholder = "开始日期",
-        endPlaceholder = "结束日期",
-        onStartChange = { onChange(filter.copy(startDate = it)) },
-        onEndChange = { onChange(filter.copy(endDate = it)) }
-    )
-)

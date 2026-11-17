@@ -1,6 +1,6 @@
 package com.hxb.myandroidapp_1021.components
 
-import com.hxb.myandroidapp_1021.theme.AppColors
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.theme.AppColors
 
 /**
  * 按钮文字、可用状态和点击事件由调用页面提供。
@@ -33,8 +34,8 @@ data class ScanControlButton(
 fun ScanControlButtons(
     firstButton: ScanControlButton,
     secondButton: ScanControlButton,
-    thirdButton: ScanControlButton,
-    modifier: Modifier = Modifier
+    thirdButton: ScanControlButton? = null,
+    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     Row(
@@ -73,25 +74,27 @@ fun ScanControlButtons(
             Text(secondButton.text, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
 
-        Button(
-            onClick = thirdButton.onClick,
-            enabled = thirdButton.enabled,
-            modifier = Modifier
-                .weight(1f)
-                .height(44.dp),
-            contentPadding = PaddingValues(4.dp),
-            shape = RoundedCornerShape(4.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = themeBlue,
-                disabledContainerColor = AppColors.DisabledContainer
-            )
-        ) {
-            Text(
-                text = thirdButton.text,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
+        if (thirdButton != null) {
+            Button(
+                onClick = thirdButton.onClick,
+                enabled = thirdButton.enabled,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(44.dp),
+                contentPadding = PaddingValues(4.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = themeBlue,
+                    disabledContainerColor = AppColors.DisabledContainer
+                )
+            ) {
+                Text(
+                    text = thirdButton.text,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 }

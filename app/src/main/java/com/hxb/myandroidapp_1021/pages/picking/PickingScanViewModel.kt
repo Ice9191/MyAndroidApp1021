@@ -84,7 +84,7 @@ class PickingScanViewModel : ViewModel() {
      * 本批次确认成功后累加已拣数量并移除已确认明细；剩余为 0 时单据状态置为已拣选。
      * 未完成时保持部分拣选，允许下次继续扫描剩余器具。
      */
-    fun confirmPicked() {
+    private fun confirmPicked() {
         _uiState.update { state ->
             val order = state.order ?: return@update state
             val confirmed = state.tools.filter { it.isRead }
@@ -99,6 +99,43 @@ class PickingScanViewModel : ViewModel() {
                 ),
                 tools = state.tools.filterNot { it.isRead }
             )
+        }
+    }
+
+    /**
+     * 打开本批次确认抽屉；只改展示状态，不动读签结果，关闭后可继续核对。
+     */
+    fun openConfirmDrawer() {
+        _uiState.update { state ->
+            if (state.isSubmitting || state.readList.isEmpty()) state
+            else state.copy(showConfirmDrawer = true, submitError = null)
+        }
+    }
+
+    fun dismissConfirmDrawer() {
+        _uiState.update { state ->
+            if (state.isSubmitting) state else state.copy(showConfirmDrawer = false, submitError = null)
+        }
+    }
+
+    /**
+     * 提交抽屉展示的这一批器具；成功后累加数量、移除本批明细，并回调单据号与件数。
+     * TODO: 字段未确定，真实接口接入后以响应结果更新数量、状态和失败原因。
+     */
+    fun submitBatch(onSuccess: (String, Int) -> Unit) {
+        val state = _uiState.value
+        val order = state.order ?: return
+        val batch = state.readList
+        if (state.isSubmitting || batch.isEmpty()) return
+        _uiState.update { it.copy(isSubmitting = true, submitError = null) }
+        viewModelScope.launch {
+            // TODO: 字段未确定，确认后将 PickingConfirmRequest 交给真实出库接口。
+            delay(800.milliseconds)
+            _uiState.update {
+                it.copy(isSubmitting = false, showConfirmDrawer = false, submitError = null)
+            }
+            confirmPicked()
+            onSuccess(order.orderNo, batch.size)
         }
     }
 

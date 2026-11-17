@@ -32,7 +32,6 @@ import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayListScreen
 import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayListViewModel
 import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanScreen
 import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanViewModel
-import com.hxb.myandroidapp_1021.pages.picking.PickingConfirmScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListViewModel
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanScreen
@@ -40,8 +39,8 @@ import com.hxb.myandroidapp_1021.pages.picking.PickingScanViewModel
 import com.hxb.myandroidapp_1021.pages.putaway.PutawayConfirmScreen
 import com.hxb.myandroidapp_1021.pages.putaway.PutawayListScreen
 import com.hxb.myandroidapp_1021.pages.putaway.PutawayListViewModel
-import com.hxb.myandroidapp_1021.pages.returns.ReturnConfirmScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnListScreen
+import com.hxb.myandroidapp_1021.pages.returns.ReturnListViewModel
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.pages.serverconfig.ServerConfigScreen
@@ -182,23 +181,14 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingScanScreen(
                 viewModel = viewModel<PickingScanViewModel>(listEntry),
+                flowViewModel = viewModel<PickingListViewModel>(listEntry),
                 onBackClick = safeBack,
-                onNextClick = { navController.navigate(PickingConfirm) { launchSingleTop = true } },
+                onSubmittedClick = { navController.popBackStack<PickingList>(false) },
                 onSettingsClick = {
                     navController.navigate(ServerConfig) {
                         launchSingleTop = true
                     }
                 },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<PickingConfirm> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
-            PickingConfirmScreen(
-                scanViewModel = viewModel<PickingScanViewModel>(listEntry),
-                listViewModel = viewModel<PickingListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<PickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -217,22 +207,13 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnScanScreen(
                 viewModel = viewModel<ReturnScanViewModel>(listEntry),
+                flowViewModel = viewModel<ReturnListViewModel>(listEntry),
                 onBackClick = safeBack,
-                onNextClick = { navController.navigate(ReturnConfirm) { launchSingleTop = true } },
                 onSettingsClick = {
                     navController.navigate(ServerConfig) {
                         launchSingleTop = true
                     }
                 },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<ReturnConfirm> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
-            ReturnConfirmScreen(
-                scanViewModel = viewModel<ReturnScanViewModel>(listEntry),
-                onBackClick = safeBack,
-                onConfirmClick = { navController.popBackStack<ReturnList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }

@@ -77,6 +77,29 @@ class ReturnListViewModel : ViewModel() {
     }
 
     /**
+     * 逐条上架成功后同步列表单据的已上架数量与状态。
+     */
+    fun updatePutawayProgress(orderNo: String, doneCount: Int) {
+        _uiState.update { state ->
+            state.copy(
+                orders = state.orders.map { order ->
+                    if (order.orderNo != orderNo) order else {
+                        val done = doneCount.coerceIn(0, order.totalCount)
+                        order.copy(
+                            returnedCount = done,
+                            status = when {
+                                done <= 0 -> ReturnStatus.UNRETURNED
+                                done >= order.totalCount -> ReturnStatus.RETURNED
+                                else -> ReturnStatus.PARTIALLY_RETURNED
+                            }
+                        )
+                    }
+                }
+            ).filterOrders()
+        }
+    }
+
+    /**
      * 在同一份原始数据上组合搜索和状态筛选，加载完成时也保留用户已选条件。
      */
     private fun ReturnListUiState.filterOrders(): ReturnListUiState = copy(

@@ -21,15 +21,15 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.OrderProgress
-import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TempListCard
-import com.hxb.myandroidapp_1021.components.TopAppBar
-import com.hxb.myandroidapp_1021.components.TopNotification
+import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
+import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
+import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
+import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.TopNotification
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
 @Composable

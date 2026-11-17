@@ -21,11 +21,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.TopAppBar
-import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.OrderProgress
-import com.hxb.myandroidapp_1021.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
+import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import kotlinx.coroutines.launch
 

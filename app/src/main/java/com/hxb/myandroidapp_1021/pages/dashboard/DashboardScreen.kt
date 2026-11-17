@@ -35,8 +35,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 
-import com.hxb.myandroidapp_1021.theme.AppColors
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 
 @Composable
 fun DashboardScreen(

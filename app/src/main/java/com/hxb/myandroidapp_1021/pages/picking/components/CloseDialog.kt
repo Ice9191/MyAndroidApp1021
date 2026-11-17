@@ -2,7 +2,7 @@ package com.hxb.myandroidapp_1021.pages.picking.components
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
 
 /**
  * 关闭拣选单前的确认弹窗，提示剩余未拣选明细将无法继续处理。

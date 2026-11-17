@@ -20,7 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hxb.myandroidapp_1021.pages.dashboard.DashboardScreen
-import com.hxb.myandroidapp_1021.pages.login.LoginScreen
+import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
 import com.hxb.myandroidapp_1021.pages.overduealert.OverdueAlertListScreen
 import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingConfirmScreen
 import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingListScreen
@@ -43,7 +43,7 @@ import com.hxb.myandroidapp_1021.pages.returns.ReturnListScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnListViewModel
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanViewModel
-import com.hxb.myandroidapp_1021.pages.serverconfig.ServerConfigScreen
+import com.hxb.myandroidapp_1021.feature.serverconfig.ServerConfigScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempBorrowScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempBorrowViewModel
 import com.hxb.myandroidapp_1021.pages.temp.TempReturnScreen

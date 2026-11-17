@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
 /**
  * 关闭拣选单的悬浮按钮，红色表示不可逆操作。

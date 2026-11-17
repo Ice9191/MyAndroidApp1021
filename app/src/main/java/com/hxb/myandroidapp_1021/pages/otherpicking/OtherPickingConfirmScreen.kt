@@ -16,11 +16,11 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.TopInfo
-import com.hxb.myandroidapp_1021.components.ToolsInfoList
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
+import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
+import com.hxb.myandroidapp_1021.core.ui.components.ToolsInfoList
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
 

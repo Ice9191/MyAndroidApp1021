@@ -38,10 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.ScrollToTopButton
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import kotlinx.coroutines.launch
 
 @Composable

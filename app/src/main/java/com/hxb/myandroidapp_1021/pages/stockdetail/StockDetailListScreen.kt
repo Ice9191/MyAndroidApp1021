@@ -45,11 +45,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
+import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.stockdetail.components.StockDetailFormFilter
 

@@ -47,15 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.InputFieldOne
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.ScrollToTopButton
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.picking.components.CloseDialog
 import com.hxb.myandroidapp_1021.pages.picking.components.ClosePickingOrder
 import com.hxb.myandroidapp_1021.pages.picking.components.PickingFormFilter
-import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
 @Composable

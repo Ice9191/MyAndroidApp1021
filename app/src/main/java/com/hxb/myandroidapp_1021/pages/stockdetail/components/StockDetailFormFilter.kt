@@ -11,9 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.components.FilterChip
-import com.hxb.myandroidapp_1021.components.FormFilter
-import com.hxb.myandroidapp_1021.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.FilterChip
+import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
+import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.pages.stockdetail.InventoryStatus
 import com.hxb.myandroidapp_1021.pages.stockdetail.StockDetailFilterState
 import com.hxb.myandroidapp_1021.pages.stockdetail.ToolCondition

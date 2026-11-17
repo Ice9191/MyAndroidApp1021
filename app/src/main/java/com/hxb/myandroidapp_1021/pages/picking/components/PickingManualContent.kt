@@ -18,12 +18,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.hxb.myandroidapp_1021.components.BottomButton
-import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.ManualScanCard
-import com.hxb.myandroidapp_1021.components.OrderList
-import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
+import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.ManualScanCard
+import com.hxb.myandroidapp_1021.core.ui.components.OrderList
+import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanUiState
 

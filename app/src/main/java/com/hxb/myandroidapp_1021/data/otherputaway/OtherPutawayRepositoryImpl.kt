@@ -2,8 +2,8 @@ package com.hxb.myandroidapp_1021.data.otherputaway
 
 import com.hxb.myandroidapp_1021.domain.otherputaway.*
 import com.hxb.myandroidapp_1021.data.common.QueryCache
-import com.hxb.myandroidapp_1021.network.HttpClient
-import com.hxb.myandroidapp_1021.network.loadAll
+import com.hxb.myandroidapp_1021.data.network.HttpClient
+import com.hxb.myandroidapp_1021.data.network.loadAll
 import kotlinx.serialization.builtins.ListSerializer
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -2,7 +2,7 @@ package com.hxb.myandroidapp_1021.data.dashboard
 
 import com.hxb.myandroidapp_1021.domain.dashboard.*
 import com.hxb.myandroidapp_1021.data.common.QueryCache
-import com.hxb.myandroidapp_1021.network.HttpClient
+import com.hxb.myandroidapp_1021.data.network.HttpClient
 import javax.inject.Inject
 import javax.inject.Singleton
 

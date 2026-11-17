@@ -23,3 +23,5 @@
 - `pages/returns/`：工单归还上架的独立确认页 `ReturnConfirmScreen.kt`、`ReturnConfirmViewModel.kt`，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/pages/returns/`；已改为扫描页内单条上架抽屉，路由 `ReturnConfirm` 一并删除。
 - `pages/picking/`：工单拣选的独立确认页 `PickingConfirmScreen.kt`、`PickingConfirmViewModel.kt`，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/pages/picking/`；本批次确认已改为扫描页内的抽屉，路由 `PickingConfirm` 一并删除。
 - `components/TempComponents.kt`：临时借还的共用消息提示已内联到借出/归还页面，`TempTool.fields()` 已迁入 `ui/temp/Model.kt`；原位置为源码根目录下的 `components/TempComponents.kt`。卡片外观由 `components/TempListCard.kt` 保留使用。
+- `components/DataPage.kt`：停用的通用页面状态容器（加载进度、请求错误、状态栏间距）；各页面直接用 Scaffold，错误统一由 `components/ToastNotification.kt` 提示。原位置为源码根目录下的 `components/DataPage.kt`。
+- `components/TopNotification.kt`：停用的顶部通知条，已全部替换为 `components/ToastNotification.kt`。原位置为源码根目录下的 `components/TopNotification.kt`。

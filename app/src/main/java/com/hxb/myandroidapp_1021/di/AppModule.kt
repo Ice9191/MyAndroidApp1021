@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.hxb.myandroidapp_1021.data.session.SessionRepositoryImpl
 import com.hxb.myandroidapp_1021.domain.session.SessionRepository
-import com.hxb.myandroidapp_1021.local.AppDatabase
+import com.hxb.myandroidapp_1021.data.local.AppDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

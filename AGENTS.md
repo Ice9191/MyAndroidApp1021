@@ -33,6 +33,10 @@
 
 15. 新增测试类必须包含演示速度配置，统一使用 `TestDemo.kt`（`app/src/androidTest`）的 `DEMO_PAUSE_MS` 与 `slowClick` / `slowType` / `slowPressBack`，默认 1500ms，可通过运行参数 `demoPauseMs` 调整（`0` = 关闭慢放）；需要立即断言瞬时状态的步骤用 `clickNow()`（只点不停），例如服务器配置 1.5 秒测试窗口内的中间状态；不得在测试类里自行写 `Thread.sleep`，也不得直接调用 `performClick` / `performTextInput` / `Espresso.pressBackUnconditionally`。
 
+16. 所有包含输入框的页面、组件和弹窗，都必须处理软键盘避让，保证正在编辑的输入框、编辑内容及相关操作按钮不会被键盘遮挡；按实际布局提供必要的空间调整和滚动能力。
+
+17. 点击页面空白、输入框以外的区域或任意操作按钮时，必须清除当前输入焦点并收起软键盘；按钮在清除焦点后正常执行原有操作，不得吞掉点击事件。点击其他输入框时应正常切换焦点，键盘本身的操作不触发页面清焦。
+
 ## 注释格式
 
 单行注释：

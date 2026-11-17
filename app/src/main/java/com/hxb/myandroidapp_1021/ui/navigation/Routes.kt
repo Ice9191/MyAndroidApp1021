@@ -1,0 +1,60 @@
+package com.hxb.myandroidapp_1021.ui.navigation
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object Dashboard
+
+@Serializable
+data object Login
+
+@Serializable
+data object ServerConfig
+
+@Serializable
+data object PutawayList
+
+@Serializable
+data object PutawayConfirm
+
+@Serializable
+data object PickingList
+
+@Serializable
+data object PickingScan
+
+@Serializable
+data object ReturnList
+
+@Serializable
+data object ReturnScan
+
+@Serializable
+data object OtherPickingList
+
+@Serializable
+data object OtherPickingScan
+
+@Serializable
+data object OtherPickingConfirm
+
+@Serializable
+data object OtherPutawayList
+
+@Serializable
+data object OtherPutawayScan
+
+@Serializable
+data object OtherPutawayConfirm
+
+@Serializable
+data object TempBorrow
+
+@Serializable
+data object TempReturn
+
+@Serializable
+data object OverdueAlertList
+
+@Serializable
+data object StockDetailList

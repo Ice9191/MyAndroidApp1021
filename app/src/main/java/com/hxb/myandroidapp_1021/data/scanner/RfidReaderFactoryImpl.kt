@@ -3,7 +3,6 @@ package com.hxb.myandroidapp_1021.data.scanner
 import com.hxb.myandroidapp_1021.domain.scanner.RfidReader
 import com.hxb.myandroidapp_1021.domain.scanner.RfidReaderFactory
 import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
-import com.hxb.myandroidapp_1021.utils.RfidScanner
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Inject
 import javax.inject.Singleton

@@ -2,8 +2,8 @@ package com.hxb.myandroidapp_1021.data.otherpicking
 
 import com.hxb.myandroidapp_1021.domain.otherpicking.OtherPickingRequest
 import com.hxb.myandroidapp_1021.domain.otherpicking.OtherPickingTask
-import com.hxb.myandroidapp_1021.network.ApiResponse
-import com.hxb.myandroidapp_1021.network.Page
+import com.hxb.myandroidapp_1021.data.network.ApiResponse
+import com.hxb.myandroidapp_1021.data.network.Page
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

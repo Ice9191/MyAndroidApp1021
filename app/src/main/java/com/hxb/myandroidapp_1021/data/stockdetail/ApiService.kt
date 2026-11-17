@@ -1,8 +1,8 @@
 package com.hxb.myandroidapp_1021.data.stockdetail
 
 import com.hxb.myandroidapp_1021.domain.stockdetail.StockDetail
-import com.hxb.myandroidapp_1021.network.ApiResponse
-import com.hxb.myandroidapp_1021.network.Page
+import com.hxb.myandroidapp_1021.data.network.ApiResponse
+import com.hxb.myandroidapp_1021.data.network.Page
 import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.Body

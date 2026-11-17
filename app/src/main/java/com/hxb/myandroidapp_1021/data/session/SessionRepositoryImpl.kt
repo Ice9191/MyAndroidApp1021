@@ -9,9 +9,9 @@ import com.hxb.myandroidapp_1021.domain.session.LoginRequest
 import com.hxb.myandroidapp_1021.domain.session.LoginResponse
 import com.hxb.myandroidapp_1021.domain.session.ServerConfig
 import com.hxb.myandroidapp_1021.domain.session.SessionRepository
-import com.hxb.myandroidapp_1021.local.QueryCacheDao
-import com.hxb.myandroidapp_1021.local.UserPreferences
-import com.hxb.myandroidapp_1021.network.HttpClient
+import com.hxb.myandroidapp_1021.data.local.QueryCacheDao
+import com.hxb.myandroidapp_1021.data.local.UserPreferences
+import com.hxb.myandroidapp_1021.data.network.HttpClient
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import javax.inject.Inject

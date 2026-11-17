@@ -6,8 +6,8 @@ import com.hxb.myandroidapp_1021.domain.temp.TempBorrowRequest
 import com.hxb.myandroidapp_1021.domain.temp.TempReturnConfirmRequest
 import com.hxb.myandroidapp_1021.domain.temp.TempReturnOrder
 import com.hxb.myandroidapp_1021.domain.temp.TempTool
-import com.hxb.myandroidapp_1021.network.ApiResponse
-import com.hxb.myandroidapp_1021.network.Page
+import com.hxb.myandroidapp_1021.data.network.ApiResponse
+import com.hxb.myandroidapp_1021.data.network.Page
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

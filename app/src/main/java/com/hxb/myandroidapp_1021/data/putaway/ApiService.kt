@@ -3,8 +3,8 @@ package com.hxb.myandroidapp_1021.data.putaway
 import com.hxb.myandroidapp_1021.domain.putaway.PutawayLocation
 import com.hxb.myandroidapp_1021.domain.putaway.PutawayOrder
 import com.hxb.myandroidapp_1021.domain.putaway.PutawayRequest
-import com.hxb.myandroidapp_1021.network.ApiResponse
-import com.hxb.myandroidapp_1021.network.Page
+import com.hxb.myandroidapp_1021.data.network.ApiResponse
+import com.hxb.myandroidapp_1021.data.network.Page
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

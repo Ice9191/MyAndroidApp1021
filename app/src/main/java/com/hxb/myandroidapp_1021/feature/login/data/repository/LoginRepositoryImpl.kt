@@ -1,5 +1,6 @@
 package com.hxb.myandroidapp_1021.feature.login.data.repository
 
+import com.hxb.myandroidapp_1021.core.network.HttpClient
 import com.hxb.myandroidapp_1021.feature.login.data.remote.LoginApi
 import com.hxb.myandroidapp_1021.feature.login.data.remote.LoginRequest
 import com.hxb.myandroidapp_1021.feature.login.domain.model.LoginUser
@@ -21,6 +22,12 @@ class LoginRepositoryImpl @Inject constructor(
         if (!response.isSuccessful) throw HttpException(response)
 
         val body = response.body() ?: throw IOException("Empty login response")
+        if (body.token.isBlank()) throw IOException("Empty login token")
+        HttpClient.token = body.token
         return LoginUser(userName = body.userName, userRole = body.userRole)
+    }
+
+    override fun logout() {
+        HttpClient.clearToken()
     }
 }

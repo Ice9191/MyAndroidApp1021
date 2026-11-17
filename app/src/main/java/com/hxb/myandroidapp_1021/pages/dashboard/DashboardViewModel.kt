@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.feature.login.domain.repository.LoginRepository
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
 import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
 import com.hxb.myandroidapp_1021.navigation.OverdueAlertList
@@ -17,15 +18,20 @@ import com.hxb.myandroidapp_1021.navigation.ReturnList
 import com.hxb.myandroidapp_1021.navigation.TempBorrow
 import com.hxb.myandroidapp_1021.navigation.TempReturn
 import com.hxb.myandroidapp_1021.navigation.StockDetailList
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
-class DashboardViewModel : ViewModel() {
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val loginRepository: LoginRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardUiState(isLoading = true))
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
@@ -99,7 +105,7 @@ class DashboardViewModel : ViewModel() {
     )
 
     fun onLogout(onSuccess: () -> Unit) {
-        // TODO: 字段未确定，认证协议确认后清理真实登录凭证。
+        loginRepository.logout()
         _uiState.update {
             it.copy(
                 userName = "",

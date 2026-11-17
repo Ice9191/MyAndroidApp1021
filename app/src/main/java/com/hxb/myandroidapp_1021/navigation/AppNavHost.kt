@@ -10,15 +10,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hxb.myandroidapp_1021.core.network.HttpClient
 import com.hxb.myandroidapp_1021.pages.dashboard.DashboardScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
 import com.hxb.myandroidapp_1021.pages.overduealert.OverdueAlertListScreen
@@ -49,10 +52,31 @@ import com.hxb.myandroidapp_1021.pages.temp.TempBorrowViewModel
 import com.hxb.myandroidapp_1021.pages.temp.TempReturnScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempReturnViewModel
 import com.hxb.myandroidapp_1021.pages.stockdetail.StockDetailListScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
+    DisposableEffect(navController, scope) {
+        // 回调来自请求线程；导航在主线程执行，并清理过期会话的所有页面和流程状态。
+        val onTokenExpired: () -> Unit = {
+            scope.launch {
+                if (HttpClient.token == null) {
+                    navController.navigate(Login) {
+                        popUpTo(navController.graph.id)
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+        HttpClient.onTokenExpired = onTokenExpired
+        onDispose {
+            if (HttpClient.onTokenExpired === onTokenExpired) {
+                HttpClient.onTokenExpired = null
+            }
+        }
+    }
     // 防止重复点击返回导致页面空白
     val safeBack: () -> Unit = {
         if (navController.previousBackStackEntry != null) {

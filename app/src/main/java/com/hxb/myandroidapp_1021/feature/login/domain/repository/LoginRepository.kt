@@ -8,4 +8,6 @@ interface LoginRepository {
      * 网络、服务端及响应解析异常向调用方抛出。
      */
     suspend fun login(username: String, password: String): LoginUser?
+
+    fun logout()
 }

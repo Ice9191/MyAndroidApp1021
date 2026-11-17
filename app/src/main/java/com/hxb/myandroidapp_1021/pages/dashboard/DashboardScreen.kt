@@ -32,7 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
@@ -40,7 +40,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = viewModel(),
+    viewModel: DashboardViewModel = hiltViewModel(),
     onLogoutClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}

@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 
 /**
  * 服务器配置模块测试，对应《PDA功能测试清单》第 3 章 C01-C06。
- * 入口：首页右上角设置图标；默认预填 192.168.1.100 / 8080。
+ * 入口：首页右上角设置图标；服务器地址由运行参数提供。
  */
 @RunWith(AndroidJUnit4::class)
 class ServerConfigTest {
@@ -47,7 +47,7 @@ class ServerConfigTest {
 
     // 从首页设置图标进入服务器配置页。
     private fun openConfig() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         composeRule.onNodeWithContentDescription("Setting").slowClick()
         waitForText("服务器配置")
     }
@@ -56,7 +56,7 @@ class ServerConfigTest {
     @Test
     fun c01_default_values_and_test_success() {
         openConfig()
-        composeRule.onNodeWithText("192.168.1.100").assertIsDisplayed()
+        composeRule.onNodeWithText(testData("serverHost")).assertIsDisplayed()
         composeRule.onNodeWithText("8080").assertIsDisplayed()
         composeRule.onNodeWithText("尚未测试").assertIsDisplayed()
 
@@ -104,7 +104,7 @@ class ServerConfigTest {
         composeRule.onNodeWithText("尚未测试").slowClick()
         waitForText("连接失败", 4000)
 
-        ipField().slowType("192.168.1.100")
+        ipField().slowType(testData("serverHost"))
         portField().performTextClearance()
         composeRule.onNodeWithText("尚未测试").slowClick()
         waitForText("连接失败", 4000)
@@ -128,7 +128,7 @@ class ServerConfigTest {
         portField().slowType("8081")
         composeRule.onNodeWithText("保存并退出").slowClick()
 
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         openConfig()
         composeRule.onNodeWithText("8080").assertIsDisplayed()
         composeRule.onNodeWithText("尚未测试").assertIsDisplayed()
@@ -137,7 +137,7 @@ class ServerConfigTest {
     // C06（下）从工单拣选读取页的设置图标进入，保存后回到该读取页。
     @Test
     fun c06b_save_from_scan_page_returns_to_scan_page() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         composeRule.onNodeWithText("工单拣选").performScrollTo().slowClick()
         waitForText("开始拣选")
         composeRule.onAllNodesWithText("开始拣选")[0].slowClick()

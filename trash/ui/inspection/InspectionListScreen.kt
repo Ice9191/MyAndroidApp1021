@@ -66,19 +66,8 @@ fun InspectionListScreen(
     onBackClick: () -> Unit = {},
     onAddApplyClick: () -> Unit = {}
 ) {
-    // 模拟数据
-    val orderList = listOf(
-        InspectionRecord("SJ20261028001", "检修一班", "张伟", 3, "10-28 09:30", "已审批"),
-        InspectionRecord("SJ20261028002", "维修二班", "李明", 2, "10-28 10:00", "未审批"),
-        InspectionRecord("SJ20261028003", "电气班组", "王健", 4, "10-28 10:30", "已审批"),
-        InspectionRecord("SJ20261028004", "运行一班", "刘洋", 1, "10-28 11:00", "未审批"),
-        InspectionRecord("SJ20261028005", "热控班组", "陈强", 5, "10-28 11:15", "已审批"),
-        InspectionRecord("SJ20261028006", "继保班", "赵磊", 3, "10-28 13:00", "未审批"),
-        InspectionRecord("SJ20261028007", "综合班", "孙浩", 2, "10-28 14:00", "已审批"),
-        InspectionRecord("SJ20261028008", "变电检修班", "周杰", 6, "10-28 14:30", "未审批"),
-        InspectionRecord("SJ20261028009", "汽机本体班", "吴刚", 4, "10-28 15:00", "已审批"),
-        InspectionRecord("SJ20261028010", "锅炉辅机班", "郑爽", 7, "10-28 15:30", "未审批")
-    )
+    // 归档页面不再预置业务记录，恢复使用时必须接入服务端。
+    val orderList = emptyList<InspectionRecord>()
 
     val themeBlue = Color(0xFF1E71C8)
     val textDark = Color(0xFF222222)

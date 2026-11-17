@@ -74,26 +74,7 @@ fun RepairScanScreen(
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     // 申请送修的单据是现场新建的，工器具清单用本页的演示数据
     val allTools = remember {
-        listOf(
-            ToolScanItem(
-                id = "GJ-02008",
-                name = "数字万用表",
-                code = "GJ-02008",
-                rfid = "E200 2008 D001"
-            ),
-            ToolScanItem(
-                id = "GJ-02009",
-                name = "钳形电流表",
-                code = "GJ-02009",
-                rfid = "E200 2009 D002"
-            ),
-            ToolScanItem(
-                id = "GJ-02010",
-                name = "绝缘电阻测试仪",
-                code = "GJ-02010",
-                rfid = "E200 2010 D003"
-            )
-        )
+        emptyList<ToolScanItem>()
     }
     val readList = remember {
         mutableStateListOf<ToolScanItem>().apply {
@@ -161,8 +142,8 @@ fun RepairScanScreen(
             // === 1. 顶部信息卡片 ===
             val infoRows = listOf(
                 InfoRow(
-                    left = DisplayField("班组", "检修一班"),
-                    right = DisplayField("申请人", "张伟")
+                    left = DisplayField("班组", ""),
+                    right = DisplayField("申请人", "")
                 ),
                 InfoRow(
                     left = DisplayField("已选工器具", "${readList.size}件"),

@@ -32,16 +32,20 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
-import com.hxb.myandroidapp_1021.components.TopInfo
+import com.hxb.myandroidapp_1021.components.ScannerLifecycle
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.TopNotification
+import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+
 
 @Composable
 fun OtherPutawayScanScreen(
@@ -51,16 +55,31 @@ fun OtherPutawayScanScreen(
     onHomeClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    OtherPutawayScanContent(
-        state, viewModel::onRfidChange, viewModel::onLocationChange, viewModel::onTabSelected,
-        viewModel::identifyTool, viewModel::clearReads, onBackClick, onNextClick, onHomeClick,
-        viewModel::dismissNotification
-    )
+    val scanner by viewModel.scannerState.collectAsStateWithLifecycle()
+    ScannerLifecycle(enabled = !state.isSubmitting, onSession = viewModel::onScannerSession)
+    DataPage(state.isLoading, state.fromCache, state.errorMessage ?: scanner.errorMessage) {
+        OtherPutawayScanContent(
+            state,
+            scanner,
+            viewModel::startScanner,
+            viewModel::onRfidChange,
+            viewModel::onLocationChange,
+            viewModel::onTabSelected,
+            viewModel::identifyTool,
+            viewModel::clearReads,
+            onBackClick,
+            onNextClick,
+            onHomeClick,
+            viewModel::dismissNotification
+        )
+    }
 }
 
 @Composable
 fun OtherPutawayScanContent(
     state: OtherPutawayScanUiState,
+    scanner: ScannerState,
+    onScanClick: () -> Unit,
     onRfidChange: (String) -> Unit,
     onLocationChange: (String) -> Unit,
     onTabSelected: (Int) -> Unit,
@@ -119,7 +138,10 @@ fun OtherPutawayScanContent(
             )
         }
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues).clipToBounds()) {
+        Box(Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+            .clipToBounds()) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -155,7 +177,11 @@ fun OtherPutawayScanContent(
                         Column(Modifier.onSizeChanged { controlsAndTabsHeight = it.height }) {
 
                             ScanControlButtons(
-                                ScanControlButton("RFID 读取", {}, false),
+                                ScanControlButton(
+                                    if (scanner.isScanning) "停止扫描" else "RFID 读取",
+                                    onScanClick,
+                                    !state.isSubmitting
+                                ),
                                 ScanControlButton(
                                     "核对 RFID",
                                     { dismissInput(); onIdentify() },
@@ -195,7 +221,10 @@ fun OtherPutawayScanContent(
                         fields = {
                             listOf(
                                 DisplayField("RFID", it.rfid),
-                                DisplayField("上架货位", state.readLocations[it.rfid] ?: it.location)
+                                DisplayField(
+                                    "上架货位",
+                                    state.readLocations[it.rfid] ?: it.location
+                                )
                             )
                         },
                         modifier = Modifier
@@ -215,4 +244,3 @@ fun OtherPutawayScanContent(
         }
     }
 }
-

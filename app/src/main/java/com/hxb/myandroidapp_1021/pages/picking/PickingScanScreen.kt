@@ -27,18 +27,22 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.FormFilter
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.components.ScannerLifecycle
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
+import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ScanTab
 import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
 import com.hxb.myandroidapp_1021.pages.picking.components.PickingManualContent
+
 
 @Composable
 fun PickingScanScreen(
@@ -50,25 +54,41 @@ fun PickingScanScreen(
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scanner by viewModel.scannerState.collectAsStateWithLifecycle()
+    ScannerLifecycle(enabled = !uiState.isSubmitting && !uiState.showConfirmDrawer, onSession = viewModel::onScannerSession)
     var showManual by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = showManual) { showManual = false }
 
     if (showManual) {
-        PickingManualContent(
-            uiState = uiState,
-            onBackClick = { showManual = false },
-            onHomeClick = onHomeClick,
-            onConfirmToggleRead = viewModel::toggleRead
-        )
+        DataPage(
+            uiState.isLoading,
+            uiState.fromCache,
+            uiState.errorMessage ?: scanner.errorMessage
+        ) {
+            PickingManualContent(
+                uiState = uiState,
+                onBackClick = { showManual = false },
+                onHomeClick = onHomeClick,
+                onConfirmToggleRead = viewModel::toggleRead
+            )
+        }
     } else {
-        PickingScanContent(
-            uiState = uiState,
-            onManualClick = { showManual = true },
-            onBackClick = onBackClick,
-            onConfirmClick = viewModel::openConfirmDrawer,
-            onSettingsClick = onSettingsClick,
-            onHomeClick = onHomeClick
-        )
+        DataPage(
+            uiState.isLoading,
+            uiState.fromCache,
+            uiState.errorMessage ?: scanner.errorMessage
+        ) {
+            PickingScanContent(
+                uiState = uiState,
+                scanner = scanner,
+                onScanClick = viewModel::startScanner,
+                onManualClick = { showManual = true },
+                onBackClick = onBackClick,
+                onConfirmClick = viewModel::openConfirmDrawer,
+                onSettingsClick = onSettingsClick,
+                onHomeClick = onHomeClick
+            )
+        }
     }
 
     if (uiState.showConfirmDrawer) {
@@ -93,6 +113,8 @@ fun PickingScanScreen(
 @Composable
 fun PickingScanContent(
     uiState: PickingScanUiState,
+    scanner: ScannerState,
+    onScanClick: () -> Unit,
     onManualClick: () -> Unit,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
@@ -171,9 +193,9 @@ fun PickingScanContent(
                         // === 2. 读取控制区 ===
                         ScanControlButtons(
                             firstButton = ScanControlButton(
-                                "RFID 扫描",
-                                onClick = {},
-                                enabled = false
+                                if (scanner.isScanning) "停止扫描" else "RFID 扫描",
+                                onClick = onScanClick,
+                                enabled = !uiState.isLoading && !uiState.isSubmitting
                             ),
                             secondButton = ScanControlButton(
                                 "人工拣选",
@@ -205,7 +227,7 @@ fun PickingScanContent(
                     key = { it.id },
                     title = { it.name },
                     lineLabel = { "行号 ${it.id.toString().padStart(2, '0')}" },
-                    statusText = { if (it.isRead) "已读取" else "未读取" },
+                    statusText = { if (it.completed) "已拣选" else if (it.isRead) "已读取" else "未读取" },
                     isRead = { it.isRead },
                     fields = { tool ->
                         listOf(

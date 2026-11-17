@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -34,10 +36,17 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
 dependencies {
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.viewmodel.compose)
+    ksp(libs.hilt.compiler)
+    implementation(libs.room.runtime)
+    ksp(libs.room.compiler)
+    implementation(libs.datastore.preferences)
     implementation(libs.converter.kotlinx.serialization)
     // JSON解析
     implementation(libs.kotlinx.serialization.json)
@@ -46,7 +55,6 @@ dependencies {
     implementation(libs.logging.interceptor)
     // Retrofit声明式API接口
     implementation(libs.retrofit)
-    implementation(libs.converter.gson)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.material3)
     compileOnly(files("libs/uhf.jar"))
@@ -73,4 +81,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
 }

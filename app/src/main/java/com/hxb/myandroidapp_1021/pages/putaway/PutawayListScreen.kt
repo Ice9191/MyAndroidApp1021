@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +22,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun PutawayListScreen(
@@ -38,15 +40,21 @@ fun PutawayListScreen(
 ) {
     val uiState by flowViewModel.uiState.collectAsStateWithLifecycle()
 
-    PutawayListContent(
-        uiState = uiState,
-        onSearchQueryChange = flowViewModel::onSearchQueryChange,
-        onFilterChange = flowViewModel::onFilterChange,
-        onBackClick = onBackClick,
-        onStartPutawayClick = { order ->
-            if (flowViewModel.selectOrder(order)) onStartPutawayClick()
-        }
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        PutawayListContent(
+            uiState = uiState,
+            onSearchQueryChange = flowViewModel::onSearchQueryChange,
+            onFilterChange = flowViewModel::onFilterChange,
+            onBackClick = onBackClick,
+            onStartPutawayClick = { order ->
+                if (flowViewModel.selectOrder(order)) onStartPutawayClick()
+            }
+        )
+    }
 }
 
 @Composable

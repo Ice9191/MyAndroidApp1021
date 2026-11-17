@@ -32,16 +32,20 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.components.ScannerLifecycle
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.TopNotification
+import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+
 
 @Composable
 fun OtherPickingScanScreen(
@@ -51,16 +55,34 @@ fun OtherPickingScanScreen(
     onHomeClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    OtherPickingScanContent(
-        state, viewModel::onRfidChange, viewModel::onTabSelected,
-        viewModel::identifyTool, viewModel::clearReads, onBackClick, onNextClick, onHomeClick,
-        viewModel::dismissNotification
-    )
+    val scanner by viewModel.scannerState.collectAsStateWithLifecycle()
+    ScannerLifecycle(enabled = !state.isSubmitting, onSession = viewModel::onScannerSession)
+    DataPage(
+        state.isLoading,
+        state.fromCache,
+        state.errorMessage ?: scanner.errorMessage
+    ) {
+        OtherPickingScanContent(
+            state,
+            scanner,
+            viewModel::startScanner,
+            viewModel::onRfidChange,
+            viewModel::onTabSelected,
+            viewModel::identifyTool,
+            viewModel::clearReads,
+            onBackClick,
+            onNextClick,
+            onHomeClick,
+            viewModel::dismissNotification
+        )
+    }
 }
 
 @Composable
 fun OtherPickingScanContent(
     state: OtherPickingScanUiState,
+    scanner: ScannerState,
+    onScanClick: () -> Unit,
     onRfidChange: (String) -> Unit,
     onTabSelected: (Int) -> Unit,
     onIdentify: () -> Unit,
@@ -118,10 +140,12 @@ fun OtherPickingScanContent(
             )
         }
     ) { paddingValues ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-            .clipToBounds()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .clipToBounds()
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -153,7 +177,11 @@ fun OtherPickingScanContent(
                         Column(Modifier.onSizeChanged { controlsAndTabsHeight = it.height }) {
 
                             ScanControlButtons(
-                                ScanControlButton("RFID 读取", {}, false),
+                                ScanControlButton(
+                                    if (scanner.isScanning) "停止扫描" else "RFID 读取",
+                                    onScanClick,
+                                    !state.isSubmitting
+                                ),
                                 ScanControlButton(
                                     "核对 RFID",
                                     { dismissInput(); onIdentify() },
@@ -213,4 +241,3 @@ fun OtherPickingScanContent(
         }
     }
 }
-

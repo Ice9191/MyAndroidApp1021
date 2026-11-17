@@ -11,12 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScanTabs
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+
 
 @Composable
 fun OtherPickingListScreen(
@@ -26,12 +28,18 @@ fun OtherPickingListScreen(
     onStartClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    OtherPickingListContent(
-        state, viewModel::onQueryChange, viewModel::onSourceChange,
-        viewModel::onStatusChange, onBackClick, {
-            flowViewModel.selectTask(it)
-            onStartClick()
-        })
+    DataPage(
+        state.isLoading,
+        state.fromCache,
+        state.errorMessage
+    ) {
+        OtherPickingListContent(
+            state, viewModel::onQueryChange, viewModel::onSourceChange,
+            viewModel::onStatusChange, onBackClick, {
+                flowViewModel.selectTask(it, state.fromCache)
+                onStartClick()
+            })
+    }
 }
 
 @Composable
@@ -80,4 +88,3 @@ fun OtherPickingListContent(
         }
     }
 }
-

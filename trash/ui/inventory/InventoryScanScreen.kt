@@ -85,26 +85,7 @@ fun InventoryScanContent(
     var showConfirmDialog by remember { mutableStateOf(false) }
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     val allTools = remember {
-        listOf(
-            ToolScanItem(
-                id = "GJ-02021",
-                name = "数字万用表",
-                code = "GJ-02021",
-                rfid = "E200 2021 F001"
-            ),
-            ToolScanItem(
-                id = "GJ-03025",
-                name = "钳形电流表",
-                code = "GJ-03025",
-                rfid = "E200 3025 F002"
-            ),
-            ToolScanItem(
-                id = "GJ-04018",
-                name = "绝缘电阻测试仪",
-                code = "GJ-04018",
-                rfid = "E200 4018 G001"
-            )
-        )
+        emptyList<ToolScanItem>()
     }
     val readList = remember {
         mutableStateListOf<ToolScanItem>().apply {
@@ -137,8 +118,8 @@ fun InventoryScanContent(
             // === 1. 顶部信息卡片 ===
             val infoRows = listOf(
                 InfoRow(
-                    left = DisplayField("班组", order?.team ?: "检修一班"),
-                    right = DisplayField("盘点人", order?.person ?: "张伟")
+                    left = DisplayField("班组", order?.team.orEmpty()),
+                    right = DisplayField("盘点人", order?.person.orEmpty())
                 ),
                 InfoRow(
                     left = DisplayField("已盘工器具", "${readList.size}件"),

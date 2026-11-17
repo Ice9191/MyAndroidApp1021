@@ -32,19 +32,23 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.FormFilter
+import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.ScanControlButton
 import com.hxb.myandroidapp_1021.components.ScanControlButtons
 import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.components.ScannerLifecycle
 import com.hxb.myandroidapp_1021.components.ToolsScanList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
+import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ScanTab
 import com.hxb.myandroidapp_1021.pages.returns.components.ConditionBadge
 import com.hxb.myandroidapp_1021.pages.returns.components.DrawerFieldRow
-import com.hxb.myandroidapp_1021.pages.returns.components.DropdownList
 import com.hxb.myandroidapp_1021.pages.returns.components.ReturnManualContent
+
 
 @Composable
 fun ReturnScanScreen(
@@ -55,25 +59,41 @@ fun ReturnScanScreen(
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scanner by viewModel.scannerState.collectAsStateWithLifecycle()
+    ScannerLifecycle(enabled = !uiState.isSubmitting && !uiState.showConfirmDrawer, onSession = viewModel::onScannerSession)
     var showManual by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = showManual) { showManual = false }
 
     if (showManual) {
-        ReturnManualContent(
-            uiState = uiState,
-            onBackClick = { showManual = false },
-            onHomeClick = onHomeClick,
-            onConfirmToggleRead = viewModel::toggleRead
-        )
+        DataPage(
+            uiState.isLoading,
+            uiState.fromCache,
+            uiState.errorMessage ?: scanner.errorMessage
+        ) {
+            ReturnManualContent(
+                uiState = uiState,
+                onBackClick = { showManual = false },
+                onHomeClick = onHomeClick,
+                onConfirmToggleRead = viewModel::toggleRead
+            )
+        }
     } else {
-        ReturnScanContent(
-            uiState = uiState,
-            onManualClick = { showManual = true },
-            onToolClick = viewModel::selectTool,
-            onBackClick = onBackClick,
-            onSettingsClick = onSettingsClick,
-            onHomeClick = onHomeClick
-        )
+        DataPage(
+            uiState.isLoading,
+            uiState.fromCache,
+            uiState.errorMessage ?: scanner.errorMessage
+        ) {
+            ReturnScanContent(
+                uiState = uiState,
+                scanner = scanner,
+                onScanClick = viewModel::startScanner,
+                onManualClick = { showManual = true },
+                onToolClick = viewModel::selectTool,
+                onBackClick = onBackClick,
+                onSettingsClick = onSettingsClick,
+                onHomeClick = onHomeClick
+            )
+        }
     }
 
     // 单条上架抽屉：只核对并提交当前选中的一条明细，成功后留在本页继续上架
@@ -86,7 +106,7 @@ fun ReturnScanScreen(
             onReset = viewModel::dismissConfirmDrawer,
             confirmText = if (uiState.isSubmitting) "提交中" else "确认上架",
             confirmEnabled = !uiState.isSubmitting && !selectedTool.isPutaway &&
-                    !selectedTool.isBadCondition && selectedTool.isRead &&
+                    !selectedTool.isBadCondition && selectedTool.canProcess && selectedTool.isRead &&
                     uiState.draftLocation.isNotBlank(),
             onConfirm = { viewModel.confirmPutaway(flowViewModel::updatePutawayProgress) },
             onDismiss = viewModel::dismissConfirmDrawer
@@ -115,26 +135,17 @@ fun ReturnScanScreen(
                 }
             }
             DrawerFieldRow("RFID编码", selectedTool.rfid)
-            val editable = !selectedTool.isBadCondition && !selectedTool.isPutaway
-            DropdownList(
-                label = "仓库",
-                options = uiState.warehouseOptions,
-                selected = uiState.draftWarehouse,
-                placeholder = "请选择仓库",
-                onSelect = viewModel::onDraftWarehouseChange,
-                enabled = editable
-            )
-            DropdownList(
-                label = "货位",
-                options = uiState.locationOptions,
-                selected = uiState.draftLocation,
-                placeholder = "请选择货位",
-                onSelect = viewModel::onDraftLocationChange,
-                enabled = editable
+            val editable =
+                selectedTool.canProcess && !selectedTool.isBadCondition && !selectedTool.isPutaway
+            // 文档 1.2.2 锁定仓库；1.4.5 允许现场输入或扫描实际货位，不能使用固定候选值。
+            DrawerFieldRow("仓库", uiState.draftWarehouse)
+            InputFieldOne(
+                uiState.draftLocation, viewModel::onDraftLocationChange, "扫描或输入实际货位码",
+                showSearchIcon = false, enabled = editable && !uiState.isSubmitting
             )
             when {
-                selectedTool.isBadCondition -> Text(
-                    "该器具归还时已标记为坏件，不允许上架，请转送修或送检流程处理",
+                !selectedTool.canProcess || selectedTool.isBadCondition -> Text(
+                    selectedTool.blockedReason.ifBlank { "该器具当前不能正常上架，请转送修或送检流程处理" },
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -158,6 +169,8 @@ fun ReturnScanScreen(
 @Composable
 fun ReturnScanContent(
     uiState: ReturnScanUiState,
+    scanner: ScannerState,
+    onScanClick: () -> Unit,
     onManualClick: () -> Unit,
     onToolClick: (Int) -> Unit,
     onBackClick: () -> Unit = {},
@@ -167,7 +180,7 @@ fun ReturnScanContent(
     val bgColor = MaterialTheme.colorScheme.background
     val order = uiState.order
     val infoFields = listOf(
-        DisplayField("归还单号", order?.orderNo.orEmpty()),
+        DisplayField("上架单号", order?.orderNo.orEmpty()),
         DisplayField("单据状态", order?.status?.label.orEmpty()),
         DisplayField("工单号", order?.workOrderNo.orEmpty()),
         DisplayField("归属车间", order?.workshop.orEmpty()),
@@ -234,9 +247,9 @@ fun ReturnScanContent(
                         // === 2. 读取控制区：下一步已取消，逐条在抽屉确认 ===
                         ScanControlButtons(
                             firstButton = ScanControlButton(
-                                "RFID 扫描",
-                                onClick = {},
-                                enabled = false
+                                if (scanner.isScanning) "停止扫描" else "RFID 扫描",
+                                onClick = onScanClick,
+                                enabled = !uiState.isLoading && !uiState.isSubmitting
                             ),
                             secondButton = ScanControlButton(
                                 "人工读取",

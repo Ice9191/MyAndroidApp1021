@@ -1,5 +1,8 @@
 pluginManagement {
     repositories {
+        maven("https://plugins.gradle.org/m2") {
+            content { includeGroup("com.google.devtools.ksp") }
+        }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
         maven { url = uri("https://maven.aliyun.com/repository/releases") }
         maven { url = uri("https://maven.aliyun.com/repository/central") }

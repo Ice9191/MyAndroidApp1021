@@ -73,26 +73,7 @@ fun ScrapScanScreen(
     var showConfirmDialog by remember { mutableStateOf(false) }
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     val allTools = remember {
-        listOf(
-            ToolScanItem(
-                id = "GJ-01055",
-                name = "安全帽",
-                code = "GJ-01055",
-                rfid = "E200 1055 C001"
-            ),
-            ToolScanItem(
-                id = "GJ-01062",
-                name = "绝缘绳",
-                code = "GJ-01062",
-                rfid = "E200 1062 C002"
-            ),
-            ToolScanItem(
-                id = "GJ-01070",
-                name = "绝缘手套",
-                code = "GJ-01070",
-                rfid = "E200 1070 C003"
-            )
-        )
+        emptyList<ToolScanItem>()
     }
     val readList = remember {
         mutableStateListOf<ToolScanItem>().apply {
@@ -160,8 +141,8 @@ fun ScrapScanScreen(
             // === 1. 顶部信息卡片 ===
             val infoRows = listOf(
                 InfoRow(
-                    left = DisplayField("班组", "检修一班"),
-                    right = DisplayField("申请人", "张伟")
+                    left = DisplayField("班组", ""),
+                    right = DisplayField("申请人", "")
                 ),
                 InfoRow(
                     left = DisplayField("已选工器具", "${readList.size}件"),

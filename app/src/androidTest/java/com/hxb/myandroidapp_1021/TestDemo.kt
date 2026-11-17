@@ -68,3 +68,11 @@ internal fun slowPressBack() {
 private fun pauseForDemo() {
     if (DEMO_PAUSE_MS > 0) SystemClock.sleep(DEMO_PAUSE_MS)
 }
+
+/**
+ * 读取服务端测试环境参数；缺少参数直接失败，不回退到前端演示数据。
+ */
+internal fun testData(key: String): String =
+    requireNotNull(InstrumentationRegistry.getArguments().getString(key)) {
+        "请通过 android.testInstrumentationRunnerArguments.$key 提供服务端测试数据"
+    }

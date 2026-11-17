@@ -62,18 +62,7 @@ fun InventoryListScreen(
     onBackClick: () -> Unit = {},
     onStartInventoryClick: (InventoryRecord) -> Unit = {}
 ) {
-    val orderList = listOf(
-        InventoryRecord("PD20261028001", "检修一班", "张伟", 3, "10-28 09:30", "已盘点"),
-        InventoryRecord("PD20261028002", "维修二班", "李明", 2, "10-28 10:00", "未盘点"),
-        InventoryRecord("PD20261028003", "电气班组", "王健", 4, "10-28 10:30", "已盘点"),
-        InventoryRecord("PD20261028004", "运行一班", "刘洋", 1, "10-28 11:00", "未盘点"),
-        InventoryRecord("PD20261028005", "热控班组", "陈强", 5, "10-28 11:15", "已盘点"),
-        InventoryRecord("PD20261028006", "继保班", "赵磊", 3, "10-28 13:00", "未盘点"),
-        InventoryRecord("PD20261028007", "综合班", "孙浩", 2, "10-28 14:00", "已盘点"),
-        InventoryRecord("PD20261028008", "变电检修班", "周杰", 6, "10-28 14:30", "未盘点"),
-        InventoryRecord("PD20261028009", "汽机本体班", "吴刚", 4, "10-28 15:00", "已盘点"),
-        InventoryRecord("PD20261028010", "锅炉辅机班", "郑爽", 7, "10-28 15:30", "未盘点")
-    )
+    val orderList = emptyList<InventoryRecord>()
 
     val themeBlue = MaterialTheme.colorScheme.primary
     val textDark = MaterialTheme.colorScheme.onSurface

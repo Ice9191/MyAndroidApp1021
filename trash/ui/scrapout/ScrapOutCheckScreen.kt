@@ -101,19 +101,7 @@ fun ScrapOutCheckContent(
     var showConfirmDialog by remember { mutableStateOf(false) }
     val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
     val allTools = remember(orderNo, toolCount) {
-        val names = listOf(
-            "安全帽", "绝缘绳", "绝缘手套", "绝缘靴", "验电器",
-            "接地线", "绝缘操作杆", "绝缘扳手", "钳形电流表", "安全绳"
-        )
-        List(toolCount.coerceAtLeast(0)) { index ->
-            val no = (index + 1).toString().padStart(3, '0')
-            ToolScanItem(
-                id = "$orderNo-$no",
-                name = names[index % names.size],
-                code = "GJ-$no",
-                rfid = "E200 10${(index + 55)} C${no}"
-            )
-        }
+        emptyList<ToolScanItem>()
     }
     val readList = remember(orderNo) {
         mutableStateListOf<ToolScanItem>().apply {

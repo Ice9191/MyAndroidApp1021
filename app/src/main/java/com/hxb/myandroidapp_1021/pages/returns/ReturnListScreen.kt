@@ -19,35 +19,43 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import kotlinx.coroutines.launch
+
 
 @Composable
 fun ReturnListScreen(
     scanViewModel: ReturnScanViewModel,
-    viewModel: ReturnListViewModel = viewModel(),
+    viewModel: ReturnListViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onStartReturnClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    ReturnListContent(
-        uiState = uiState,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        onStatusChange = viewModel::onStatusChange,
-        onBackClick = onBackClick,
-        onStartReturnClick = { order ->
-            scanViewModel.selectOrder(order)
-            onStartReturnClick()
-        }
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        ReturnListContent(
+            uiState = uiState,
+            onSearchQueryChange = viewModel::onSearchQueryChange,
+            onStatusChange = viewModel::onStatusChange,
+            onBackClick = onBackClick,
+            onStartReturnClick = { order ->
+                scanViewModel.selectOrder(order)
+                onStartReturnClick()
+            }
+        )
+    }
 }
 
 @Composable
@@ -89,7 +97,7 @@ fun ReturnListContent(
                 InputFieldOne(
                     value = uiState.searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = "请输入归还单号"
+                    placeholder = "请输入归还上架单号"
                 )
 
                 // === 2. 列表 ===
@@ -101,14 +109,14 @@ fun ReturnListContent(
                     statusText = { it.status.label },
                     fields = { order ->
                         listOf(
-                            DisplayField("归还单号", order.orderNo),
+                            DisplayField("归还上架单号", order.orderNo),
                             DisplayField("单据状态", order.status.label),
                             DisplayField("车间/工班", order.workshop),
                             DisplayField("归还人", order.returner),
                             DisplayField("归还时间", order.returnedDate.ifBlank { "-" })
                         )
                     },
-                    progress = { OrderProgress("归还进度", it.returnedCount, it.totalCount) },
+                    progress = { OrderProgress("上架进度", it.returnedCount, it.totalCount) },
                     actionText = "开始上架",
                     onActionClick = onStartReturnClick,
                     modifier = Modifier.fillMaxSize(),

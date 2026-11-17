@@ -1,38 +1,19 @@
 package com.hxb.myandroidapp_1021.pages.temp
 
+import com.hxb.myandroidapp_1021.domain.temp.TempBorrowLine as DomainTempBorrowLine
+import com.hxb.myandroidapp_1021.domain.temp.TempBorrowOrder as DomainTempBorrowOrder
+import com.hxb.myandroidapp_1021.domain.temp.TempReturnLine as DomainTempReturnLine
+import com.hxb.myandroidapp_1021.domain.temp.TempReturnOrder as DomainTempReturnOrder
+import com.hxb.myandroidapp_1021.domain.temp.TempTool as DomainTempTool
+
 /**
  * 依据临时借出、临时归还的表关系图；属性是应用内业务命名。
- * TODO: 字段未确定：接口字段名、状态编码及单号生成规则需后端确认，不将这些属性直接用作 DTO。
  */
-data class TempTool(
-    val rfid: String,
-    val itemCode: String,
-    val name: String,
-    val unit: String,
-    val location: String
-)
+typealias TempTool = DomainTempTool
 
-data class TempBorrowLine(
-    val lineNo: Int,
-    val tool: TempTool,
-    val borrowed: Boolean = false,
-    val borrowedAt: String = ""
-)
+typealias TempBorrowLine = DomainTempBorrowLine
 
-data class TempBorrowOrder(
-    val orderNo: String,
-    val workOrderNo: String,
-    val borrower: String,
-    val workshop: String,
-    val team: String,
-    val remark: String,
-    val createdBy: String,
-    val createdAt: String,
-    val lines: List<TempBorrowLine>
-) {
-    // 依据单据状态图使用“草稿”，不沿用正文中与图不一致的“待确认”单据初态。
-    val status: String get() = if (lines.isNotEmpty() && lines.all { it.borrowed }) "已借出" else "草稿"
-}
+typealias TempBorrowOrder = DomainTempBorrowOrder
 
 /**
  * 临时借出页面状态；列表、所选单据等由 ViewModel 刷新后写入，页面只读取。
@@ -57,31 +38,16 @@ data class TempBorrowUiState(
     val selectedOrder: TempBorrowOrder? = null,
     val visibleOrders: List<TempBorrowOrder> = emptyList(),
     val visibleTools: List<TempTool> = emptyList(),
-    val allPicked: Boolean = false
+    val allPicked: Boolean = false,
+    val isLoading: Boolean = false,
+    val isSubmitting: Boolean = false,
+    val fromCache: Boolean = false,
+    val errorMessage: String? = null
 )
 
-data class TempReturnLine(
-    val lineNo: Int,
-    val tool: TempTool,
-    val borrowOrderNo: String,
-    val borrower: String,
-    val borrowedAt: String,
-    val returned: Boolean = false,
-    val returnedAt: String = ""
-)
+typealias TempReturnLine = DomainTempReturnLine
 
-data class TempReturnOrder(
-    val orderNo: String,
-    val workOrderNo: String,
-    val returner: String,
-    val location: String,
-    val remark: String,
-    val createdBy: String,
-    val createdAt: String,
-    val lines: List<TempReturnLine>
-) {
-    val status: String get() = if (lines.isNotEmpty() && lines.all { it.returned }) "已归还" else "待确认"
-}
+typealias TempReturnOrder = DomainTempReturnOrder
 
 /**
  * 临时归还页面状态；列表、所选单据等由 ViewModel 刷新后写入，页面只读取。
@@ -100,5 +66,9 @@ data class TempReturnUiState(
     val notificationId: Int = 0,
     val selectedOrder: TempReturnOrder? = null,
     val visibleOrders: List<TempReturnOrder> = emptyList(),
-    val hasReturned: Boolean = false
+    val hasReturned: Boolean = false,
+    val isLoading: Boolean = false,
+    val isSubmitting: Boolean = false,
+    val fromCache: Boolean = false,
+    val errorMessage: String? = null
 )

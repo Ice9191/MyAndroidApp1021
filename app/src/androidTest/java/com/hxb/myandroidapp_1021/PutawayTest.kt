@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
 
 /**
  * 工器具上架模块测试，对应《PDA功能测试清单》第 4 章 D01-D16。
- * 起始单据 SJ20261111001：3 件，初始 1 件已上架（E280 0003 货位 A1-03），进度 1/3。
+ * 单据、RFID、货位和人员从服务端测试环境参数读取，未配置时不提供本地默认记录。
  */
 @RunWith(AndroidJUnit4::class)
 class PutawayTest {
@@ -76,7 +76,7 @@ class PutawayTest {
     }
 
     private fun openPutawayList() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         composeRule.onNodeWithText("工器具上架").performScrollTo().slowClick()
         waitForText("请输入上架单号或入库单号")
     }
@@ -91,7 +91,7 @@ class PutawayTest {
         composeRule.onAllNodesWithText("开始上架")[0].slowClick()
         waitForText("工器具上架")
         // 作业页操作人由 ViewModel 延迟 500ms 加载
-        waitForText("材料员")
+        waitForText(testData("operatorName"))
     }
 
     /**
@@ -123,14 +123,14 @@ class PutawayTest {
         waitForText("共3张")
 
         searchField().performTextClearance()
-        searchField().slowType("SJ20261111001")
+        searchField().slowType(testData("putawayOrderNo"))
         waitForText("共1张")
-        assertTrue(textExists("SJ20261111001"))
+        assertTrue(textExists(testData("putawayOrderNo")))
 
         searchField().performTextClearance()
-        searchField().slowType("RK20261111001")
+        searchField().slowType(testData("inboundOrderNo"))
         waitForText("共1张")
-        assertTrue("按入库单号搜索应找到同一张上架单", textExists("SJ20261111001"))
+        assertTrue("按入库单号搜索应找到同一张上架单", textExists(testData("putawayOrderNo")))
 
         searchField().performTextClearance()
         waitForText("共3张")
@@ -159,17 +159,17 @@ class PutawayTest {
     @Test
     fun d03_open_order_shows_work_page_header() {
         openPutawayList()
-        openOrder("SJ20261111001")
+        openOrder(testData("putawayOrderNo"))
 
         composeRule.onNodeWithText("工器具上架").assertIsDisplayed()
         assertTrue(textExists("上架单号"))
-        assertTrue(textExists("SJ20261111001"))
+        assertTrue(textExists(testData("putawayOrderNo")))
         assertTrue(textExists("入库单号"))
-        assertTrue(textExists("RK20261111001"))
+        assertTrue(textExists(testData("inboundOrderNo")))
         assertTrue(textExists("单据状态"))
         assertTrue(textExists("部分上架"))
         assertTrue(textExists("当前操作人"))
-        assertTrue(textExists("材料员"))
+        assertTrue(textExists(testData("operatorName")))
         assertTrue(textExists("上架进度 1/3"))
     }
 
@@ -177,7 +177,7 @@ class PutawayTest {
     @Test
     fun d04_invalid_rfid_rejected_and_empty_disabled() {
         openPutawayList()
-        openOrder("SJ20261111001")
+        openOrder(testData("putawayOrderNo"))
 
         composeRule.onNodeWithText("识别 RFID").assertIsNotEnabled()
 
@@ -193,15 +193,15 @@ class PutawayTest {
     @Test
     fun d05_identify_tool_shows_detail() {
         openPutawayList()
-        openOrder("SJ20261111001")
+        openOrder(testData("putawayOrderNo"))
 
-        rfidField().slowType("E280 0001")
+        rfidField().slowType(testData("rfid1"))
         composeRule.onNodeWithText("识别 RFID").slowClick()
         waitForText("当前工具")
-        assertTrue("应显示工具名称", textExists("绝缘扳手"))
-        assertTrue("应显示物资编码", textExists("GJ-001"))
-        assertTrue("应显示批次号", textExists("PC001"))
-        assertTrue("应显示目标仓库", textExists("中心工具库"))
+        assertTrue("应显示工具名称", textExists(testData("toolName")))
+        assertTrue("应显示物资编码", textExists(testData("materialCode")))
+        assertTrue("应显示批次号", textExists(testData("batchNo")))
+        assertTrue("应显示目标仓库", textExists(testData("warehouseName")))
         assertFalse("识别成功后不应有错误提示", textExists("RFID 不属于当前上架单，请核对工具"))
     }
 
@@ -209,8 +209,8 @@ class PutawayTest {
     @Test
     fun d06_invalid_and_cross_warehouse_location() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        rfidField().slowType("E280 0001")
+        openOrder(testData("putawayOrderNo"))
+        rfidField().slowType(testData("rfid1"))
         composeRule.onNodeWithText("识别 RFID").slowClick()
         waitForText("当前工具")
 
@@ -221,7 +221,7 @@ class PutawayTest {
         composeRule.onNodeWithText("确认本件上架").assertIsNotEnabled()
 
         locationField().performTextClearance()
-        locationField().slowType("B1-01")
+        locationField().slowType(testData("foreignLocation"))
         clickBindLocation()
         waitForText("货位不属于当前工具的目标仓库")
         composeRule.onNodeWithText("确认本件上架").assertIsNotEnabled()
@@ -231,14 +231,14 @@ class PutawayTest {
     @Test
     fun d07_bind_location_enables_confirm() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        rfidField().slowType("E280 0001")
+        openOrder(testData("putawayOrderNo"))
+        rfidField().slowType(testData("rfid1"))
         composeRule.onNodeWithText("识别 RFID").slowClick()
         waitForText("当前工具")
 
-        locationField().slowType("A1-01")
+        locationField().slowType(testData("location1"))
         clickBindLocation()
-        waitForText("已绑定货位 A1-01")
+        waitForText("已绑定货位 ${testData("location1")}")
         composeRule.onNodeWithText("确认本件上架").assertIsEnabled()
     }
 
@@ -246,18 +246,18 @@ class PutawayTest {
     @Test
     fun d08_confirm_dialog_cancel_keeps_progress() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0001", "A1-01")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid1"), testData("location1"))
 
         composeRule.onNodeWithText("确认本件上架").slowClick()
-        waitForTextPartly("工具：绝缘扳手")
-        assertTrue("弹窗应包含 RFID", textExistsPartly("RFID：E280 0001"))
-        assertTrue("弹窗应包含仓库", textExistsPartly("仓库：中心工具库"))
-        assertTrue("弹窗应包含实际货位", textExistsPartly("实际货位：A1-01"))
-        assertTrue("弹窗应包含上架人", textExistsPartly("上架人：材料员"))
+        waitForTextPartly(testData("toolDialogText"))
+        assertTrue("弹窗应包含 RFID", textExistsPartly("RFID：${testData("rfid1")}"))
+        assertTrue("弹窗应包含仓库", textExistsPartly("仓库：${testData("warehouseName")}"))
+        assertTrue("弹窗应包含实际货位", textExistsPartly("实际货位：${testData("location1")}"))
+        assertTrue("弹窗应包含上架人", textExistsPartly("上架人：${testData("operatorName")}"))
 
         composeRule.onNodeWithText("取消").slowClick()
-        waitForTextGone("工具：绝缘扳手", 3000)
+        waitForTextGone(testData("toolDialogText"), 3000)
         assertTrue("取消后进度不应变化", textExists("上架进度 1/3"))
     }
 
@@ -265,14 +265,14 @@ class PutawayTest {
     @Test
     fun d09_confirm_item_success() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0001", "A1-01")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid1"), testData("location1"))
         confirmPutaway()
 
         assertTrue("进度应变为 2/3", textExists("上架进度 2/3"))
         assertTrue("页签数量应更新", textExists("已上架 2"))
         assertTrue(textExists("全部 3"))
-        assertTrue("明细应保留绑定的货位", textExists("A1-01"))
+        assertTrue("明细应保留绑定的货位", textExists(testData("location1")))
         assertTrue("明细库存状态应为在库", textExists("在库"))
     }
 
@@ -280,12 +280,12 @@ class PutawayTest {
     @Test
     fun d10_duplicate_putaway_rejected() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0001", "A1-01")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid1"), testData("location1"))
         confirmPutaway()
 
         rfidField().performTextClearance()
-        rfidField().slowType("E280 0001")
+        rfidField().slowType(testData("rfid1"))
         composeRule.onNodeWithText("识别 RFID").clickNow()
         waitForText("该工具已上架，无需重复操作")
         assertTrue("重复操作后进度仍应为 2/3", textExists("上架进度 2/3"))
@@ -295,10 +295,10 @@ class PutawayTest {
     @Test
     fun d11_complete_whole_order() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0001", "A1-01")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid1"), testData("location1"))
         confirmPutaway()
-        identifyAndBind("E280 0002", "A1-02")
+        identifyAndBind(testData("rfid2"), testData("location2"))
         confirmPutaway("本单已全部上架，工具库存已更新")
 
         assertTrue("进度应为 3/3", textExists("上架进度 3/3"))
@@ -313,10 +313,10 @@ class PutawayTest {
     @Test
     fun d12_back_to_list_reflects_result() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0001", "A1-01")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid1"), testData("location1"))
         confirmPutaway()
-        identifyAndBind("E280 0002", "A1-02")
+        identifyAndBind(testData("rfid2"), testData("location2"))
         confirmPutaway("本单已全部上架，工具库存已更新")
 
         composeRule.onNodeWithContentDescription("Back").slowClick()
@@ -324,16 +324,16 @@ class PutawayTest {
         waitForText("开始上架")
         waitForText("共1张")
         assertTrue("列表应显示完成进度", textExists("上架进度 3/3"))
-        assertTrue("列表应显示上架人", textExists("材料员"))
+        assertTrue("列表应显示上架人", textExists(testData("operatorName")))
     }
 
     // D13 对已完成件再次识别，提示无需重复操作且不重复计数。
     @Test
     fun d13_completed_item_identify_again() {
         openPutawayList()
-        openOrder("SJ20261111001")
+        openOrder(testData("putawayOrderNo"))
 
-        rfidField().slowType("E280 0003")
+        rfidField().slowType(testData("completedRfid"))
         composeRule.onNodeWithText("识别 RFID").clickNow()
         waitForText("该工具已上架，无需重复操作")
         assertTrue("进度不应重复计数", textExists("上架进度 1/3"))
@@ -343,26 +343,26 @@ class PutawayTest {
     @Test
     fun d14_edit_after_bind_invalidates_binding() {
         openPutawayList()
-        openOrder("SJ20261111001")
-        identifyAndBind("E280 0002", "A1-02")
+        openOrder(testData("putawayOrderNo"))
+        identifyAndBind(testData("rfid2"), testData("location2"))
 
         rfidField().slowType("x")
         composeRule.onNodeWithText("确认本件上架").assertIsNotEnabled()
 
         // 恢复识别并重新绑定，再修改货位输入
         rfidField().performTextClearance()
-        identifyAndBind("E280 0002", "A1-02")
+        identifyAndBind(testData("rfid2"), testData("location2"))
         composeRule.onNodeWithText("确认本件上架").assertIsEnabled()
         locationField().slowType("9")
         composeRule.onNodeWithText("确认本件上架").assertIsNotEnabled()
     }
 
-    // D15 当前模拟数据没有“异常”状态单据，本项无数据可测，补数据后再补用例。
+    // D15 异常状态用例需要服务端准备对应数据；客户端不自行补造单据。
 
     // D16 首次进入列表先显示加载状态，随后出现数据。
     @Test
     fun d16_list_shows_loading_indicator_first() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         composeRule.onNodeWithText("工器具上架").performScrollTo().clickNow()
 
         composeRule.waitUntil(2000) {

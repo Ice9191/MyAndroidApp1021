@@ -43,10 +43,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.TopAppBar
@@ -56,18 +57,24 @@ import com.hxb.myandroidapp_1021.pages.stockdetail.components.StockDetailFormFil
 
 @Composable
 fun StockDetailListScreen(
-    viewModel: StockDetailListViewModel = viewModel(),
+    viewModel: StockDetailListViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    StockDetailListContent(
-        uiState = uiState,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        onSelectRecord = viewModel::selectRecord,
-        onChangeCondition = viewModel::openConditionChange,
-        onShowFilters = viewModel::showFilters,
-        onBackClick = onBackClick
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        StockDetailListContent(
+            uiState = uiState,
+            onSearchQueryChange = viewModel::onSearchQueryChange,
+            onSelectRecord = viewModel::selectRecord,
+            onChangeCondition = viewModel::openConditionChange,
+            onShowFilters = viewModel::showFilters,
+            onBackClick = onBackClick
+        )
+    }
     uiState.selectedRecord?.let { record ->
         StockDetailBottomDrawer(
             title = record.description,

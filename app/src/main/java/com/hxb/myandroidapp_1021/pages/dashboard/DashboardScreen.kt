@@ -17,9 +17,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,28 +31,35 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
-
-import com.hxb.myandroidapp_1021.theme.AppColors
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.theme.AppColors
+
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = viewModel(),
+    viewModel: DashboardViewModel = hiltViewModel(),
     onLogoutClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    DashboardContent(
-        uiState = uiState,
-        onLogoutClick = { viewModel.onLogout(onLogoutClick) },
-        onSettingsClick = onSettingsClick,
-        onMenuClick = onMenuClick
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        DashboardContent(
+            uiState = uiState,
+            onLogoutClick = { viewModel.onLogout(onLogoutClick) },
+            onSettingsClick = onSettingsClick,
+            onMenuClick = onMenuClick
+        )
+    }
 }
 
 @Composable

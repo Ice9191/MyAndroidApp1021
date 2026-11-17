@@ -1,66 +1,31 @@
 package com.hxb.myandroidapp_1021.pages.putaway
 
-import kotlinx.serialization.Serializable
+import com.hxb.myandroidapp_1021.domain.putaway.PutawayDetail as DomainPutawayDetail
+import com.hxb.myandroidapp_1021.domain.putaway.PutawayLocation as DomainPutawayLocation
+import com.hxb.myandroidapp_1021.domain.putaway.PutawayOrder as DomainPutawayOrder
+import com.hxb.myandroidapp_1021.domain.putaway.PutawayRequest as DomainPutawayRequest
+
 
 /**
  * 文档“上架单功能表间关系”：入库单号、上架单号、单据状态、上架人、上架时间。
  * details 是接口聚合的上架明细，不是上架单表的物理列。
- * TODO: 字段未确定，PDA 接口的 JSON 名称和状态代码需与后端确认。
  */
-@Serializable
-data class PutawayOrder(
-    val inboundOrderNo: String,
-    val orderNo: String,
-    val status: String,
-    val operator: String,
-    val putawayTime: String,
-    val details: List<PutawayDetail>
-) {
-    val completedCount: Int get() = details.count { it.isCompleted }
-    val isCompleted: Boolean get() = details.isNotEmpty() && completedCount == details.size
-}
+typealias PutawayOrder = DomainPutawayOrder
 
 /**
  * 明细字段对应文档关系图；inventoryStatus 来自关联库存明细，不是上架明细表新增列。
- * TODO: 字段未确定，行号类型、状态代码及库存联查字段名需后端确认。
  */
-@Serializable
-data class PutawayDetail(
-    val orderNo: String,
-    val inboundLineNo: String,
-    val lineNo: String,
-    val status: String,
-    val batchNo: String,
-    val rfid: String,
-    val itemCode: String,
-    val description: String,
-    val unit: String,
-    val warehouse: String,
-    val location: String,
-    val inventoryStatus: String
-) {
-    val isCompleted: Boolean get() = status == "已上架"
-}
+typealias PutawayDetail = DomainPutawayDetail
 
 /**
- * 单件上架请求；操作人暂使用模拟登录人员。
- * TODO: 字段未确定，实际接口可能需要人员、仓库和货位主键，需后端确认。
+ * 单件上架请求；操作人由服务端根据当前登录凭证记录。
  */
-@Serializable
-data class PutawayRequest(
-    val orderNo: String,
-    val lineNo: String,
-    val rfid: String,
-    val location: String,
-    val operator: String
-)
+typealias PutawayRequest = DomainPutawayRequest
 
 /**
  * 货位校验响应，仓库/货位业务含义来自文档基础档案。
- * TODO: 字段未确定，货位查询接口和主键待确认。
  */
-@Serializable
-data class PutawayLocation(val code: String, val warehouse: String)
+typealias PutawayLocation = DomainPutawayLocation
 
 enum class PutawayFilter(val label: String) {
     ALL("全部"),
@@ -74,7 +39,9 @@ data class PutawayListUiState(
     val searchQuery: String = "",
     val selectedFilter: PutawayFilter = PutawayFilter.ALL,
     val selectedOrderNo: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isSubmitting: Boolean = false,
+    val fromCache: Boolean = false
 ) {
     val selectedOrder: PutawayOrder? get() = orders.firstOrNull { it.orderNo == selectedOrderNo }
     val filteredOrders: List<PutawayOrder>

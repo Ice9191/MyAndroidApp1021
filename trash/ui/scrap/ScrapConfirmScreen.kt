@@ -65,14 +65,7 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScrapConfirmScreen(
-    tools: List<ToolScanItem> = listOf(
-        ToolScanItem(
-            "GJ-01055",
-            "安全帽",
-            "GJ-01055",
-            "E200 1055 C001"
-        )
-    ),
+    tools: List<ToolScanItem> = emptyList<ToolScanItem>(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick:()-> Unit={}

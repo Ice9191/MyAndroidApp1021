@@ -42,10 +42,10 @@ class DashboardTest {
         composeRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
 
     /**
-     * 等待首页模拟数据加载完成（DashboardViewModel 延迟 500ms）。
+     * 等待服务端返回测试环境配置的人员身份。
      */
     private fun waitForDashboard() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
     }
 
     /**
@@ -184,7 +184,7 @@ class DashboardTest {
     @Test
     fun a06_dashboard_user_and_server_status() {
         waitForDashboard()
-        composeRule.onNodeWithText("张三 · 材料员").assertIsDisplayed()
+        composeRule.onNodeWithText(testData("profileText")).assertIsDisplayed()
         composeRule.onNodeWithText("服务器已连接").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Logo").assertIsDisplayed()
         composeRule.onNodeWithText("工器具库系统").assertIsDisplayed()

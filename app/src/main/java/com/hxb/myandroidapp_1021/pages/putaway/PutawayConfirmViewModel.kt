@@ -1,147 +1,169 @@
 package com.hxb.myandroidapp_1021.pages.putaway
 
-import androidx.lifecycle.ViewModel
+import com.hxb.myandroidapp_1021.domain.scanner.RfidReaderFactory
+import com.hxb.myandroidapp_1021.pages.scanner.ScanViewModel
+
+
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import com.hxb.myandroidapp_1021.domain.putaway.PutawayRepository
+import com.hxb.myandroidapp_1021.domain.session.SessionRepository
 
-class PutawayConfirmViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(PutawayConfirmUiState())
-    val uiState: StateFlow<PutawayConfirmUiState> = _uiState.asStateFlow()
-
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockOperator = "材料员"
-            _uiState.update { it.copy(isLoading = false, operator = mockOperator) }
-        }
-    }
+@HiltViewModel
+class PutawayConfirmViewModel @Inject constructor(
+    reader: RfidReaderFactory, private val repository: PutawayRepository,
+    session: SessionRepository
+) : ScanViewModel(reader) {
+    private val _uiState = MutableStateFlow(
+        PutawayConfirmUiState(
+            isLoading = false,
+            operator = session.state.value.user?.userName.orEmpty()
+        )
+    )
+    val uiState = _uiState.asStateFlow()
 
     fun onRfidChange(value: String) {
-        _uiState.update {
-            it.copy(rfid = value, selectedLineNo = null, boundLocation = "")
-        }
+        _uiState.update { it.copy(rfid = value, selectedLineNo = null, boundLocation = "") }
     }
 
     fun onLocationChange(value: String) {
-        _uiState.update {
-            it.copy(locationCode = value, boundLocation = "")
-        }
+        _uiState.update { it.copy(locationCode = value, boundLocation = "") }
     }
 
     fun onTabSelected(value: Int) {
         _uiState.update { it.copy(selectedTab = value) }
     }
 
-    /**
-     * 顶部横幅只展示 1 秒，由页面在到期后回调清除。
-     */
     fun dismissNotification() {
         _uiState.update { it.copy(notificationMessage = null) }
     }
 
-    /**
-     * 识别 RFID 并只允许当前上架单内的未完成件；校验结果通过顶部通知提示。
-     */
     fun identifyTool(order: PutawayOrder?) {
+        if (_uiState.value.isSubmitting) return
         val rfid = _uiState.value.rfid.trim()
         val detail = order?.details?.firstOrNull { it.rfid == rfid }
         val error = when {
             rfid.isBlank() -> "请先扫描或输入 RFID"
-            detail == null -> "RFID 不属于当前上架单，请核对工具"
+            detail == null -> "RFID 不属于当前上架单"
             detail.isCompleted -> "该工具已上架，无需重复操作"
-            else -> null
-        }
-        _uiState.update { state ->
-            state.copy(
-                selectedLineNo = if (error == null) detail?.lineNo else null,
-                boundLocation = "",
-                notificationMessage = error,
-                notificationId = if (error != null) state.notificationId + 1 else state.notificationId
-            )
-        }
-    }
-
-    /**
-     * 绑定当前工具的实际货位，校验所属仓库；工具或货位输入变化后必须重新绑定。
-     * TODO: 字段未确定，替换为真实货位查询与有效性校验接口。
-     */
-    fun bindLocation(order: PutawayOrder?) {
-        val state = _uiState.value
-        val detail = order?.details?.firstOrNull { it.lineNo == state.selectedLineNo }
-        val mockLocations = listOf(
-            PutawayLocation("A1-01", "中心工具库"),
-            PutawayLocation("A1-02", "中心工具库"),
-            PutawayLocation("A1-03", "中心工具库"),
-            PutawayLocation("B1-01", "电气工具库"),
-            PutawayLocation("B1-02", "电气工具库")
-        )
-        val location = mockLocations.firstOrNull { it.code == state.locationCode.trim() }
-        val error = when {
-            detail == null -> "请先识别当前工具"
-            location == null -> "货位不存在，请重新扫描或输入"
-            location.warehouse != detail.warehouse -> "货位不属于当前工具的目标仓库"
             else -> null
         }
         _uiState.update {
             it.copy(
-                boundLocation = if (error == null) location?.code.orEmpty() else "",
-                notificationMessage = error ?: "已绑定货位 ${location?.code}",
+                selectedLineNo = if (error == null) detail?.lineNo else null,
+                boundLocation = "",
+                notificationMessage = error,
                 notificationId = it.notificationId + 1
             )
         }
     }
 
     /**
-     * 模拟单件提交，成功才更新流程中的库存明细；失败保留输入，允许重试。
-     * 整单全部完成后用顶部通知提示库存已更新。
-     * TODO: 字段未确定，接入后端后以接口成功响应为库存与货位更新依据。
+     * 真实校验货位所属仓库，输入变化后不能沿用旧绑定结果。
      */
-    fun confirmPutaway(order: PutawayOrder?, onPutaway: (PutawayRequest) -> Boolean) {
-        val currentOrder = order ?: return
-        val state = _uiState.value
-        val detail =
-            currentOrder.details.firstOrNull { it.lineNo == state.selectedLineNo } ?: return
-        if (state.isLoading || state.isSubmitting || detail.isCompleted || state.boundLocation.isBlank()) return
-        val request = PutawayRequest(
-            currentOrder.orderNo,
-            detail.lineNo,
-            detail.rfid,
-            state.boundLocation,
-            state.operator
-        )
+    fun bindLocation(order: PutawayOrder?) {
+        val snapshot = _uiState.value
+        if (snapshot.isSubmitting) return
+        val detail = order?.details?.firstOrNull { it.lineNo == snapshot.selectedLineNo }
+        if (detail == null) {
+            notify("请先识别当前工具"); return
+        }
+        if (snapshot.locationCode.isBlank()) {
+            notify("请输入实际货位"); return
+        }
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
-            delay(500.milliseconds)
-            val success = onPutaway(request)
-            // 提交前先判断本件之外是否还有未完成明细，用于区分“单件完成”和“整单完成”
-            val remainsUncompleted =
-                currentOrder.details.any { !it.isCompleted && it.lineNo != detail.lineNo }
-            _uiState.update { current ->
-                if (success) current.copy(
-                    rfid = "", locationCode = "", boundLocation = "", selectedLineNo = null,
-                    isSubmitting = false,
-                    notificationMessage = if (remainsUncompleted) {
-                        "上架成功，可继续扫描下一件"
-                    } else {
-                        "本单已全部上架，工具库存已更新"
-                    },
-                    notificationId = current.notificationId + 1
-                ) else current.copy(
-                    isSubmitting = false,
-                    notificationMessage = "上架未成功，请核对明细后重试",
-                    notificationId = current.notificationId + 1
+            operationResult {
+                repository.validateLocation(
+                    detail.warehouse,
+                    snapshot.locationCode.trim()
                 )
             }
+                .onSuccess { location ->
+                    _uiState.update { current ->
+                        if (current.selectedLineNo != snapshot.selectedLineNo || current.locationCode != snapshot.locationCode) current.copy(
+                            isSubmitting = false
+                        )
+                        else current.copy(
+                            isSubmitting = false,
+                            boundLocation = location.code,
+                            notificationMessage = "已绑定货位 ${location.code}",
+                            notificationId = current.notificationId + 1
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isSubmitting = false) }; notify(
+                    error.userMessage()
+                )
+                }
         }
+    }
+
+    fun confirmPutaway(order: PutawayOrder?, onPutaway: (PutawayOrder) -> Unit) {
+        val state = _uiState.value
+        val currentOrder = order ?: return
+        val detail =
+            currentOrder.details.firstOrNull { it.lineNo == state.selectedLineNo } ?: return
+        if (state.isSubmitting || detail.isCompleted || state.boundLocation.isBlank()) return
+        _uiState.update { it.copy(isSubmitting = true) }
+        viewModelScope.launch {
+            // 文档 1.3.3：逐件提交即更新库存，不等待整单全部完成。
+            operationResult {
+                repository.confirm(
+                    PutawayRequest(
+                        currentOrder.orderNo,
+                        detail.lineNo,
+                        detail.rfid,
+                        state.boundLocation
+                    )
+                )
+            }
+                .onSuccess { result ->
+                    onPutaway(result)
+                    _uiState.update {
+                        it.copy(
+                            rfid = "",
+                            locationCode = "",
+                            boundLocation = "",
+                            selectedLineNo = null,
+                            isSubmitting = false
+                        )
+                    }
+                    notify(if (result.isCompleted) "本单已全部上架，工具库存已更新" else "上架成功，可继续扫描下一件")
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isSubmitting = false) }; notify(
+                    error.userMessage()
+                )
+                }
+        }
+    }
+
+    private fun notify(message: String) {
+        _uiState.update {
+            it.copy(
+                notificationMessage = message,
+                notificationId = it.notificationId + 1
+            )
+        }
+    }
+
+    private var currentOrder: PutawayOrder? = null
+    fun setOrder(order: PutawayOrder?) {
+        currentOrder = order
+    }
+
+    override fun onTagRead(rfid: String) {
+        if (_uiState.value.isSubmitting) return
+        onRfidChange(rfid)
+        identifyTool(currentOrder)
     }
 }

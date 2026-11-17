@@ -1,5 +1,21 @@
 # AUTOID UTouch RFID 接入
 
+## 当前 PDA 接入（2026-11-17）
+
+当前业务链路为 `domain/scanner/RfidReaderFactory` → `data/scanner/RfidReaderFactoryImpl` → `utils/RfidScanner`。Hilt 只提供工厂，每个前台扫描页面拥有一个会话。扫描工具的唯一公开控制方法为 `start()`，连续点击按实际扫描状态切换开始/停止；RFID、扫描状态和错误通过构造参数回调，业务 ViewModel 再暴露只读 StateFlow。
+
+`ScannerLifecycle` 只在页面 RESUMED 且允许扫描时提供会话作用域；页面离开、切到后台、打开确认抽屉或提交时自动取消。扫描器内部在作用域结束时停止盘点、关闭 UHF 并注销实体键，无需页面调用 init、stop、release 或 clear。所有会话使用同一硬件线程，旧会话的延迟释放不会关闭新会话的设备。按钮停止时也会关闭 UHF，页面仍在前台时保留实体键监听。
+
+开始一轮扫描会清空设备 EPC 缓存；同一轮相同 EPC 只回调一次，业务读取状态仍由 ViewModel 管理。默认功率固定为 20 dBm，保留现有固件的打开间隔、功率重试和 Binder 重连处理。`TestRfidScan` 继续保留为日志测试工具，业务页面没有调用它。
+
+工单拣选、工单归还上架、普通上架、其他拣选和其他上架已接入真实 EPC 事件及扫描按钮。临时借还按文档保留人工逐件确认，不能用扫描动作代替服务端提交。支持现有扳机和侧边 SCAN 回调；具体键码、固件重连和读区表现仍以实机验证为准。
+
+`uhf.jar`、`scankey.jar` 使用 `compileOnly`，Manifest 的两个厂商共享库均为 `required=false`。普通设备可进入页面；缺少 UHF 库时显示设备不可用提示，可使用页面的人工核对或外接键盘输入能力。
+
+本次仅完成编译和静态检查，未打包、安装或重新执行 RFID 实机验证。下文为早期接入和设备验证历史，原页面路径、必需共享库声明及提交占位描述不代表当前实现。
+
+## 早期接入记录
+
 本项目直接使用现有 `view_model/RFID.kt` 和 `components/RFIDTest.kt`。
 
 ## 接入方式

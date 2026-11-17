@@ -1,14 +1,10 @@
 package com.hxb.myandroidapp_1021.pages.picking
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 class PickingConfirmViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(PickingConfirmUiState())
@@ -19,18 +15,7 @@ class PickingConfirmViewModel : ViewModel() {
     }
 
     private fun loadData() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockConfirmation =
-                PickingConfirmData(handler = "王芳（材料员）", outboundTime = "2026-11-11 09:30")
-            _uiState.update { state ->
-                state.copy(
-                    isLoading = false,
-                    handler = mockConfirmation.handler,
-                    outboundTime = mockConfirmation.outboundTime
-                )
-            }
-        }
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     fun onEmployeeIdChange(value: String) {
@@ -53,12 +38,7 @@ class PickingConfirmViewModel : ViewModel() {
             _uiState.update { it.copy(errorMessage = "请输入领料人工号") }
             return
         }
-        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
-        viewModelScope.launch {
-            // TODO: 字段未确定，确认后将 request 交给真实出库接口。
-            delay(800.milliseconds)
-            _uiState.update { it.copy(isSubmitting = false) }
-            onSuccess()
-        }
+        // 归档流程未接入服务端，不得本地伪造提交成功。
+        _uiState.update { it.copy(errorMessage = "请使用当前工单拣选页面提交") }
     }
 }

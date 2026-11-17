@@ -2,82 +2,56 @@ package com.hxb.myandroidapp_1021.pages.stockdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.hxb.myandroidapp_1021.domain.stockdetail.StockDetailRepository
+import com.hxb.myandroidapp_1021.utils.filterDateError
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import com.hxb.myandroidapp_1021.utils.filterDateError
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import javax.inject.Inject
 
-class StockDetailListViewModel : ViewModel() {
+
+@HiltViewModel
+class StockDetailListViewModel @Inject constructor(private val repository: StockDetailRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(StockDetailListUiState(isLoading = true))
     val uiState: StateFlow<StockDetailListUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        loadData()
+        viewModelScope.launch { repository.revision.collect { refresh() } }
     }
 
-    private fun loadData() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            // TODO: 字段未确定：库存查询接口及锁定的默认仓库来源；暂用同一仓库的模拟单件记录。
-            val mockWarehouse = "二号库"
-            val mockRecords = listOf(
-                StockDetail(
-                    "E2801160600002094A5B6C92",
-                    "270200000003",
-                    "液压压接钳 16-300mm²",
-                    "16-300mm²",
-                    "把",
-                    "工器具",
-                    "已备货",
-                    "好件",
-                    null,
-                    mockWarehouse,
-                    "C-02-01-05",
-                    true,
-                    "12个月"
-                ),
-                StockDetail(
-                    "R-00000141",
-                    "270000000001",
-                    "活动扳手",
-                    "12寸",
-                    "把",
-                    "工器具",
-                    "在库",
-                    "好件",
-                    null,
-                    mockWarehouse,
-                    "A-01-03",
-                    false,
-                    null
-                ),
-                StockDetail(
-                    "R-00000143",
-                    "280000000001",
-                    "数显游标卡尺",
-                    "0-150mm",
-                    "把",
-                    "量具",
-                    "在库",
-                    "坏件",
-                    "显示异常，待核查",
-                    mockWarehouse,
-                    "B-02-04",
-                    true,
-                    "12个月"
-                )
-            )
-            _uiState.update {
-                it.copy(
-                    isLoading = false,
-                    warehouse = mockWarehouse,
-                    records = mockRecords
-                ).filterRecords()
-            }
+    fun refresh() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            operationResult { repository.records() }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            records = result.data,
+                            fromCache = result.fromCache,
+                            errorMessage = null,
+                            warehouse = result.data.firstOrNull()?.warehouse.orEmpty()
+                        ).filterRecords()
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -137,22 +111,34 @@ class StockDetailListViewModel : ViewModel() {
     }
 
     /**
-     * 仅模拟好坏件变更，不推断库存状态、故障描述和可用数量的联动规则。
+     * 联网提交好坏件变更，库存状态、故障描述和可用数量以服务端结果为准。
      */
     fun confirmConditionChange() {
-        // TODO: 字段未确定：变更接口、权限、允许变更的库存状态及故障描述规则，真实接入后以响应为准。
-        _uiState.update { state ->
-            if (state.conditionRecord == null || state.pendingCondition !in listOf(
-                    "好件",
-                    "坏件"
-                )
-            ) return@update state
-            state.copy(
-                records = state.records.map { if (it.rfid == state.conditionRfid) it.copy(condition = state.pendingCondition) else it },
-                conditionRfid = null,
-                pendingCondition = "",
-                message = "模拟变更完成，尚未提交后端"
-            ).filterRecords()
+        val state = _uiState.value
+        val record = state.conditionRecord ?: return
+        if (state.isSubmitting || state.pendingCondition !in listOf("好件", "坏件")) return
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+        viewModelScope.launch {
+            operationResult { repository.changeCondition(record.rfid, state.pendingCondition) }
+                .onSuccess { updated ->
+                    _uiState.update { current ->
+                        current.copy(
+                            records = current.records.map { if (it.rfid == updated.rfid) updated else it },
+                            conditionRfid = null,
+                            pendingCondition = "",
+                            isSubmitting = false,
+                            message = "变更成功"
+                        ).filterRecords()
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isSubmitting = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -160,7 +146,6 @@ class StockDetailListViewModel : ViewModel() {
      * 当前在已加载数据中组合筛选，保持原始库存记录不变。
      */
     private fun StockDetailListUiState.filterRecords(): StockDetailListUiState {
-        // TODO: 字段未确定：后端组合查询、分页、数量口径及下次送检日期字段；当前仅按 yyyy-MM-dd 本地比较。
         return copy(filteredRecords = records.filter { record ->
             listOf(
                 record.rfid,

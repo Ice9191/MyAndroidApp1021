@@ -63,14 +63,7 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RepairConfirmScreen(
-    tools: List<ToolScanItem> = listOf(
-        ToolScanItem(
-            "GJ-02008",
-            "数字万用表",
-            "GJ-02008",
-            "E200 2008 D001"
-        )
-    ),
+    tools: List<ToolScanItem> = emptyList<ToolScanItem>(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick:()->Unit = {}

@@ -2,57 +2,92 @@ package com.hxb.myandroidapp_1021.pages.dashboard
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.domain.dashboard.DashboardRepository
+import com.hxb.myandroidapp_1021.domain.session.SessionRepository
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
 import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
 import com.hxb.myandroidapp_1021.navigation.OverdueAlertList
 import com.hxb.myandroidapp_1021.navigation.PickingList
 import com.hxb.myandroidapp_1021.navigation.PutawayList
 import com.hxb.myandroidapp_1021.navigation.ReturnList
+import com.hxb.myandroidapp_1021.navigation.StockDetailList
 import com.hxb.myandroidapp_1021.navigation.TempBorrow
 import com.hxb.myandroidapp_1021.navigation.TempReturn
-import com.hxb.myandroidapp_1021.navigation.StockDetailList
-import kotlinx.coroutines.delay
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import javax.inject.Inject
 
-class DashboardViewModel : ViewModel() {
+
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    private val repository: DashboardRepository,
+    private val session: SessionRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(DashboardUiState(isLoading = true))
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        loadDashboard()
+        viewModelScope.launch { repository.revision.collect { refresh() } }
     }
 
-    private fun loadDashboard() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockDashboard = DashboardData(
-                userName = "张三",
-                userRole = "材料员",
-                avatarUrl = "https://picsum.photos/800/300"
-            )
-            val mockMenuSections = createMenuSections()
-            val mockServerConnected = true
-            _uiState.update { state ->
-                state.copy(
-                    isLoading = false,
-                    userName = mockDashboard.userName,
-                    userRole = mockDashboard.userRole,
-                    avatarUrl = mockDashboard.avatarUrl,
-                    serverConnected = mockServerConnected,
-                    menuSections = mockMenuSections
-                )
-            }
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            operationResult { repository.profile() }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            userName = result.data.userName,
+                            userRole = result.data.userRole,
+                            avatarUrl = result.data.avatarUrl,
+                            serverConnected = !result.fromCache,
+                            fromCache = result.fromCache,
+                            menuSections = createMenuSections().map { section ->
+                                section.copy(items = section.items.filter { item ->
+                                    val permission = when (item.route) {
+                                        PutawayList -> "putaway.read"
+                                        PickingList -> "picking.read"
+                                        ReturnList -> "returns.read"
+                                        TempBorrow -> "tempBorrow.read"
+                                        TempReturn -> "tempReturn.read"
+                                        OtherPickingList -> "otherPicking.read"
+                                        OtherPutawayList -> "otherPutaway.read"
+                                        StockDetailList -> "inventory.read"
+                                        OverdueAlertList -> "overdueAlerts.read"
+                                        else -> ""
+                                    }
+                                    permission in result.data.permissions
+                                })
+                            }.filter { it.items.isNotEmpty() }
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            serverConnected = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -99,15 +134,19 @@ class DashboardViewModel : ViewModel() {
     )
 
     fun onLogout(onSuccess: () -> Unit) {
-        // TODO: 字段未确定，认证协议确认后清理真实登录凭证。
-        _uiState.update {
-            it.copy(
-                userName = "",
-                userRole = "",
-                avatarUrl = "",
-                menuSections = emptyList()
-            )
+        if (_uiState.value.isLoggingOut) return
+        _uiState.update { it.copy(isLoggingOut = true) }
+        viewModelScope.launch {
+            operationResult { session.logout() }
+                .onSuccess { onSuccess() }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoggingOut = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
-        onSuccess()
     }
 }

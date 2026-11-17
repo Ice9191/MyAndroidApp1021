@@ -2,69 +2,54 @@ package com.hxb.myandroidapp_1021.pages.returns
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.hxb.myandroidapp_1021.domain.returns.ReturnRepository
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
-class ReturnListViewModel : ViewModel() {
+
+@HiltViewModel
+class ReturnListViewModel @Inject constructor(private val repository: ReturnRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(ReturnListUiState(isLoading = true))
     val uiState: StateFlow<ReturnListUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        loadData()
+        viewModelScope.launch { repository.revision.collect { refresh() } }
     }
 
-    private fun loadData() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockOrders = listOf(
-                ReturnOrder(
-                    orderNo = "GH20261111001",
-                    status = ReturnStatus.PARTIALLY_RETURNED,
-                    workshop = "检修一班",
-                    returner = "张伟",
-                    pendingCount = 3,
-                    returnedDate = "2026-11-11 09:30",
-                    totalCount = 5,
-                    returnedCount = 2,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                ),
-                ReturnOrder(
-                    orderNo = "GH20261111002",
-                    status = ReturnStatus.UNRETURNED,
-                    workshop = "维修二班",
-                    returner = "李明",
-                    pendingCount = 3,
-                    returnedDate = "",
-                    totalCount = 3,
-                    returnedCount = 0,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                ),
-                ReturnOrder(
-                    orderNo = "GH20261111003",
-                    status = ReturnStatus.RETURNED,
-                    workshop = "电气班组",
-                    returner = "王健",
-                    pendingCount = 0,
-                    returnedDate = "2026-11-11 10:30",
-                    totalCount = 2,
-                    returnedCount = 2,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                )
-            )
-            _uiState.update { state ->
-                state.copy(isLoading = false, orders = mockOrders).filterOrders()
-            }
+    fun refresh() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            operationResult { repository.orders() }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            orders = result.data,
+                            fromCache = result.fromCache,
+                            errorMessage = null
+                        ).filterOrders()
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -80,23 +65,7 @@ class ReturnListViewModel : ViewModel() {
      * 逐条上架成功后同步列表单据的已上架数量与状态。
      */
     fun updatePutawayProgress(orderNo: String, doneCount: Int) {
-        _uiState.update { state ->
-            state.copy(
-                orders = state.orders.map { order ->
-                    if (order.orderNo != orderNo) order else {
-                        val done = doneCount.coerceIn(0, order.totalCount)
-                        order.copy(
-                            returnedCount = done,
-                            status = when {
-                                done <= 0 -> ReturnStatus.UNRETURNED
-                                done >= order.totalCount -> ReturnStatus.RETURNED
-                                else -> ReturnStatus.PARTIALLY_RETURNED
-                            }
-                        )
-                    }
-                }
-            ).filterOrders()
-        }
+        refresh()
     }
 
     /**

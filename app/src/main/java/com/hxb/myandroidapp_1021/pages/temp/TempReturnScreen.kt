@@ -21,8 +21,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
@@ -32,32 +32,37 @@ import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopNotification
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
+
 @Composable
 fun TempReturnScreen(
     viewModel: TempReturnViewModel,
     onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
-    onPutawayClick: () -> Unit
+    onHomeClick: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val back = { if (state.selectedOrder != null) viewModel.showList() else onBackClick() }
     BackHandler(state.selectedOrder != null, back)
-    TempReturnContent(
-        state = state,
-        onBackClick = back,
-        onHomeClick = onHomeClick,
-        onSelectOrder = viewModel::selectOrder,
-        onQueryChange = viewModel::onQueryChange,
-        onTabSelected = viewModel::onTabSelected,
-        onReturnerChange = viewModel::onReturnerChange,
-        onWorkOrderChange = viewModel::onWorkOrderChange,
-        onLocationChange = viewModel::onLocationChange,
-        onRemarkChange = viewModel::onRemarkChange,
-        onPutawayClick = onPutawayClick,
-        onRequestConfirmation = viewModel::requestConfirmation,
-        onConfirm = viewModel::confirmLine,
-        onNotificationDismiss = viewModel::dismissNotification
-    )
+    DataPage(
+        state.isLoading || state.isSubmitting,
+        state.fromCache,
+        state.errorMessage
+    ) {
+        TempReturnContent(
+            state = state,
+            onBackClick = back,
+            onHomeClick = onHomeClick,
+            onSelectOrder = viewModel::selectOrder,
+            onQueryChange = viewModel::onQueryChange,
+            onTabSelected = viewModel::onTabSelected,
+            onReturnerChange = viewModel::onReturnerChange,
+            onWorkOrderChange = viewModel::onWorkOrderChange,
+            onLocationChange = viewModel::onLocationChange,
+            onRemarkChange = viewModel::onRemarkChange,
+            onRequestConfirmation = viewModel::requestConfirmation,
+            onConfirm = viewModel::confirmLine,
+            onNotificationDismiss = viewModel::dismissNotification
+        )
+    }
 }
 
 @Composable
@@ -72,7 +77,6 @@ fun TempReturnContent(
     onWorkOrderChange: (String) -> Unit,
     onLocationChange: (String) -> Unit,
     onRemarkChange: (String) -> Unit,
-    onPutawayClick: () -> Unit,
     onRequestConfirmation: (String?) -> Unit,
     onConfirm: () -> Unit,
     onNotificationDismiss: () -> Unit
@@ -88,9 +92,6 @@ fun TempReturnContent(
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick
             )
-        },
-        bottomBar = {
-            if (order != null) BottomButton("前往 PDA 上架", onPutawayClick, state.hasReturned)
         }
     ) { paddingValues ->
         Box(
@@ -126,7 +127,7 @@ fun TempReturnContent(
                                 title = current.orderNo,
                                 status = current.status,
                                 fields = listOf(
-                                    DisplayField("工单号", current.workOrderNo),
+                                    DisplayField("工单号（可选）", current.workOrderNo),
                                     DisplayField(
                                         "借用人",
                                         current.lines.map { it.borrower }.distinct()
@@ -185,23 +186,23 @@ fun TempReturnContent(
                                         InputFieldOne(
                                             state.returner,
                                             onReturnerChange,
-                                            "归还人（必填）",
+                                            "归还人工号（必填）",
                                             showSearchIcon = false,
                                             enabled = !state.hasReturned
                                         )
                                         InputFieldOne(
                                             state.workOrderNo,
                                             onWorkOrderChange,
-                                            "工单号（必填）",
+                                            "工单号（可选）",
                                             showSearchIcon = false,
                                             enabled = !state.hasReturned
                                         )
                                         InputFieldOne(
                                             state.location,
                                             onLocationChange,
-                                            "归还库位（必填）",
+                                            "本件实际货位（必填）",
                                             showSearchIcon = false,
-                                            enabled = !state.hasReturned
+                                            enabled = !state.isSubmitting
                                         )
                                         InputFieldOne(
                                             state.remark,
@@ -210,8 +211,9 @@ fun TempReturnContent(
                                             showSearchIcon = false,
                                             enabled = !state.hasReturned
                                         )
+                                        // 用户已确认临时归还直接在库；原“仍需上架”文案与该规则冲突。
                                         Text(
-                                            "逐条核对实物后确认归还；归还后仍需 PDA 上架",
+                                            "逐件核对实物并填写实际货位，确认后直接恢复在库",
                                             Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                         )
                                     }
@@ -249,7 +251,7 @@ fun TempReturnContent(
     val line = order?.lines?.firstOrNull { it.tool.rfid == state.confirmationRfid && !it.returned }
     if (line != null) {
         ConfirmDialog("确认归还", onConfirm, { onRequestConfirmation(null) }) {
-            Text("${line.tool.name}\nRFID：${line.tool.rfid}\n归还人：${state.returner}\n归还库位：${state.location}\n确认已收到实物？归还后还需上架。")
+            Text("${line.tool.name}\nRFID：${line.tool.rfid}\n归还人工号：${state.returner}\n归还库位：${state.location}\n确认已收到实物？确认后按本件实际货位恢复在库，无需另行上架。")
         }
     }
 }

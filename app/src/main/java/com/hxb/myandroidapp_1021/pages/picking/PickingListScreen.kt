@@ -45,8 +45,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
@@ -58,27 +59,34 @@ import com.hxb.myandroidapp_1021.pages.picking.components.PickingFormFilter
 import com.hxb.myandroidapp_1021.theme.AppColors
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun PickingListScreen(
     scanViewModel: PickingScanViewModel,
-    viewModel: PickingListViewModel = viewModel(),
+    viewModel: PickingListViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onStartPickClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PickingListContent(
-        uiState = uiState,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        onShowFilters = viewModel::showFilters,
-        onSelectOrder = viewModel::selectOrder,
-        onRequestCloseOrder = viewModel::requestCloseOrder,
-        onBackClick = onBackClick,
-        onStartPickClick = { order ->
-            scanViewModel.selectOrder(order)
-            onStartPickClick()
-        }
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        PickingListContent(
+            uiState = uiState,
+            onSearchQueryChange = viewModel::onSearchQueryChange,
+            onShowFilters = viewModel::showFilters,
+            onSelectOrder = viewModel::selectOrder,
+            onRequestCloseOrder = viewModel::requestCloseOrder,
+            onBackClick = onBackClick,
+            onStartPickClick = { order ->
+                scanViewModel.selectOrder(order)
+                onStartPickClick()
+            }
+        )
+    }
     if (uiState.showFilters) {
         PickingFormFilter(
             filter = uiState.draftFilter,

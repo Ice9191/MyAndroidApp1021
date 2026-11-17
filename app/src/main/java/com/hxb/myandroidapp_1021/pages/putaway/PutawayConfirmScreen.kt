@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,56 +35,74 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.ManualScanCard
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScanTabs
+import com.hxb.myandroidapp_1021.components.ScannerLifecycle
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.components.TopNotification
+import com.hxb.myandroidapp_1021.domain.scanner.ScannerState
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun PutawayConfirmScreen(
     flowViewModel: PutawayListViewModel,
-    viewModel: PutawayConfirmViewModel = viewModel(),
+    viewModel: PutawayConfirmViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val listState by flowViewModel.uiState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    PutawayConfirmContent(
-        order = listState.selectedOrder,
-        uiState = uiState,
-        onRfidChange = viewModel::onRfidChange,
-        onLocationChange = viewModel::onLocationChange,
-        onIdentifyTool = { viewModel.identifyTool(listState.selectedOrder) },
-        onBindLocation = { viewModel.bindLocation(listState.selectedOrder) },
-        onTabSelected = viewModel::onTabSelected,
-        onSelectTool = { rfid ->
-            viewModel.onRfidChange(rfid)
-            if (rfid.isNotBlank()) viewModel.identifyTool(listState.selectedOrder)
-        },
-        onConfirmPutaway = {
-            viewModel.confirmPutaway(
-                listState.selectedOrder,
-                flowViewModel::confirmItem
-            )
-        },
-        onNotificationDismiss = viewModel::dismissNotification,
-        onBackClick = onBackClick
-    )
+    val scanner by viewModel.scannerState.collectAsStateWithLifecycle()
+    ScannerLifecycle(enabled = !uiState.isSubmitting, onSession = viewModel::onScannerSession)
+    LaunchedEffect(listState.selectedOrder) { viewModel.setOrder(listState.selectedOrder) }
+    DataPage(
+        uiState.isLoading,
+        listState.fromCache,
+        listState.errorMessage ?: scanner.errorMessage
+    ) {
+        PutawayConfirmContent(
+            order = listState.selectedOrder,
+            uiState = uiState,
+            scanner = scanner,
+            onScanClick = viewModel::startScanner,
+            onRfidChange = viewModel::onRfidChange,
+            onLocationChange = viewModel::onLocationChange,
+            onIdentifyTool = { viewModel.identifyTool(listState.selectedOrder) },
+            onBindLocation = { viewModel.bindLocation(listState.selectedOrder) },
+            onTabSelected = viewModel::onTabSelected,
+            onSelectTool = { rfid ->
+                viewModel.onRfidChange(rfid)
+                if (rfid.isNotBlank()) viewModel.identifyTool(listState.selectedOrder)
+            },
+            onConfirmPutaway = {
+                viewModel.confirmPutaway(
+                    listState.selectedOrder,
+                    flowViewModel::updateOrder
+                )
+            },
+            onNotificationDismiss = viewModel::dismissNotification,
+            onBackClick = onBackClick
+        )
+    }
 }
 
 @Composable
 fun PutawayConfirmContent(
     order: PutawayOrder?,
     uiState: PutawayConfirmUiState,
+    scanner: ScannerState,
+    onScanClick: () -> Unit,
     onRfidChange: (String) -> Unit,
     onLocationChange: (String) -> Unit,
     onIdentifyTool: () -> Unit,
@@ -207,6 +226,11 @@ fun PutawayConfirmContent(
                                 "识别工具",
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            BottomButton(
+                                if (scanner.isScanning) "停止扫描" else "RFID 扫描",
+                                onScanClick,
+                                !uiState.isSubmitting
                             )
                             InputFieldOne(
                                 value = uiState.rfid,

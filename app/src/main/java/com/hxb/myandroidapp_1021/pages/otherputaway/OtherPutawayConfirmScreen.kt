@@ -11,18 +11,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
-import com.hxb.myandroidapp_1021.components.TopInfo
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.components.TopAppBar
+import com.hxb.myandroidapp_1021.components.TopInfo
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
+
 
 @Composable
 fun OtherPutawayConfirmScreen(
@@ -31,27 +32,34 @@ fun OtherPutawayConfirmScreen(
     onBackClick: () -> Unit,
     onComplete: () -> Unit,
     onHomeClick: () -> Unit,
-    viewModel: OtherPutawayConfirmViewModel = viewModel()
+    viewModel: OtherPutawayConfirmViewModel = hiltViewModel()
 ) {
     val state by flowViewModel.uiState.collectAsStateWithLifecycle()
     val confirmState by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(confirmState.completionPending) {
         if (confirmState.completionPending) {
-            // 先移除确认弹窗，等待下一帧后再更新批次并跳转。
-            withFrameNanos { }
-            flowViewModel.confirmBatch()
-            listViewModel.updateTask(flowViewModel.uiState.value.task)
+            // 先关闭弹窗，等待服务端确认成功后再更新批次并跳转。
             viewModel.onCompletionHandled()
-            onComplete()
+            flowViewModel.confirmBatch { result ->
+                listViewModel.updateTask(result)
+                onComplete()
+            }
         }
     }
-    OtherPutawayConfirmContent(
-        state,
-        confirmState.showDialog,
-        viewModel::onDialogChange,
-        onBackClick,
-        onHomeClick,
-        viewModel::onConfirm)
+    DataPage(
+        state.isLoading || state.isSubmitting,
+        state.fromCache,
+        state.errorMessage
+    ) {
+        OtherPutawayConfirmContent(
+            state,
+            confirmState.showDialog,
+            viewModel::onDialogChange,
+            onBackClick,
+            onHomeClick,
+            viewModel::onConfirm
+        )
+    }
 }
 
 @Composable
@@ -67,12 +75,18 @@ fun OtherPutawayConfirmContent(
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { TopAppBar(title = "其他上架", onBackClick = onBackClick, onHomeClick = onHomeClick) },
+        topBar = {
+            TopAppBar(
+                title = "其他上架",
+                onBackClick = onBackClick,
+                onHomeClick = onHomeClick
+            )
+        },
         bottomBar = {
             BottomButton(
-                "确认本批次 ${tools.size} 件",
+                if (state.isSubmitting) "提交中" else "确认本批次 ${tools.size} 件",
                 { onDialogChange(true) },
-                tools.isNotEmpty()
+                tools.isNotEmpty() && !state.isSubmitting
             )
         }
     ) { paddingValues ->
@@ -111,4 +125,3 @@ fun OtherPutawayConfirmContent(
         }
     }
 }
-

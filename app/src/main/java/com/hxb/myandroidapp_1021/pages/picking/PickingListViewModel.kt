@@ -2,70 +2,55 @@ package com.hxb.myandroidapp_1021.pages.picking
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.domain.picking.PickingRepository
 import com.hxb.myandroidapp_1021.utils.filterDateError
-import kotlinx.coroutines.delay
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
-class PickingListViewModel : ViewModel() {
+
+@HiltViewModel
+class PickingListViewModel @Inject constructor(private val repository: PickingRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(PickingListUiState(isLoading = true))
     val uiState: StateFlow<PickingListUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        loadData()
+        viewModelScope.launch { repository.revision.collect { refresh() } }
     }
 
-    private fun loadData() {
-        viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockOrders = listOf(
-                PickingOrder(
-                    orderNo = "JC20261028001",
-                    status = PickingStatus.PICKED,
-                    workshop = "架大修一车间",
-                    borrower = "张三",
-                    pendingCount = 0,
-                    plannedDate = "2026-11-11 09:30",
-                    totalCount = 3,
-                    pickedCount = 3,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                ),
-                PickingOrder(
-                    orderNo = "JC20261028002",
-                    status = PickingStatus.PARTIALLY_PICKED,
-                    workshop = "架大修二车间",
-                    borrower = "李四",
-                    pendingCount = 1,
-                    plannedDate = "2026-11-11 10:00",
-                    totalCount = 2,
-                    pickedCount = 1,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                ),
-                PickingOrder(
-                    orderNo = "JC20261028003",
-                    status = PickingStatus.UNPICKED,
-                    workshop = "架大修一车间",
-                    borrower = "王五",
-                    pendingCount = 1,
-                    plannedDate = "2026-11-12 10:30",
-                    totalCount = 1,
-                    pickedCount = 0,
-                    workOrderNo = "GD20261111001",
-                    createdBy = "材料员",
-                    createdAt = "2026-11-11 08:00"
-                )
-            )
-            _uiState.update { state ->
-                state.copy(isLoading = false, orders = mockOrders).filterOrders()
-            }
+    fun refresh() {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            operationResult { repository.orders() }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            orders = result.data,
+                            fromCache = result.fromCache,
+                            errorMessage = null
+                        ).filterOrders()
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -130,15 +115,27 @@ class PickingListViewModel : ViewModel() {
      * 关闭后保留已完成明细和历史记录，剩余明细不再处理，仅把单据状态改为已关闭。
      */
     fun confirmCloseOrder() {
-        _uiState.update { state ->
-            val orderNo = state.closingOrderNo ?: return@update state
-            state.copy(
-                orders = state.orders.map {
-                    if (it.orderNo == orderNo) it.copy(status = PickingStatus.CLOSED) else it
-                },
-                selectedOrderNo = null,
-                closingOrderNo = null
-            ).filterOrders()
+        val orderNo = _uiState.value.closingOrderNo ?: return
+        if (_uiState.value.isSubmitting) return
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
+        viewModelScope.launch {
+            operationResult { repository.close(orderNo) }
+                .onSuccess { result ->
+                    _uiState.update { state ->
+                        state.copy(
+                            orders = state.orders.map { if (it.orderNo == orderNo) result.order else it },
+                            selectedOrderNo = null, closingOrderNo = null, isSubmitting = false
+                        ).filterOrders()
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isSubmitting = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
         }
     }
 
@@ -146,21 +143,7 @@ class PickingListViewModel : ViewModel() {
      * 本批次确认后累加该单已拣数量，剩余为 0 时状态置为已拣选，否则为部分拣选。
      */
     fun confirmPicked(orderNo: String, count: Int) {
-        _uiState.update { state ->
-            state.copy(
-                orders = state.orders.map { order ->
-                    if (order.orderNo != orderNo) order else {
-                        val picked = (order.pickedCount + count).coerceAtMost(order.totalCount)
-                        order.copy(
-                            pickedCount = picked,
-                            pendingCount = order.totalCount - picked,
-                            status = if (picked >= order.totalCount) PickingStatus.PICKED
-                            else PickingStatus.PARTIALLY_PICKED
-                        )
-                    }
-                }
-            ).filterOrders()
-        }
+        refresh()
     }
 
     /**

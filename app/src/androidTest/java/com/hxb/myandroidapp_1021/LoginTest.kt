@@ -19,7 +19,7 @@ import org.junit.runner.RunWith
 
 /**
  * 登录模块测试，对应《PDA功能测试清单》第 2 章 B01-B06。
- * 演示账号为 admin / 123456，其他账号密码必须被拒绝。
+ * 账号、密码及预期身份由运行参数提供，认证由真实服务端处理。
  */
 @RunWith(AndroidJUnit4::class)
 class LoginTest {
@@ -50,7 +50,7 @@ class LoginTest {
      * 从首页退出登录进入登录页，这是当前版本进入登录页的唯一入口。
      */
     private fun enterLoginPage() {
-        waitForText("张三 · 材料员")
+        waitForText(testData("profileText"))
         composeRule.onNodeWithText("退出登录").slowClick()
         waitForText("账号登录")
     }
@@ -93,7 +93,7 @@ class LoginTest {
     @Test
     fun b03_empty_password_shows_error() {
         enterLoginPage()
-        fillCredentials("admin", "")
+        fillCredentials(testData("username"), "")
         composeRule.onNodeWithText("登录").slowClick()
         waitForText("请输入密码")
         composeRule.onNodeWithText("账号登录").assertIsDisplayed()
@@ -103,7 +103,7 @@ class LoginTest {
     @Test
     fun b04_toggle_password_visibility() {
         enterLoginPage()
-        fillCredentials("admin", "123456")
+        fillCredentials(testData("username"), testData("password"))
 
         // 密码显隐只是绘制层的变化，语义树始终是明文，因此用截图对比判断外观是否变化。
         // 先点标题清掉输入焦点，避免光标闪烁干扰像素比较。
@@ -119,7 +119,7 @@ class LoginTest {
             masked.asAndroidBitmap().sameAs(visible.asAndroidBitmap())
         )
         // 输入内容不丢失：切换后语义值仍是原来的密码
-        assertTrue("切换显示后密码内容应保持不变", textExists("123456"))
+        assertTrue("切换显示后密码内容应保持不变", textExists(testData("password")))
 
         composeRule.onNodeWithContentDescription("Toggle password visibility").slowClick()
         composeRule.waitForIdle()
@@ -128,14 +128,14 @@ class LoginTest {
             "再次点击后密码框外观应变化（明文转隐藏）",
             visible.asAndroidBitmap().sameAs(maskedAgain.asAndroidBitmap())
         )
-        assertTrue("再次切换后密码内容应保持不变", textExists("123456"))
+        assertTrue("再次切换后密码内容应保持不变", textExists(testData("password")))
     }
 
     // B05 登录加载期间按钮不可点、文字变为进度，加载完成后只进入一次首页。
     @Test
     fun b05_loading_state_and_single_navigation() {
         enterLoginPage()
-        fillCredentials("admin", "123456")
+        fillCredentials(testData("username"), testData("password"))
         composeRule.onNodeWithText("登录").slowClick()
 
         // 加载中：按钮文字消失，两个输入框仍在，停留在登录页
@@ -144,18 +144,18 @@ class LoginTest {
         }
         assertTrue(composeRule.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().size == 2)
 
-        waitForText("张三 · 材料员", 6000)
+        waitForText(testData("profileText"), 6000)
         composeRule.waitForIdle()
         assertFalse("登录成功后不应还停留在登录页", textExists("账号登录"))
     }
 
-    // B06 admin/123456 登录成功，登录页从返回栈移除。
+    // B06 使用服务端测试账号登录成功，登录页从返回栈移除。
     @Test
     fun b06_admin_login_success_and_login_removed_from_back_stack() {
         enterLoginPage()
-        fillCredentials("admin", "123456")
+        fillCredentials(testData("username"), testData("password"))
         composeRule.onNodeWithText("登录").slowClick()
-        waitForText("张三 · 材料员", 6000)
+        waitForText(testData("profileText"), 6000)
 
         slowPressBack()
         assertAppExited()
@@ -165,21 +165,21 @@ class LoginTest {
     @Test
     fun b07_wrong_password_is_rejected() {
         enterLoginPage()
-        fillCredentials("admin", "1234567")
+        fillCredentials(testData("username"), testData("invalidPassword"))
         composeRule.onNodeWithText("登录").slowClick()
         waitForText("账号或密码错误")
         composeRule.onNodeWithText("账号登录").assertIsDisplayed()
-        assertFalse("密码错误时不应进入首页", textExists("张三 · 材料员"))
+        assertFalse("密码错误时不应进入首页", textExists(testData("profileText")))
     }
 
-    // B08 非演示账号被拒绝（例如清单第 2 版使用的 test/123456）。
+    // B08 未注册账号由服务端拒绝。
     @Test
     fun b08_wrong_account_is_rejected() {
         enterLoginPage()
-        fillCredentials("test", "123456")
+        fillCredentials(testData("invalidUsername"), testData("password"))
         composeRule.onNodeWithText("登录").slowClick()
         waitForText("账号或密码错误")
         composeRule.onNodeWithText("账号登录").assertIsDisplayed()
-        assertFalse("非演示账号不应进入首页", textExists("张三 · 材料员"))
+        assertFalse("未注册账号不应进入首页", textExists(testData("profileText")))
     }
 }

@@ -1,53 +1,54 @@
 package com.hxb.myandroidapp_1021.pages.otherputaway
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.domain.otherputaway.OtherPutawayRepository
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class OtherPutawayListViewModel : ViewModel() {
+
+@HiltViewModel
+class OtherPutawayListViewModel @Inject constructor(private val repository: OtherPutawayRepository) :
+    ViewModel() {
     private val _uiState = MutableStateFlow(OtherPutawayListUiState())
     val uiState = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
     init {
-        val mockTasks = listOf(
-            OtherPutawayTaskUi(
-                "QT20261111001", SourceType.TEMPORARY, "2026-11-11", listOf(
-                    OtherPutawayToolUi("1", "绝缘扳手", "A1-01"),
-                    OtherPutawayToolUi("E280 0001 0002", "数字万用表", "A1-02"),
-                    OtherPutawayToolUi("E280 0001 0003", "游标卡尺", "A1-03")
-                )
-            ),
-            OtherPutawayTaskUi(
-                "QT20261111002", SourceType.INSPECTION, "2026-11-11", listOf(
-                    OtherPutawayToolUi("E280 0002 0001", "绝缘扳手", "A1-01"),
-                    OtherPutawayToolUi("E280 0002 0002", "数字万用表", "A1-02"),
-                    OtherPutawayToolUi("E280 0002 0003", "游标卡尺", "A1-03", completed = true)
-                )
-            ),
-            OtherPutawayTaskUi(
-                "QT20261111003", SourceType.REPAIR, "2026-11-11", listOf(
-                    OtherPutawayToolUi("E280 0003 0001", "绝缘扳手", "A1-01"),
-                    OtherPutawayToolUi("E280 0003 0002", "数字万用表", "A1-02"),
-                    OtherPutawayToolUi("E280 0003 0003", "游标卡尺", "A1-03", completed = true)
-                )
-            ),
-            OtherPutawayTaskUi(
-                "QT20261111004", SourceType.SCRAP, "2026-11-11", listOf(
-                    OtherPutawayToolUi("E280 0004 0001", "绝缘扳手", "A1-01"),
-                    OtherPutawayToolUi("E280 0004 0002", "数字万用表", "A1-02"),
-                    OtherPutawayToolUi("E280 0004 0003", "游标卡尺", "A1-03", completed = true)
-                )
-            ),
-            OtherPutawayTaskUi(
-                "QT20261111005", SourceType.RETURN, "2026-11-11", listOf(
-                    OtherPutawayToolUi("E280 0005 0001", "绝缘扳手", "A1-01", completed = true),
-                    OtherPutawayToolUi("E280 0005 0002", "数字万用表", "A1-02", completed = true),
-                    OtherPutawayToolUi("E280 0005 0003", "游标卡尺", "A1-03", completed = true)
-                )
-            )
-        )
-        _uiState.update { it.copy(tasks = mockTasks) }
+        viewModelScope.launch { repository.revision.collect { refresh() } }
+    }
+
+    fun refresh() {
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            operationResult { repository.tasks() }
+                .onSuccess { result ->
+                    _uiState.update {
+                        it.copy(
+                            tasks = result.data,
+                            isLoading = false,
+                            fromCache = result.fromCache
+                        )
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
+        }
     }
 
     fun onQueryChange(value: String) {
@@ -66,33 +67,8 @@ class OtherPutawayListViewModel : ViewModel() {
     fun updateTask(task: OtherPutawayTaskUi?) {
         if (task == null) return
         _uiState.update { state ->
-            state.copy(tasks = state.tasks.map { if (it.sourceNo == task.sourceNo) task else it })
+            state.copy(tasks = state.tasks.map { if (it.sourceNo == task.sourceNo && it.sourceType == task.sourceType) task else it })
         }
     }
 
-    /**
-     * 接收已经确认归还的器具，追加分批归还明细时保留既有上架进度及实际货位。
-     */
-    fun upsertTemporaryTask(task: OtherPutawayTaskUi) {
-        _uiState.update { state ->
-            val existing = state.tasks.firstOrNull { it.sourceNo == task.sourceNo }
-            val merged = task.copy(tools = task.tools.map { tool ->
-                existing?.tools?.firstOrNull { it.rfid == tool.rfid } ?: tool
-            }, closed = existing?.closed ?: false)
-            state.copy(
-                tasks = state.tasks.filterNot { it.sourceNo == task.sourceNo } + merged
-            )
-        }
-    }
-
-    fun openTemporaryTask(task: OtherPutawayTaskUi) {
-        upsertTemporaryTask(task)
-        _uiState.update {
-            it.copy(
-                query = task.sourceNo,
-                selectedSource = SourceType.TEMPORARY,
-                selectedStatus = null
-            )
-        }
-    }
 }

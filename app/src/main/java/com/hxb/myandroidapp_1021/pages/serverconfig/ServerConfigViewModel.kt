@@ -2,58 +2,71 @@ package com.hxb.myandroidapp_1021.pages.serverconfig
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import com.hxb.myandroidapp_1021.utils.operationResult
+import com.hxb.myandroidapp_1021.utils.userMessage
+import com.hxb.myandroidapp_1021.domain.session.SessionRepository
 
-class ServerConfigViewModel : ViewModel() {
-    private val mockConfig = ServerConfig(ipAddress = "192.168.1.100", port = "8080")
-    private val _uiState = MutableStateFlow(
-        ServerConfigUiState(
-            ipAddress = mockConfig.ipAddress,
-            port = mockConfig.port
-        )
-    )
-    val uiState: StateFlow<ServerConfigUiState> = _uiState.asStateFlow()
+@HiltViewModel
+class ServerConfigViewModel @Inject constructor(private val repository: SessionRepository) :
+    ViewModel() {
+    private val config = repository.state.value.config
+    private val _uiState =
+        MutableStateFlow(ServerConfigUiState(ipAddress = config.ipAddress, port = config.port))
+    val uiState = _uiState.asStateFlow()
 
-    fun onIpAddressChange(newIp: String) {
-        _uiState.update { oldState ->
-            oldState.copy(ipAddress = newIp, connectionStatus = ConnectionStatus.UNTESTED)
+    fun onIpAddressChange(value: String) {
+        _uiState.update {
+            it.copy(
+                ipAddress = value,
+                connectionStatus = ConnectionStatus.UNTESTED,
+                errorMessage = null
+            )
         }
     }
 
-    fun onPortChange(newPort: String) {
-        _uiState.update { oldState ->
-            oldState.copy(port = newPort, connectionStatus = ConnectionStatus.UNTESTED)
+    fun onPortChange(value: String) {
+        _uiState.update {
+            it.copy(
+                port = value,
+                connectionStatus = ConnectionStatus.UNTESTED,
+                errorMessage = null
+            )
         }
     }
 
     /**
-     * 使用点击时的配置快照；请求期间修改了地址，则不能把旧结果当作新配置的连接结果。
+     * 输入在请求期间变化时丢弃旧连接结果，连接成功必须来自真实 health 接口。
      */
     fun testConnection() {
         val state = _uiState.value
-        if (state.isTesting) return
-        val request = ServerConfig(state.ipAddress, state.port)
-        _uiState.update { it.copy(isTesting = true, connectionStatus = ConnectionStatus.TESTING) }
+        if (state.isTesting || state.isSaving) return
+        val snapshot = ServerConfig(state.ipAddress.trim(), state.port.trim())
+        _uiState.update {
+            it.copy(
+                isTesting = true,
+                connectionStatus = ConnectionStatus.TESTING,
+                errorMessage = null
+            )
+        }
         viewModelScope.launch {
-            delay(1500.milliseconds)
-            val mockConnectionSucceeded =
-                request.ipAddress.isNotBlank() && request.port.isNotBlank()
+            val result = operationResult { repository.testConnection(snapshot) }
             _uiState.update { current ->
-                val configUnchanged =
-                    current.ipAddress == request.ipAddress && current.port == request.port
+                val unchanged =
+                    current.ipAddress.trim() == snapshot.ipAddress && current.port.trim() == snapshot.port
                 current.copy(
                     isTesting = false,
                     connectionStatus = when {
-                        !configUnchanged -> ConnectionStatus.UNTESTED
-                        mockConnectionSucceeded -> ConnectionStatus.SUCCESS
+                        !unchanged -> ConnectionStatus.UNTESTED
+                        result.isSuccess -> ConnectionStatus.SUCCESS
                         else -> ConnectionStatus.FAILURE
-                    }
+                    },
+                    errorMessage = if (unchanged) result.exceptionOrNull()?.userMessage() else null
                 )
             }
         }
@@ -61,9 +74,27 @@ class ServerConfigViewModel : ViewModel() {
 
     fun saveConfig(onSaveSuccess: () -> Unit) {
         val state = _uiState.value
-        val config = ServerConfig(state.ipAddress, state.port)
-        // TODO: 字段未确定，确认保存接口后持久化 config；当前仅保留本次表单快照。
-        _uiState.update { it.copy(savedConfig = config) }
-        onSaveSuccess()
+        if (state.isSaving || state.isTesting) return
+        val snapshot = ServerConfig(state.ipAddress.trim(), state.port.trim())
+        _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+        viewModelScope.launch {
+            operationResult { repository.saveConfig(snapshot) }
+                .onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            savedConfig = snapshot
+                        )
+                    }; onSaveSuccess()
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            errorMessage = error.userMessage()
+                        )
+                    }
+                }
+        }
     }
 }

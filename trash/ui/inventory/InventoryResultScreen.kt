@@ -38,20 +38,7 @@ import com.hxb.myandroidapp_1021.ui.common.ToolInfoRow
 
 @Composable
 fun InventoryResultScreen(
-    items: List<InventoryResultItem> = listOf(
-        InventoryResultItem(
-            ToolScanItem("GJ-02021", "数字万用表", "GJ-02021", "E200 2021 F001"),
-            "已盘"
-        ),
-        InventoryResultItem(
-            ToolScanItem("GJ-03025", "钳形电流表", "GJ-03025", "E200 3025 F002"),
-            "已盘"
-        ),
-        InventoryResultItem(
-            ToolScanItem("GJ-04018", "绝缘电阻测试仪", "GJ-04018", "E200 4018 G001"),
-            "盘亏"
-        )
-    ),
+    items: List<InventoryResultItem> = emptyList<InventoryResultItem>(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
@@ -68,10 +55,10 @@ fun InventoryResultScreen(
     val surplus = items.count { it.result == "盘盈" }
     val canSubmit = items.isNotEmpty()
     val infoRows = listOf(
-        "盘点单号" to "PD20261028002",
-        "盘点状态" to "已完成",
-        "班组" to "检修一班",
-        "盘点人" to "张伟",
+        "盘点单号" to "",
+        "盘点状态" to "",
+        "班组" to "",
+        "盘点人" to "",
         "账面数量" to "${bookCount}件",
         "实盘数量" to "${actualCount}件",
         "盘点差异" to (if (shortage > 0) "盘亏${shortage}件" else if (surplus > 0) "盘盈${surplus}件" else "无差异")

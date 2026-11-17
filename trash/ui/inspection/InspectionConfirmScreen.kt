@@ -58,14 +58,7 @@ import java.util.TimeZone
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InspectionConfirmScreen(
-    tools: List<ToolScanItem> = listOf(
-        ToolScanItem(
-            "GJ-01031",
-            "绝缘靴",
-            "GJ-01031",
-            "E200 1031 A003"
-        )
-    ),
+    tools: List<ToolScanItem> = emptyList<ToolScanItem>(),
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}

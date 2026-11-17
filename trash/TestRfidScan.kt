@@ -1,5 +1,3 @@
-package com.hxb.myandroidapp_1021.utils
-
 import android.os.IBinder
 import android.util.Log
 import com.hxb.myandroidapp_1021.utils.TestRfidScan.Companion.TAG

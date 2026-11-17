@@ -36,26 +36,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun OverdueAlertListScreen(
-    viewModel: OverdueAlertListViewModel = viewModel(),
+    viewModel: OverdueAlertListViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    OverdueAlertListContent(
-        uiState = uiState,
-        onSearchQueryChange = viewModel::onSearchQueryChange,
-        onToggleExpanded = viewModel::toggleExpanded,
-        onBackClick = onBackClick
-    )
+    DataPage(
+        uiState.isLoading,
+        uiState.fromCache,
+        uiState.errorMessage
+    ) {
+        OverdueAlertListContent(
+            uiState = uiState,
+            onSearchQueryChange = viewModel::onSearchQueryChange,
+            onToggleExpanded = viewModel::toggleExpanded,
+            onBackClick = onBackClick
+        )
+    }
 }
 
 @Composable
@@ -225,7 +233,7 @@ private fun OverdueAlertCard(alert: OverdueAlert, expanded: Boolean, onToggleExp
 }
 
 /**
- * 按可用宽度分配标签和值的空间，长文本自动换行，不按模拟数据限制行数或条目高度。
+ * 按可用宽度分配标签和值的空间，长文本自动换行，条目高度随内容调整。
  */
 @Composable
 private fun OverdueAlertField(
@@ -251,4 +259,3 @@ private fun OverdueAlertField(
         )
     }
 }
-

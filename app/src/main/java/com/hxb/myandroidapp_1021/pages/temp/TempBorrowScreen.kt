@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.components.BottomButton
 import com.hxb.myandroidapp_1021.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.components.DataPage
 import com.hxb.myandroidapp_1021.components.InputFieldOne
 import com.hxb.myandroidapp_1021.components.OrderList
 import com.hxb.myandroidapp_1021.components.OrderProgress
@@ -31,6 +32,7 @@ import com.hxb.myandroidapp_1021.components.TempListCard
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.components.TopNotification
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+
 
 @Composable
 fun TempBorrowScreen(
@@ -43,26 +45,32 @@ fun TempBorrowScreen(
     val back =
         { if (state.editing || state.selectedOrder != null) viewModel.showList() else onBackClick() }
     BackHandler(state.editing || state.selectedOrder != null, back)
-    TempBorrowContent(
-        state = state,
-        onBackClick = back,
-        onHomeClick = onHomeClick,
-        onNewOrder = viewModel::startNewOrder,
-        onSelectOrder = viewModel::selectOrder,
-        onQueryChange = viewModel::onQueryChange,
-        onTabSelected = viewModel::onTabSelected,
-        onBorrowerChange = viewModel::onBorrowerChange,
-        onWorkOrderChange = viewModel::onWorkOrderChange,
-        onWorkshopChange = viewModel::onWorkshopChange,
-        onTeamChange = viewModel::onTeamChange,
-        onRemarkChange = viewModel::onRemarkChange,
-        onToggleTool = viewModel::toggleTool,
-        onSaveOrder = viewModel::saveOrder,
-        onPickingClick = onPickingClick,
-        onRequestConfirmation = viewModel::requestConfirmation,
-        onConfirm = viewModel::confirmLine,
-        onNotificationDismiss = viewModel::dismissNotification
-    )
+    DataPage(
+        state.isLoading || state.isSubmitting,
+        state.fromCache,
+        state.errorMessage
+    ) {
+        TempBorrowContent(
+            state = state,
+            onBackClick = back,
+            onHomeClick = onHomeClick,
+            onNewOrder = viewModel::startNewOrder,
+            onSelectOrder = viewModel::selectOrder,
+            onQueryChange = viewModel::onQueryChange,
+            onTabSelected = viewModel::onTabSelected,
+            onBorrowerChange = viewModel::onBorrowerChange,
+            onWorkOrderChange = viewModel::onWorkOrderChange,
+            onWorkshopChange = viewModel::onWorkshopChange,
+            onTeamChange = viewModel::onTeamChange,
+            onRemarkChange = viewModel::onRemarkChange,
+            onToggleTool = viewModel::toggleTool,
+            onSaveOrder = viewModel::saveOrder,
+            onPickingClick = onPickingClick,
+            onRequestConfirmation = viewModel::requestConfirmation,
+            onConfirm = viewModel::confirmLine,
+            onNotificationDismiss = viewModel::dismissNotification
+        )
+    }
 }
 
 @Composable
@@ -101,7 +109,8 @@ fun TempBorrowContent(
             when {
                 state.editing -> BottomButton(
                     "保存借出单 · 已选 ${state.selectedRfids.size} 件",
-                    onSaveOrder
+                    onSaveOrder,
+                    enabled = !state.isSubmitting
                 )
 
                 order == null -> BottomButton("新建临时借出", onNewOrder)
@@ -141,13 +150,13 @@ fun TempBorrowContent(
                                         InputFieldOne(
                                             state.borrower,
                                             onBorrowerChange,
-                                            "借用人（必填）",
+                                            "借用人工号（必填）",
                                             showSearchIcon = false
                                         )
                                         InputFieldOne(
                                             state.workOrderNo,
                                             onWorkOrderChange,
-                                            "工单号（必填）",
+                                            "工单号（可选）",
                                             showSearchIcon = false
                                         )
                                         InputFieldOne(
@@ -220,7 +229,7 @@ fun TempBorrowContent(
                                     title = order.orderNo,
                                     status = order.status,
                                     fields = listOf(
-                                        DisplayField("工单号", order.workOrderNo),
+                                        DisplayField("工单号（可选）", order.workOrderNo),
                                         DisplayField("借用人", order.borrower),
                                         DisplayField(
                                             "车间 / 工班",
@@ -293,7 +302,7 @@ fun TempBorrowContent(
                                 title = current.orderNo,
                                 status = current.status,
                                 fields = listOf(
-                                    DisplayField("工单号", current.workOrderNo),
+                                    DisplayField("工单号（可选）", current.workOrderNo),
                                     DisplayField("借用人", current.borrower),
                                     DisplayField("创建时间", current.createdAt)
                                 ),

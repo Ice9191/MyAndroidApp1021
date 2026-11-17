@@ -67,13 +67,7 @@ import kotlinx.coroutines.launch
 fun ScrapOutListScreen(
     onBackClick: () -> Unit = {},
     onCheckClick: (ScrapOrder) -> Unit = {},
-    orders: List<ScrapOrder> = listOf(
-        ScrapOrder("BF20261027003", "李明", "中心工具库", 2),
-        ScrapOrder("BF20261028001", "张伟", "中心工具库", 3),
-        ScrapOrder("BF20261029002", "王健", "电气工具库", 4),
-        ScrapOrder("BF20261030001", "刘洋", "运行工具库", 1),
-        ScrapOrder("BF20261031002", "陈强", "中心工具库", 5)
-    )
+    orders: List<ScrapOrder> = emptyList<ScrapOrder>()
 ) {
     // 只展示审批通过的报废单
     val approvedOrders = orders.filter { it.isApproved }

@@ -255,7 +255,7 @@
 
 ## 12 RFID 扫描（TestRfidScan）
 
-工具类位置：`app/src/main/java/com/hxb/myandroidapp_1021/utils/TestRfidScan.kt`。对外只有 `start()` 一个方法：屏幕按钮每点击一次切换扫描状态（第 1 次开始、第 2 次停止并释放资源、第 3 次重新开始）；构造时绑定扳机和侧边 SCAN 键，按下开始扫描，松开停止并释放 UHF 资源。调用次数、扫描状态、实体键事件和读到的 EPC 全部输出到 Logcat 标签 `TestRfidScan`，用 `adb logcat -s TestRfidScan` 查看；本轮以日志作为扫描结果和验证依据，不接界面显示。
+工具类位置：`../trash/TestRfidScan.kt`。对外只有 `start()` 一个方法：屏幕按钮每点击一次切换扫描状态（第 1 次开始、第 2 次停止并释放资源、第 3 次重新开始）；构造时绑定扳机和侧边 SCAN 键，按下开始扫描，松开停止并释放 UHF 资源。调用次数、扫描状态、实体键事件和读到的 EPC 全部输出到 Logcat 标签 `TestRfidScan`，用 `adb logcat -s TestRfidScan` 查看；本轮以日志作为扫描结果和验证依据，不接界面显示。
 
 前置条件：
 - 使用 UTouch PDA 实机（普通手机没有 `com.seuic.uhf`、`com.seuic.scankey` 系统库）。

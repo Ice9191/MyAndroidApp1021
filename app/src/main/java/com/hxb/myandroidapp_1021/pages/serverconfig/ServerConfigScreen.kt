@@ -33,13 +33,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.hxb.myandroidapp_1021.components.ToastNotification
 import com.hxb.myandroidapp_1021.components.TopAppBar
 import com.hxb.myandroidapp_1021.theme.AppColors
 
 @Composable
 fun ServerConfigScreen(
-    viewModel: ServerConfigViewModel = viewModel(),
+    viewModel: ServerConfigViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onSaveClick: () -> Unit = {}
 ) {
@@ -79,6 +80,9 @@ fun ServerConfigContent(
     }
     val focusManager = LocalFocusManager.current
 
+    // 连接或保存失败用 Toast 提示，不再占用页面顶部布局。
+    ToastNotification(message = uiState.errorMessage)
+
     Scaffold(
         modifier = Modifier.imePadding(),
         topBar = {
@@ -109,7 +113,7 @@ fun ServerConfigContent(
                         disabledContentColor = statusColor,
                         disabledContainerColor = Color.Transparent
                     ),
-                    enabled = !uiState.isTesting
+                    enabled = !uiState.isTesting && !uiState.isSaving
                 ) {
                     Text(text = statusText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
@@ -124,7 +128,11 @@ fun ServerConfigContent(
                     shape = RoundedCornerShape(4.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
                 ) {
-                    Text(text = "保存并退出", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = if (uiState.isSaving) "保存中" else "保存并退出",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         },
@@ -146,7 +154,7 @@ fun ServerConfigContent(
             ) {
                 // IP 地址输入框
                 Text(
-                    text = "IP地址",
+                    text = "服务器 IP / 域名（可含 https://）",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

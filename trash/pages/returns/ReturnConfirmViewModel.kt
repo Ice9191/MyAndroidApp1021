@@ -1,14 +1,10 @@
 package com.hxb.myandroidapp_1021.pages.returns
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 class ReturnConfirmViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReturnConfirmUiState())
@@ -38,12 +34,7 @@ class ReturnConfirmViewModel : ViewModel() {
             state.boundLocation,
             tools.map { it.rfid })
         if (request.employeeId.isBlank() || request.locationCode.isBlank()) return
-        _uiState.update { it.copy(isSubmitting = true) }
-        viewModelScope.launch {
-            // TODO: 字段未确定，确认后将 request 交给真实归还上架接口。
-            delay(800.milliseconds)
-            _uiState.update { it.copy(isSubmitting = false) }
-            onSuccess()
-        }
+        // 归档流程未接入服务端，不得本地伪造提交成功。
+        _uiState.update { it.copy(isSubmitting = false) }
     }
 }

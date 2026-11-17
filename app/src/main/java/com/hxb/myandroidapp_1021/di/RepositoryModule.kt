@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.feature.login.di
+package com.hxb.myandroidapp_1021.di
 
 import com.hxb.myandroidapp_1021.feature.login.data.repository.MockLoginRepository
 import com.hxb.myandroidapp_1021.feature.login.domain.repository.LoginRepository

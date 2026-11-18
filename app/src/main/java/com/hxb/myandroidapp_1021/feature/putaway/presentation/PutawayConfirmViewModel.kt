@@ -2,9 +2,10 @@ package com.hxb.myandroidapp_1021.feature.putaway.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayDetail
 import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
-import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayRequest
 import com.hxb.myandroidapp_1021.feature.putaway.domain.repository.PutawayRepository
+import com.hxb.myandroidapp_1021.utils.SimulatedRfidScan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,127 +21,105 @@ class PutawayConfirmViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(PutawayConfirmUiState())
     val uiState: StateFlow<PutawayConfirmUiState> = _uiState.asStateFlow()
 
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            val operator = putawayRepository.loadOperator()
-            _uiState.update { it.copy(isLoading = false, operator = operator) }
-        }
-    }
-
-    fun onRfidChange(value: String) {
-        _uiState.update {
-            it.copy(rfid = value, selectedLineNo = null, boundLocation = "")
-        }
-    }
-
-    fun onLocationChange(value: String) {
-        _uiState.update {
-            it.copy(locationCode = value, boundLocation = "")
-        }
-    }
-
-    fun onTabSelected(value: Int) {
-        _uiState.update { it.copy(selectedTab = value) }
-    }
+    private var details: List<PutawayDetail> = emptyList()
+    private var locationWarehouse: String? = null
+    private var scannedRfids: Set<String> = emptySet()
+    private var selectedLineNo: String? = null
 
     /**
-     * Toast 只展示 1 秒，由页面在到期后回调清除。
+     * 绑定当前上架单；换单时清空扫描、筛选和详情抽屉状态。
      */
-    fun dismissNotification() {
-        _uiState.update { it.copy(notificationMessage = null) }
-    }
-
-    /**
-     * 识别 RFID 并只允许当前上架单内的未完成件；校验结果通过顶部 Toast 提示。
-     */
-    fun identifyTool(order: PutawayOrder?) {
-        val rfid = _uiState.value.rfid.trim()
-        val detail = order?.details?.firstOrNull { it.rfid == rfid }
-        val error = when {
-            rfid.isBlank() -> "请先扫描或输入 RFID"
-            detail == null -> "RFID 不属于当前上架单，请核对工具"
-            detail.isCompleted -> "该工具已上架，无需重复操作"
-            else -> null
-        }
-        _uiState.update { state ->
-            state.copy(
-                selectedLineNo = if (error == null) detail?.lineNo else null,
-                boundLocation = "",
-                notificationMessage = error,
-                notificationId = if (error != null) state.notificationId + 1 else state.notificationId
+    fun bindOrder(order: PutawayOrder?) {
+        val newDetails = order?.details.orEmpty()
+        if (_uiState.value.hasOrder == (order != null) && details == newDetails) return
+        details = newDetails
+        locationWarehouse = null
+        scannedRfids = emptySet()
+        selectedLineNo = null
+        _uiState.update {
+            it.copy(
+                hasOrder = order != null,
+                scanQuery = "",
+                visibleDetails = emptyList(),
+                selectedDetail = null
             )
         }
+        refreshDetails()
     }
 
     /**
-     * 绑定当前工具的实际货位，校验所属仓库；工具或货位输入变化后必须重新绑定。
-     * TODO: 字段未确定，替换为真实货位查询与有效性校验接口。
+     * 扫描/输入的货位码解析为仓库，用于过滤明细；输入已变化时丢弃旧的解析结果。
      */
-    fun bindLocation(order: PutawayOrder?) {
-        val state = _uiState.value
-        val detail = order?.details?.firstOrNull { it.lineNo == state.selectedLineNo }
+    fun onScanQueryChange(value: String) {
+        _uiState.update { it.copy(scanQuery = value) }
+        locationWarehouse = null
+        refreshDetails()
         viewModelScope.launch {
-            val location = putawayRepository.validateLocation(state.locationCode.trim())
-            val error = when {
-                detail == null -> "请先识别当前工具"
-                location == null -> "货位不存在，请重新扫描或输入"
-                location.warehouse != detail.warehouse -> "货位不属于当前工具的目标仓库"
-                else -> null
-            }
-            _uiState.update {
-                it.copy(
-                    boundLocation = if (error == null) location?.code.orEmpty() else "",
-                    notificationMessage = error ?: "已绑定货位 ${location?.code}",
-                    notificationId = it.notificationId + 1
-                )
-            }
+            val location = putawayRepository.validateLocation(value.trim())
+            if (_uiState.value.scanQuery != value) return@launch
+            locationWarehouse = location?.warehouse
+            refreshDetails()
         }
     }
 
     /**
-     * 模拟单件提交，成功才更新流程中的库存明细；失败保留输入，允许重试。
-     * 整单全部完成后用顶部 Toast 提示库存已更新。
-     * TODO: 字段未确定，接入后端后以接口成功响应为库存与货位更新依据。
+     * 模拟一次扫描：从当前可见明细中随机选一个未扫描 RFID。
      */
-    fun confirmPutaway(order: PutawayOrder?, onPutaway: (PutawayRequest) -> Boolean) {
-        val currentOrder = order ?: return
-        val state = _uiState.value
-        val detail =
-            currentOrder.details.firstOrNull { it.lineNo == state.selectedLineNo } ?: return
-        if (state.isLoading || state.isSubmitting || detail.isCompleted || state.boundLocation.isBlank()) return
-        val request = PutawayRequest(
-            currentOrder.orderNo,
-            detail.lineNo,
-            detail.rfid,
-            state.boundLocation,
-            state.operator
+    fun onScanClick() {
+        val candidates = _uiState.value.visibleDetails.map { it.detail.rfid }
+        val rfid = SimulatedRfidScan.scan(candidates, scannedRfids) ?: return
+        scannedRfids = scannedRfids + rfid
+        refreshDetails()
+    }
+
+    fun selectDetail(lineNo: String) {
+        selectedLineNo = lineNo
+        refreshDetails()
+    }
+
+    fun clearSelectedDetail() {
+        selectedLineNo = null
+        refreshDetails()
+    }
+
+    /**
+     * 统一计算可见明细、已扫描/总数和当前抽屉明细，界面只负责渲染。
+     */
+    private fun refreshDetails() {
+        val query = _uiState.value.scanQuery.trim()
+        val visible = details
+            .filter { matchesQuery(it, query) }
+            .map(::toUi)
+        val selected = details.firstOrNull { it.lineNo == selectedLineNo }?.let(::toUi)
+        _uiState.update { it.copy(visibleDetails = visible, selectedDetail = selected) }
+    }
+
+    private fun toUi(detail: PutawayDetail): PutawayDetailUi {
+        val group = details.filter { sameMaterial(it, detail) }
+        return PutawayDetailUi(
+            detail = detail,
+            quantity = "${group.count { it.rfid in scannedRfids }}/${group.size}",
+            isScanned = detail.rfid in scannedRfids
         )
-        _uiState.update { it.copy(isSubmitting = true) }
-        viewModelScope.launch {
-            val success = putawayRepository.confirmPutaway(request) && onPutaway(request)
-            // 提交前先判断本件之外是否还有未完成明细，用于区分“单件完成”和“整单完成”
-            val remainsUncompleted =
-                currentOrder.details.any { !it.isCompleted && it.lineNo != detail.lineNo }
-            _uiState.update { current ->
-                if (success) current.copy(
-                    rfid = "", locationCode = "", boundLocation = "", selectedLineNo = null,
-                    isSubmitting = false,
-                    notificationMessage = if (remainsUncompleted) {
-                        "上架成功，可继续扫描下一件"
-                    } else {
-                        "本单已全部上架，工具库存已更新"
-                    },
-                    notificationId = current.notificationId + 1
-                ) else current.copy(
-                    isSubmitting = false,
-                    notificationMessage = "上架未成功，请核对明细后重试",
-                    notificationId = current.notificationId + 1
-                )
-            }
-        }
     }
+
+    private fun matchesQuery(detail: PutawayDetail, query: String): Boolean {
+        if (query.isEmpty()) return true
+        val textMatched =
+            detail.orderNo.contains(query, true) ||
+            detail.lineNo.contains(query, true) ||
+            detail.rfid.contains(query, true) ||
+            detail.itemCode.contains(query, true) ||
+            detail.description.contains(query, true) ||
+            detail.warehouse.contains(query, true) ||
+            detail.batchNo.contains(query, true)
+        return textMatched || locationWarehouse?.let { detail.warehouse == it } == true
+    }
+
+    private fun sameMaterial(item: PutawayDetail, detail: PutawayDetail): Boolean =
+        if (detail.itemCode.isNotBlank()) {
+            item.itemCode == detail.itemCode
+        } else {
+            item.description == detail.description
+        }
 }

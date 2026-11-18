@@ -1,55 +1,51 @@
 package com.hxb.myandroidapp_1021.feature.putaway.presentation
 
-import androidx.compose.foundation.background
+import android.annotation.SuppressLint
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
+import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
-import com.hxb.myandroidapp_1021.core.ui.components.ManualScanCard
-import com.hxb.myandroidapp_1021.core.ui.components.OrderList
-import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
-import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
-import com.hxb.myandroidapp_1021.core.ui.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
-import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
-import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
-import kotlinx.coroutines.launch
 
 @Composable
 fun PutawayConfirmScreen(
@@ -59,267 +55,218 @@ fun PutawayConfirmScreen(
 ) {
     val listState by flowViewModel.uiState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(listState.selectedOrder) {
+        viewModel.bindOrder(listState.selectedOrder)
+    }
     PutawayConfirmContent(
-        order = listState.selectedOrder,
+        isLoading = listState.isLoading || (listState.selectedOrder != null && !uiState.hasOrder),
         uiState = uiState,
-        onRfidChange = viewModel::onRfidChange,
-        onLocationChange = viewModel::onLocationChange,
-        onIdentifyTool = { viewModel.identifyTool(listState.selectedOrder) },
-        onBindLocation = { viewModel.bindLocation(listState.selectedOrder) },
-        onTabSelected = viewModel::onTabSelected,
-        onSelectTool = { rfid ->
-            viewModel.onRfidChange(rfid)
-            if (rfid.isNotBlank()) viewModel.identifyTool(listState.selectedOrder)
-        },
-        onConfirmPutaway = {
-            viewModel.confirmPutaway(
-                listState.selectedOrder,
-                flowViewModel::confirmItem
-            )
-        },
-        onNotificationDismiss = viewModel::dismissNotification,
+        onScanQueryChange = viewModel::onScanQueryChange,
+        onScanClick = viewModel::onScanClick,
+        onSelectDetail = viewModel::selectDetail,
+        onClearSelectedDetail = viewModel::clearSelectedDetail,
         onBackClick = onBackClick
     )
 }
 
 @Composable
 fun PutawayConfirmContent(
-    order: PutawayOrder?,
+    isLoading: Boolean,
     uiState: PutawayConfirmUiState,
-    onRfidChange: (String) -> Unit,
-    onLocationChange: (String) -> Unit,
-    onIdentifyTool: () -> Unit,
-    onBindLocation: () -> Unit,
-    onTabSelected: (Int) -> Unit,
-    onSelectTool: (String) -> Unit,
-    onConfirmPutaway: () -> Unit,
-    onNotificationDismiss: () -> Unit,
+    onScanQueryChange: (String) -> Unit,
+    onScanClick: () -> Unit,
+    onSelectDetail: (String) -> Unit,
+    onClearSelectedDetail: () -> Unit,
     onBackClick: () -> Unit
 ) {
-    val themeBlue = MaterialTheme.colorScheme.primary
-    val background = MaterialTheme.colorScheme.background
     val focusManager = LocalFocusManager.current
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
-    var showConfirmDialog by remember { mutableStateOf(false) }
-    val current = order?.details?.firstOrNull { it.lineNo == uiState.selectedLineNo }
-    val details = order?.details.orEmpty()
-    val visibleDetails = when (uiState.selectedTab) {
-        1 -> details.filterNot { it.isCompleted }
-        2 -> details.filter { it.isCompleted }
-        else -> details
-    }
-    val canSubmit = !uiState.isLoading && !uiState.isSubmitting &&
-            current != null && !current.isCompleted && uiState.boundLocation.isNotBlank()
 
     Scaffold(
         modifier = Modifier.imePadding(),
-        containerColor = background,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = "工器具上架",
                 onBackClick = onBackClick
             )
-        },
-        bottomBar = {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .navigationBarsPadding()
-                    .padding(16.dp)
-            ) {
-                Button(
-                    shape = RoundedCornerShape(4.dp),
-                    onClick = { focusManager.clearFocus(); showConfirmDialog = true },
-                    enabled = canSubmit,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
-                ) {
-                    Text(
-                        if (uiState.isSubmitting) "正在提交" else "确认本件上架",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
         }
     ) { paddingValues ->
-        if (uiState.isLoading || order == null) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                if (uiState.isLoading) CircularProgressIndicator(color = themeBlue) else Text("请返回列表选择上架单")
-            }
-        } else {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .clipToBounds()
-            ) {
-                OrderList(
-                    orders = visibleDetails,
-                    listState = listState,
-                    emptyText = "暂无对应的上架明细",
-                    modifier = Modifier.fillMaxSize(),
-                    key = { it.lineNo },
-                    header = {
-                        Column(
-                            Modifier
-                                .fillMaxWidth()
-                                .background(MaterialTheme.colorScheme.surface)
-                        ) {
-                            TopInfo(
-                                fields = listOf(
-                                    DisplayField("上架单号", order.orderNo),
-                                    DisplayField("入库单号", order.inboundOrderNo),
-                                    DisplayField("单据状态", order.status.label),
-                                    DisplayField("当前操作人", uiState.operator)
-                                ),
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "上架进度 ${order.completedCount}/${details.size}",
-                                    fontSize = 13.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                LinearProgressIndicator(
-                                    progress = { if (details.isEmpty()) 0f else order.completedCount.toFloat() / details.size },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(4.dp),
-                                    color = themeBlue,
-                                    trackColor = background,
-                                    gapSize = 0.dp,
-                                    drawStopIndicator = {}
-                                )
-                            }
-                            Text(
-                                "识别工具",
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-                            InputFieldOne(
-                                value = uiState.rfid,
-                                onValueChange = onRfidChange,
-                                placeholder = "扫描或输入 RFID",
-                                showSearchIcon = false,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                enabled = !uiState.isSubmitting
-                            )
-                            Button(
-                                shape = RoundedCornerShape(4.dp),
-                                onClick = { focusManager.clearFocus(); onIdentifyTool() },
-                                enabled = uiState.rfid.isNotBlank() && !uiState.isSubmitting,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
-                            ) { Text("识别 RFID") }
-                            if (current != null) {
-                                ToolsInfoList(
-                                    rows = listOf(
-                                        ToolInfoRow(
-                                            current.rfid,
-                                            current.description
-                                        )
-                                    ), title = "当前工具"
-                                )
-                                TopInfo(
-                                    fields = listOf(
-                                        DisplayField("物资编码", current.itemCode),
-                                        DisplayField("批次号", current.batchNo),
-                                        DisplayField("仓库", current.warehouse)
-                                    )
-                                )
-                            }
-                            Text(
-                                "绑定实际货位",
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                            )
-                            InputFieldOne(
-                                value = uiState.locationCode,
-                                onValueChange = onLocationChange,
-                                placeholder = "扫描或输入货位码",
-                                showSearchIcon = false,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                enabled = !uiState.isSubmitting
-                            )
-                            Button(
-                                shape = RoundedCornerShape(4.dp),
-                                onClick = { focusManager.clearFocus(); onBindLocation() },
-                                enabled = current != null && uiState.locationCode.isNotBlank() && !uiState.isSubmitting,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
-                            ) { Text("绑定货位") }
-                            ScanTabs(
-                                labels = listOf(
-                                    "全部 ${details.size}",
-                                    "待上架 ${details.size - order.completedCount}",
-                                    "已上架 ${order.completedCount}"
-                                ),
-                                selectedIndex = uiState.selectedTab,
-                                onTabSelected = onTabSelected,
-                                modifier = Modifier.padding(top = 12.dp)
-                            )
-                        }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            InputFieldOne(
+                value = uiState.scanQuery,
+                onValueChange = onScanQueryChange,
+                placeholder = "扫描目标货位/物资RFID标签",
+                trailingIcon = {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .clickable(role = Role.Button, onClick = onScanClick),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.QrCodeScanner,
+                            contentDescription = "Scan",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
-                ) { detail ->
-                    ManualScanCard(
-                        title = detail.description,
-                        lineLabel = "行号 ${detail.lineNo}",
-                        statusText = detail.status.label,
-                        isRead = detail.isCompleted,
-                        selected = current?.lineNo == detail.lineNo,
-                        onSelectedChange = { selected ->
-                            if (!uiState.isSubmitting) {
-                                focusManager.clearFocus()
-                                onSelectTool(if (selected) detail.rfid else "")
-                                if (selected) coroutineScope.launch {
-                                    listState.animateScrollToItem(
-                                        0
-                                    )
-                                }
-                            }
-                        },
-                        fields = listOf(
-                            DisplayField("RFID", detail.rfid),
-                            DisplayField("物资编码", detail.itemCode),
-                            DisplayField("仓库", detail.warehouse)
-                        ),
-                        modifier = Modifier.padding(12.dp)
-                    )
                 }
-                ToastNotification(
-                    message = uiState.notificationMessage,
-                    notificationId = uiState.notificationId,
-                    onDismiss = onNotificationDismiss
-                )
+            )
+            when {
+                isLoading -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+
+                !uiState.hasOrder -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("请返回列表选择上架单")
+                }
+
+                uiState.visibleDetails.isEmpty() -> Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("暂无匹配明细", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
+                else -> LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.visibleDetails, key = { it.detail.lineNo }) { row ->
+                        PutawayDetailCard(
+                            row = row,
+                            onClick = {
+                                focusManager.clearFocus()
+                                onSelectDetail(row.detail.lineNo)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
-    if (showConfirmDialog && current != null) {
-        ConfirmDialog(
-            title = "确认本件上架",
-            onConfirm = { showConfirmDialog = false; onConfirmPutaway() },
-            onDismiss = { showConfirmDialog = false }
+
+    val selectedDetail = uiState.selectedDetail
+    if (selectedDetail != null) {
+        val detail = selectedDetail.detail
+        FormFilter(
+            error = null,
+            onConfirm = onClearSelectedDetail,
+            onDismiss = onClearSelectedDetail,
+            title = "明细详情",
+            confirmText = "关闭",
+            content = {
+                DetailFields(
+                    fields = listOf(
+                        DisplayField("上架单号", detail.orderNo),
+                        DisplayField("入库行号", detail.inboundLineNo),
+                        DisplayField("上架行号", detail.lineNo),
+                        DisplayField("物资描述", detail.description),
+                        DisplayField("物资编码", detail.itemCode),
+                        DisplayField("RFID", detail.rfid),
+                        DisplayField("明细状态", detail.status.label),
+                        DisplayField("批次号", detail.batchNo),
+                        DisplayField("单位", detail.unit),
+                        DisplayField("仓库", detail.warehouse),
+                        DisplayField("数量", selectedDetail.quantity)
+                    )
+                )
+            }
+        )
+    }
+}
+
+@SuppressLint("UseOfNonLambdaOffsetOverload")
+@Composable
+private fun PutawayDetailCard(
+    row: PutawayDetailUi,
+    onClick: () -> Unit
+) {
+    val detail = row.detail
+    val themeBlue = MaterialTheme.colorScheme.primary
+    val borderColor by animateColorAsState(
+        targetValue = if (row.isScanned) themeBlue else MaterialTheme.colorScheme.outlineVariant,
+        label = "putawayCardBorder"
+    )
+    val lift by animateDpAsState(
+        targetValue = if (row.isScanned) 2.dp else 0.dp,
+        label = "putawayCardLift"
+    )
+    val elevation by animateDpAsState(
+        targetValue = if (row.isScanned) 4.dp else 0.dp,
+        label = "putawayCardElevation"
+    )
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .offset(y = -lift)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(0.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(if (row.isScanned) 2.dp else 1.dp, borderColor),
+        shadowElevation = elevation
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text("工具：${current.description}\nRFID：${current.rfid}\n仓库：${current.warehouse}\n实际货位：${uiState.boundLocation}\n上架人：${uiState.operator}")
+            Text(
+                text = detail.description,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            DetailLine("RFID", detail.rfid)
+            DetailLine("明细状态", detail.status.label)
+            DetailLine("仓库", detail.warehouse)
+            DetailLine("数量", row.quantity)
         }
+    }
+}
+
+@Composable
+private fun DetailFields(fields: List<DisplayField>) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        fields.forEach { field ->
+            DetailLine(field.label, field.value)
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            modifier = Modifier
+                .padding(start = 16.dp)
+                .weight(1f),
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

@@ -48,7 +48,8 @@ fun InputFieldOne(
     keyboardOptions: KeyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
     enabled: Boolean = true,
     width: Dp = Dp.Unspecified,
-    horizontalPadding: Dp = 16.dp
+    horizontalPadding: Dp = 16.dp,
+    trailingIcon: (@Composable () -> Unit)? = null
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -117,6 +118,7 @@ fun InputFieldOne(
                             }
                             innerTextField()
                         }
+                        trailingIcon?.invoke()
                     }
                 }
             }

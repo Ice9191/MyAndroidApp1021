@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -33,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 筛选抽屉骨架：标题、关闭、可滚动内容区、错误提示和底部重置/确定。
+ * 筛选抽屉骨架：标题、关闭、随内容高度变化的内容区、错误提示和底部重置/确定。
  * 字段控件由调用页面通过 content 传入，组件不持有筛选状态。
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,7 +58,6 @@ fun FormFilter(
         Column(
             Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.9f)
                 .imePadding()
         ) {
             Row(
@@ -72,7 +70,7 @@ fun FormFilter(
                 IconButton(onClick = onDismiss, shape = RoundedCornerShape(4.dp)) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Close filter",
+                        contentDescription = "Close",
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -80,59 +78,43 @@ fun FormFilter(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Column(
                 Modifier
-                    .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 content()
                 error?.let { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.error) }
-            }
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (onReset != null) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (onReset != null) {
+                        FilterButton(
+                            text = resetText,
+                            onClick = onReset,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(44.dp)
+                        )
+                    }
                     FilterButton(
-                        text = resetText,
-                        onClick = onReset,
+                        text = confirmText,
+                        onClick = onConfirm,
+                        enabled = confirmEnabled,
                         modifier = Modifier
                             .weight(1f)
-                            .height(44.dp)
+                            .height(44.dp),
+                        prominent = true
                     )
                 }
-                FilterButton(
-                    text = confirmText,
-                    onClick = onConfirm,
-                    enabled = confirmEnabled,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    prominent = true
-                )
             }
         }
     }
 }
 
-/**
- * 筛选面板里的单选项标签，选中态与事件由调用页面提供。
- */
 @Composable
-fun FilterChip(
-    text: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    FilterButton(text = text, onClick = onClick, modifier = modifier, selected = selected)
-}
-
-@Composable
-private fun FilterButton(
+internal fun FilterButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

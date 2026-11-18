@@ -12,12 +12,12 @@ enum class PutawayOrderStatus(val label: String) {
 }
 
 /**
- * 上架明细状态；当前按页面展示的“待上架/已上架”建模，单件不存在部分完成状态。
+ * 上架明细状态；当前按页面展示的“待上架/在库”建模，单件不存在部分完成状态。
  * TODO: 字段未确定：后端状态编码未提供，正式枚举值及映射需与后端确认。
  */
 enum class PutawayDetailStatus(val label: String) {
     PENDING("待上架"),
-    COMPLETED("已上架")
+    COMPLETED("在库")
 }
 
 /**

@@ -1,16 +1,22 @@
-package com.hxb.myandroidapp_1021.pages.putaway
+package com.hxb.myandroidapp_1021.feature.putaway.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
+import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayRequest
+import com.hxb.myandroidapp_1021.feature.putaway.domain.repository.PutawayRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
+import javax.inject.Inject
 
-class PutawayConfirmViewModel : ViewModel() {
+@HiltViewModel
+class PutawayConfirmViewModel @Inject constructor(
+    private val putawayRepository: PutawayRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(PutawayConfirmUiState())
     val uiState: StateFlow<PutawayConfirmUiState> = _uiState.asStateFlow()
 
@@ -20,9 +26,8 @@ class PutawayConfirmViewModel : ViewModel() {
 
     private fun loadData() {
         viewModelScope.launch {
-            delay(500.milliseconds)
-            val mockOperator = "材料员"
-            _uiState.update { it.copy(isLoading = false, operator = mockOperator) }
+            val operator = putawayRepository.loadOperator()
+            _uiState.update { it.copy(isLoading = false, operator = operator) }
         }
     }
 
@@ -43,14 +48,14 @@ class PutawayConfirmViewModel : ViewModel() {
     }
 
     /**
-     * 顶部横幅只展示 1 秒，由页面在到期后回调清除。
+     * Toast 只展示 1 秒，由页面在到期后回调清除。
      */
     fun dismissNotification() {
         _uiState.update { it.copy(notificationMessage = null) }
     }
 
     /**
-     * 识别 RFID 并只允许当前上架单内的未完成件；校验结果通过顶部通知提示。
+     * 识别 RFID 并只允许当前上架单内的未完成件；校验结果通过顶部 Toast 提示。
      */
     fun identifyTool(order: PutawayOrder?) {
         val rfid = _uiState.value.rfid.trim()
@@ -78,32 +83,27 @@ class PutawayConfirmViewModel : ViewModel() {
     fun bindLocation(order: PutawayOrder?) {
         val state = _uiState.value
         val detail = order?.details?.firstOrNull { it.lineNo == state.selectedLineNo }
-        val mockLocations = listOf(
-            PutawayLocation("A1-01", "中心工具库"),
-            PutawayLocation("A1-02", "中心工具库"),
-            PutawayLocation("A1-03", "中心工具库"),
-            PutawayLocation("B1-01", "电气工具库"),
-            PutawayLocation("B1-02", "电气工具库")
-        )
-        val location = mockLocations.firstOrNull { it.code == state.locationCode.trim() }
-        val error = when {
-            detail == null -> "请先识别当前工具"
-            location == null -> "货位不存在，请重新扫描或输入"
-            location.warehouse != detail.warehouse -> "货位不属于当前工具的目标仓库"
-            else -> null
-        }
-        _uiState.update {
-            it.copy(
-                boundLocation = if (error == null) location?.code.orEmpty() else "",
-                notificationMessage = error ?: "已绑定货位 ${location?.code}",
-                notificationId = it.notificationId + 1
-            )
+        viewModelScope.launch {
+            val location = putawayRepository.validateLocation(state.locationCode.trim())
+            val error = when {
+                detail == null -> "请先识别当前工具"
+                location == null -> "货位不存在，请重新扫描或输入"
+                location.warehouse != detail.warehouse -> "货位不属于当前工具的目标仓库"
+                else -> null
+            }
+            _uiState.update {
+                it.copy(
+                    boundLocation = if (error == null) location?.code.orEmpty() else "",
+                    notificationMessage = error ?: "已绑定货位 ${location?.code}",
+                    notificationId = it.notificationId + 1
+                )
+            }
         }
     }
 
     /**
      * 模拟单件提交，成功才更新流程中的库存明细；失败保留输入，允许重试。
-     * 整单全部完成后用顶部通知提示库存已更新。
+     * 整单全部完成后用顶部 Toast 提示库存已更新。
      * TODO: 字段未确定，接入后端后以接口成功响应为库存与货位更新依据。
      */
     fun confirmPutaway(order: PutawayOrder?, onPutaway: (PutawayRequest) -> Boolean) {
@@ -121,8 +121,7 @@ class PutawayConfirmViewModel : ViewModel() {
         )
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
-            delay(500.milliseconds)
-            val success = onPutaway(request)
+            val success = putawayRepository.confirmPutaway(request) && onPutaway(request)
             // 提交前先判断本件之外是否还有未完成明细，用于区分“单件完成”和“整单完成”
             val remainsUncompleted =
                 currentOrder.details.any { !it.isCompleted && it.lineNo != detail.lineNo }

@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.pages.putaway
+package com.hxb.myandroidapp_1021.feature.putaway.presentation
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,11 +22,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
 import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
+import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
+import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import kotlinx.coroutines.launch
 
@@ -109,7 +110,7 @@ fun PutawayListContent(
                     listState = listState,
                     emptyText = if (uiState.searchQuery.isEmpty()) "暂无数据" else "暂无匹配数据",
                     title = { it.orderNo },
-                    statusText = { it.status },
+                    statusText = { it.status.label },
                     fields = { order ->
                         listOf(
                             DisplayField("入库单号", order.inboundOrderNo),

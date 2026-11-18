@@ -3,6 +3,7 @@ package com.hxb.myandroidapp_1021.feature.login.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.feature.login.domain.repository.LoginRepository
+import com.hxb.myandroidapp_1021.feature.serverconfig.domain.repository.ServerConfigRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginRepository: LoginRepository
+    private val loginRepository: LoginRepository,
+    private val serverConfigRepository: ServerConfigRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginUiState())
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -38,7 +40,8 @@ class LoginViewModel @Inject constructor(
     }
 
     /**
-     * 使用输入快照认证，加载期间忽略重复登录；请求失败时结束加载，协程取消继续向上传递。
+     * 使用输入快照认证；未保存服务器配置时提示并阻止登录，加载期间忽略重复登录。
+     * 请求失败时结束加载，协程取消继续向上传递。
      */
     fun login(onSuccess: () -> Unit) {
         val state = _uiState.value
@@ -56,7 +59,19 @@ class LoginViewModel @Inject constructor(
             }
             return
         }
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        if (!serverConfigRepository.isConfigured()) {
+            _uiState.update { oldState ->
+                oldState.copy(
+                    errorMessage = null,
+                    notificationMessage = "请先配置服务器",
+                    notificationId = oldState.notificationId + 1
+                )
+            }
+            return
+        }
+        _uiState.update {
+            it.copy(isLoading = true, errorMessage = null, notificationMessage = null)
+        }
         viewModelScope.launch {
             val user = try {
                 loginRepository.login(username, state.password)
@@ -80,6 +95,12 @@ class LoginViewModel @Inject constructor(
                 )
             }
             if (user != null) onSuccess()
+        }
+    }
+
+    fun dismissNotification() {
+        _uiState.update { oldState ->
+            oldState.copy(notificationMessage = null)
         }
     }
 }

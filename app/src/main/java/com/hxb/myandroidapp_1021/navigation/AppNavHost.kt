@@ -10,19 +10,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.hxb.myandroidapp_1021.core.network.HttpClient
-import com.hxb.myandroidapp_1021.pages.dashboard.DashboardScreen
+import com.hxb.myandroidapp_1021.feature.dashboard.presentation.DashboardScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
 import com.hxb.myandroidapp_1021.pages.overduealert.OverdueAlertListScreen
 import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingConfirmScreen
@@ -39,44 +37,23 @@ import com.hxb.myandroidapp_1021.pages.picking.PickingListScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingListViewModel
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanScreen
 import com.hxb.myandroidapp_1021.pages.picking.PickingScanViewModel
-import com.hxb.myandroidapp_1021.pages.putaway.PutawayConfirmScreen
-import com.hxb.myandroidapp_1021.pages.putaway.PutawayListScreen
-import com.hxb.myandroidapp_1021.pages.putaway.PutawayListViewModel
+import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayConfirmScreen
+import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayListScreen
+import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayListViewModel
 import com.hxb.myandroidapp_1021.pages.returns.ReturnListScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnListViewModel
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanScreen
 import com.hxb.myandroidapp_1021.pages.returns.ReturnScanViewModel
-import com.hxb.myandroidapp_1021.feature.serverconfig.ServerConfigScreen
+import com.hxb.myandroidapp_1021.feature.serverconfig.presentation.ServerConfigScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempBorrowScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempBorrowViewModel
 import com.hxb.myandroidapp_1021.pages.temp.TempReturnScreen
 import com.hxb.myandroidapp_1021.pages.temp.TempReturnViewModel
 import com.hxb.myandroidapp_1021.pages.stockdetail.StockDetailListScreen
-import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
-    val scope = rememberCoroutineScope()
-    DisposableEffect(navController, scope) {
-        // 回调来自请求线程；导航在主线程执行，并清理过期会话的所有页面和流程状态。
-        val onTokenExpired: () -> Unit = {
-            scope.launch {
-                if (HttpClient.token == null) {
-                    navController.navigate(Login) {
-                        popUpTo(navController.graph.id)
-                        launchSingleTop = true
-                    }
-                }
-            }
-        }
-        HttpClient.onTokenExpired = onTokenExpired
-        onDispose {
-            if (HttpClient.onTokenExpired === onTokenExpired) {
-                HttpClient.onTokenExpired = null
-            }
-        }
-    }
     // 防止重复点击返回导致页面空白
     val safeBack: () -> Unit = {
         if (navController.previousBackStackEntry != null) {
@@ -153,6 +130,9 @@ fun AppNavHost() {
                         popUpTo<Login> { inclusive = true }
                         launchSingleTop = true
                     }
+                },
+                onSettingsClick = {
+                    navController.navigate(ServerConfig) { launchSingleTop = true }
                 }
             )
         }
@@ -172,7 +152,7 @@ fun AppNavHost() {
         }
         // 上架
         composable<PutawayList> { entry ->
-            val flowViewModel = viewModel<PutawayListViewModel>(entry)
+            val flowViewModel = hiltViewModel<PutawayListViewModel>(entry)
             PutawayListScreen(
                 flowViewModel = flowViewModel,
                 onBackClick = safeBack,
@@ -186,7 +166,7 @@ fun AppNavHost() {
         composable<PutawayConfirm> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<PutawayList>() }
             PutawayConfirmScreen(
-                flowViewModel = viewModel<PutawayListViewModel>(listEntry),
+                flowViewModel = hiltViewModel<PutawayListViewModel>(listEntry),
                 onBackClick = safeBack
             )
         }

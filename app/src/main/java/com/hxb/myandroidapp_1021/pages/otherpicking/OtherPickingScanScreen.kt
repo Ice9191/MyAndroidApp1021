@@ -40,7 +40,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
 import com.hxb.myandroidapp_1021.core.ui.components.ToolsScanList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.core.ui.components.TopNotification
+import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 
 @Composable
@@ -205,7 +205,7 @@ fun OtherPickingScanContent(
                     )
                 }
             }
-            TopNotification(
+            ToastNotification(
                 message = state.notificationMessage,
                 notificationId = state.notificationId,
                 onDismiss = onNotificationDismiss

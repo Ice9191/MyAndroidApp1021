@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.pages.dashboard
+package com.hxb.myandroidapp_1021.feature.dashboard.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,9 +17,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,12 +31,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
-
-import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
+import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
 @Composable
 fun DashboardScreen(
@@ -62,6 +61,7 @@ fun DashboardContent(
     onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}
 ) {
+    val user = uiState.user
     val themeBlue = MaterialTheme.colorScheme.primary
     val bgColor = MaterialTheme.colorScheme.background
     val lightBlueBg = MaterialTheme.colorScheme.primaryContainer
@@ -75,7 +75,7 @@ fun DashboardContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工器具库系统",
+                title = "",
                 onConfigClick = onSettingsClick,
                 onLogoutClick = onLogoutClick
             )
@@ -96,7 +96,7 @@ fun DashboardContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 AsyncImage(
-                    model = uiState.avatarUrl,
+                    model = user?.avatarUrl.orEmpty(),
                     contentDescription = "Logo",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -115,7 +115,7 @@ fun DashboardContent(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "${uiState.userName} · ${uiState.userRole}",
+                        text = "${user?.userName.orEmpty()} · ${user?.userRole.orEmpty()}",
                         fontSize = 13.sp,
                         color = textGray
                     )
@@ -165,7 +165,7 @@ fun DashboardContent(
                             ) {
                                 Icon(
                                     imageVector = item.icon,
-                                    contentDescription = item.title,
+                                    contentDescription = null,
                                     tint = themeBlue,
                                     modifier = Modifier.size(24.dp)
                                 )

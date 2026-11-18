@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.feature.serverconfig
+package com.hxb.myandroidapp_1021.feature.serverconfig.presentation
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -32,14 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
 @Composable
 fun ServerConfigScreen(
-    viewModel: ServerConfigViewModel = viewModel(),
+    viewModel: ServerConfigViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onSaveClick: () -> Unit = {}
 ) {

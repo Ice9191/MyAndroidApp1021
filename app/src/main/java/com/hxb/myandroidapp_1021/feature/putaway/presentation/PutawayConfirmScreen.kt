@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.pages.putaway
+package com.hxb.myandroidapp_1021.feature.putaway.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,22 +29,24 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.ManualScanCard
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
+import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.core.ui.components.TopNotification
+import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
 import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.pages.commonmodel.ToolInfoRow
 import kotlinx.coroutines.launch
@@ -52,7 +54,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PutawayConfirmScreen(
     flowViewModel: PutawayListViewModel,
-    viewModel: PutawayConfirmViewModel = viewModel(),
+    viewModel: PutawayConfirmViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val listState by flowViewModel.uiState.collectAsStateWithLifecycle()
@@ -158,6 +160,7 @@ fun PutawayConfirmContent(
                 Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
+                    .clipToBounds()
             ) {
                 OrderList(
                     orders = visibleDetails,
@@ -175,7 +178,7 @@ fun PutawayConfirmContent(
                                 fields = listOf(
                                     DisplayField("上架单号", order.orderNo),
                                     DisplayField("入库单号", order.inboundOrderNo),
-                                    DisplayField("单据状态", order.status),
+                                    DisplayField("单据状态", order.status.label),
                                     DisplayField("当前操作人", uiState.operator)
                                 ),
                                 modifier = Modifier.padding(top = 12.dp)
@@ -280,7 +283,7 @@ fun PutawayConfirmContent(
                     ManualScanCard(
                         title = detail.description,
                         lineLabel = "行号 ${detail.lineNo}",
-                        statusText = detail.status,
+                        statusText = detail.status.label,
                         isRead = detail.isCompleted,
                         selected = current?.lineNo == detail.lineNo,
                         onSelectedChange = { selected ->
@@ -297,14 +300,12 @@ fun PutawayConfirmContent(
                         fields = listOf(
                             DisplayField("RFID", detail.rfid),
                             DisplayField("物资编码", detail.itemCode),
-                            DisplayField("仓库", detail.warehouse),
-                            DisplayField("实际货位", detail.location.ifBlank { "-" }),
-                            DisplayField("库存状态", detail.inventoryStatus)
+                            DisplayField("仓库", detail.warehouse)
                         ),
                         modifier = Modifier.padding(12.dp)
                     )
                 }
-                TopNotification(
+                ToastNotification(
                     message = uiState.notificationMessage,
                     notificationId = uiState.notificationId,
                     onDismiss = onNotificationDismiss

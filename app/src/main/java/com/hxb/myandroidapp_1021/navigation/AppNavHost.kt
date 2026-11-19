@@ -16,40 +16,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hxb.myandroidapp_1021.feature.dashboard.presentation.DashboardScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
-import com.hxb.myandroidapp_1021.pages.overduealert.OverdueAlertListScreen
-import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingConfirmScreen
-import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingListScreen
-import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingListViewModel
-import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingScanScreen
-import com.hxb.myandroidapp_1021.pages.otherpicking.OtherPickingScanViewModel
-import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayConfirmScreen
-import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayListScreen
-import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayListViewModel
-import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanScreen
-import com.hxb.myandroidapp_1021.pages.otherputaway.OtherPutawayScanViewModel
-import com.hxb.myandroidapp_1021.pages.picking.PickingListScreen
-import com.hxb.myandroidapp_1021.pages.picking.PickingListViewModel
-import com.hxb.myandroidapp_1021.pages.picking.PickingScanScreen
-import com.hxb.myandroidapp_1021.pages.picking.PickingScanViewModel
+import com.hxb.myandroidapp_1021.feature.overduealert.presentation.OverdueAlertListScreen
+import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingListScreen
+import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingListViewModel
+import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingScanScreen
+import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingScanViewModel
+import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayListScreen
+import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayListViewModel
+import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayScanScreen
+import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayScanViewModel
+import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingListScreen
+import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingListViewModel
+import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingScanScreen
+import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingScanViewModel
 import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayConfirmScreen
 import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayListScreen
 import com.hxb.myandroidapp_1021.feature.putaway.presentation.PutawayListViewModel
-import com.hxb.myandroidapp_1021.pages.returns.ReturnListScreen
-import com.hxb.myandroidapp_1021.pages.returns.ReturnListViewModel
-import com.hxb.myandroidapp_1021.pages.returns.ReturnScanScreen
-import com.hxb.myandroidapp_1021.pages.returns.ReturnScanViewModel
+import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnListScreen
+import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnListViewModel
+import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanScreen
+import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.feature.serverconfig.presentation.ServerConfigScreen
-import com.hxb.myandroidapp_1021.pages.temp.TempBorrowScreen
-import com.hxb.myandroidapp_1021.pages.temp.TempBorrowViewModel
-import com.hxb.myandroidapp_1021.pages.temp.TempReturnScreen
-import com.hxb.myandroidapp_1021.pages.temp.TempReturnViewModel
-import com.hxb.myandroidapp_1021.pages.stockdetail.StockDetailListScreen
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowConfirmScreen
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowScreen
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowSearchToolsScreen
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowViewModel
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnConfirmScreen
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnScreen
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnSearchToolsScreen
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnViewModel
+import com.hxb.myandroidapp_1021.feature.stockdetail.presentation.StockDetailListScreen
 
 @Composable
 fun AppNavHost() {
@@ -172,9 +173,9 @@ fun AppNavHost() {
         }
         // 借出
         composable<PickingList> { entry ->
-            val scanViewModel = viewModel<PickingScanViewModel>(entry)
             PickingListScreen(
-                scanViewModel = scanViewModel,
+                flowViewModel = hiltViewModel<PickingListViewModel>(entry),
+                scanViewModel = hiltViewModel<PickingScanViewModel>(entry),
                 onBackClick = safeBack,
                 onStartPickClick = {
                     navController.navigate(PickingScan) { launchSingleTop = true }
@@ -184,8 +185,8 @@ fun AppNavHost() {
         composable<PickingScan> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<PickingList>() }
             PickingScanScreen(
-                viewModel = viewModel<PickingScanViewModel>(listEntry),
-                flowViewModel = viewModel<PickingListViewModel>(listEntry),
+                viewModel = hiltViewModel<PickingScanViewModel>(listEntry),
+                flowViewModel = hiltViewModel<PickingListViewModel>(listEntry),
                 onBackClick = safeBack,
                 onSubmittedClick = { navController.popBackStack<PickingList>(false) },
                 onSettingsClick = {
@@ -198,9 +199,9 @@ fun AppNavHost() {
         }
         // 归还
         composable<ReturnList> { entry ->
-            val scanViewModel = viewModel<ReturnScanViewModel>(entry)
             ReturnListScreen(
-                scanViewModel = scanViewModel,
+                flowViewModel = hiltViewModel<ReturnListViewModel>(entry),
+                scanViewModel = hiltViewModel<ReturnScanViewModel>(entry),
                 onBackClick = safeBack,
                 onStartReturnClick = {
                     navController.navigate(ReturnScan) { launchSingleTop = true }
@@ -210,8 +211,8 @@ fun AppNavHost() {
         composable<ReturnScan> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<ReturnList>() }
             ReturnScanScreen(
-                viewModel = viewModel<ReturnScanViewModel>(listEntry),
-                flowViewModel = viewModel<ReturnListViewModel>(listEntry),
+                viewModel = hiltViewModel<ReturnScanViewModel>(listEntry),
+                flowViewModel = hiltViewModel<ReturnListViewModel>(listEntry),
                 onBackClick = safeBack,
                 onSettingsClick = {
                     navController.navigate(ServerConfig) {
@@ -224,14 +225,7 @@ fun AppNavHost() {
         // 临时借还与其他作业共享首页作用域的任务列表，返回首页保留进度，退出登录后随首页销毁。
         composable<TempBorrow> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = viewModel<TempBorrowViewModel>(dashboardEntry)
-            val listViewModel = viewModel<OtherPickingListViewModel>(dashboardEntry)
-            val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
-            val borrowState by borrowViewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(borrowState.orders) {
-                borrowViewModel.pickingTasks().forEach(listViewModel::upsertTemporaryTask)
-            }
-            LaunchedEffect(taskState.tasks) { borrowViewModel.syncPicking(taskState.tasks) }
+            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
             TempBorrowScreen(
                 viewModel = borrowViewModel,
                 onBackClick = safeBack,
@@ -240,43 +234,110 @@ fun AppNavHost() {
                     borrowViewModel.showList()
                     navController.popBackStack<Dashboard>(false)
                 },
-                onPickingClick = {
-                    borrowViewModel.pickingTask()?.let { task ->
-                        listViewModel.openTemporaryTask(task)
-                        navController.navigate(OtherPickingList) { launchSingleTop = true }
+                onSearchToolsClick = {
+                    borrowViewModel.onToolQueryChange("")
+                    navController.navigate(TempBorrowSearchTools) {
+                        launchSingleTop = true
                     }
+                },
+                onSelectOrder = { orderNo ->
+                    borrowViewModel.selectOrder(orderNo)
+                    navController.navigate(TempBorrowConfirm) {
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+        composable<TempBorrowSearchTools> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            TempBorrowSearchToolsScreen(
+                viewModel = borrowViewModel,
+                onBackClick = safeBack,
+                onHomeClick = {
+                    borrowViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
+                }
+            )
+        }
+        composable<TempBorrowConfirm> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            TempBorrowConfirmScreen(
+                flowViewModel = borrowViewModel,
+                onBackClick = safeBack,
+                onHomeClick = {
+                    borrowViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
                 }
             )
         }
         composable<TempReturn> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = viewModel<TempBorrowViewModel>(dashboardEntry)
-            val returnViewModel = viewModel<TempReturnViewModel>(dashboardEntry)
-            val listViewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry)
+            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
             val borrowState by borrowViewModel.uiState.collectAsStateWithLifecycle()
-            val returnState by returnViewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(borrowState.orders) { returnViewModel.syncBorrowedOrders(borrowState.orders) }
-            LaunchedEffect(returnState.orders) {
-                returnViewModel.putawayTasks().forEach(listViewModel::upsertTemporaryTask)
+            LaunchedEffect(borrowState.orders) {
+                returnViewModel.syncBorrowedTools(borrowState.orders)
             }
             TempReturnScreen(
                 viewModel = returnViewModel,
                 onBackClick = safeBack,
-                onHomeClick = { navController.popBackStack<Dashboard>(false) },
-                onPutawayClick = {
-                    returnViewModel.putawayTask()?.let { task ->
-                        listViewModel.openTemporaryTask(task)
-                        navController.navigate(OtherPutawayList) { launchSingleTop = true }
+                onHomeClick = {
+                    returnViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
+                },
+                onSearchToolsClick = {
+                    returnViewModel.onToolQueryChange("")
+                    navController.navigate(TempReturnSearchTools) {
+                        launchSingleTop = true
+                    }
+                },
+                onSelectOrder = { orderNo ->
+                    returnViewModel.selectOrder(orderNo)
+                    navController.navigate(TempReturnConfirm) {
+                        launchSingleTop = true
                     }
                 }
             )
         }
-        // 其他作业的核对记录仍保存在列表作用域，不通过路由传递业务数据。
+        composable<TempReturnSearchTools> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
+            TempReturnSearchToolsScreen(
+                viewModel = returnViewModel,
+                onBackClick = safeBack,
+                onHomeClick = {
+                    returnViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
+                }
+            )
+        }
+        composable<TempReturnConfirm> { entry ->
+            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
+            TempReturnConfirmScreen(
+                flowViewModel = returnViewModel,
+                onBackClick = safeBack,
+                onHomeClick = {
+                    returnViewModel.showList()
+                    navController.popBackStack<Dashboard>(false)
+                }
+            )
+        }
+        // 其他作业的核对记录保存在列表作用域；临时借出/归还生成的临时任务进入列表时由首页作用域的借还页面写入。
         composable<OtherPickingList> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val listViewModel = hiltViewModel<OtherPickingListViewModel>(entry)
+            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) {
+                borrowViewModel.pickingTasks().forEach(listViewModel::upsertTemporaryOrder)
+            }
+            LaunchedEffect(taskState.orders) { borrowViewModel.syncPicking(taskState.orders) }
             OtherPickingListScreen(
-                viewModel = viewModel<OtherPickingListViewModel>(dashboardEntry),
-                flowViewModel = viewModel<OtherPickingScanViewModel>(entry),
+                viewModel = listViewModel,
+                scanViewModel = hiltViewModel<OtherPickingScanViewModel>(entry),
                 onBackClick = safeBack,
                 onStartClick = {
                     navController.navigate(OtherPickingScan) {
@@ -288,32 +349,25 @@ fun AppNavHost() {
         composable<OtherPickingScan> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<OtherPickingList>() }
             OtherPickingScanScreen(
-                viewModel = viewModel<OtherPickingScanViewModel>(listEntry),
+                viewModel = hiltViewModel<OtherPickingScanViewModel>(listEntry),
+                listViewModel = hiltViewModel<OtherPickingListViewModel>(listEntry),
                 onBackClick = safeBack,
-                onNextClick = {
-                    navController.navigate(OtherPickingConfirm) {
-                        launchSingleTop = true
-                    }
-                },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<OtherPickingConfirm> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<OtherPickingList>() }
-            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            OtherPickingConfirmScreen(
-                flowViewModel = viewModel<OtherPickingScanViewModel>(listEntry),
-                listViewModel = viewModel<OtherPickingListViewModel>(dashboardEntry),
-                onBackClick = safeBack,
-                onComplete = { navController.popBackStack<OtherPickingList>(false) },
+                onSubmittedClick = { navController.popBackStack<OtherPickingList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         composable<OtherPutawayList> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
+            val listViewModel = hiltViewModel<OtherPutawayListViewModel>(entry)
+            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
+            val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) {
+                returnViewModel.putawayTasks().forEach(listViewModel::upsertTemporaryOrder)
+            }
+            LaunchedEffect(taskState.orders) { returnViewModel.syncPutaway(taskState.orders) }
             OtherPutawayListScreen(
-                viewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry),
-                flowViewModel = viewModel<OtherPutawayScanViewModel>(entry),
+                viewModel = listViewModel,
+                scanViewModel = hiltViewModel<OtherPutawayScanViewModel>(entry),
                 onBackClick = safeBack,
                 onStartClick = {
                     navController.navigate(OtherPutawayScan) {
@@ -325,24 +379,9 @@ fun AppNavHost() {
         composable<OtherPutawayScan> { entry ->
             val listEntry = remember(entry) { navController.getBackStackEntry<OtherPutawayList>() }
             OtherPutawayScanScreen(
-                viewModel = viewModel<OtherPutawayScanViewModel>(listEntry),
+                viewModel = hiltViewModel<OtherPutawayScanViewModel>(listEntry),
+                listViewModel = hiltViewModel<OtherPutawayListViewModel>(listEntry),
                 onBackClick = safeBack,
-                onNextClick = {
-                    navController.navigate(OtherPutawayConfirm) {
-                        launchSingleTop = true
-                    }
-                },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
-            )
-        }
-        composable<OtherPutawayConfirm> { entry ->
-            val listEntry = remember(entry) { navController.getBackStackEntry<OtherPutawayList>() }
-            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            OtherPutawayConfirmScreen(
-                flowViewModel = viewModel<OtherPutawayScanViewModel>(listEntry),
-                listViewModel = viewModel<OtherPutawayListViewModel>(dashboardEntry),
-                onBackClick = safeBack,
-                onComplete = { navController.popBackStack<OtherPutawayList>(false) },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }

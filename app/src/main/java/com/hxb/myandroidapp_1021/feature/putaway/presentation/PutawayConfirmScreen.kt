@@ -12,15 +12,19 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,8 +48,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 @Composable
 fun PutawayConfirmScreen(
@@ -59,12 +64,13 @@ fun PutawayConfirmScreen(
         viewModel.bindOrder(listState.selectedOrder)
     }
     PutawayConfirmContent(
-        isLoading = listState.isLoading || (listState.selectedOrder != null && !uiState.hasOrder),
+        isLoading = listState.selectedOrder != null && !uiState.hasOrder,
         uiState = uiState,
         onScanQueryChange = viewModel::onScanQueryChange,
         onScanClick = viewModel::onScanClick,
         onSelectDetail = viewModel::selectDetail,
         onClearSelectedDetail = viewModel::clearSelectedDetail,
+        onNotificationDismiss = viewModel::onNotificationDismiss,
         onBackClick = onBackClick
     )
 }
@@ -77,7 +83,8 @@ fun PutawayConfirmContent(
     onScanClick: () -> Unit,
     onSelectDetail: (String) -> Unit,
     onClearSelectedDetail: () -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNotificationDismiss: () -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -91,15 +98,16 @@ fun PutawayConfirmContent(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            InputFieldOne(
+            Column(modifier = Modifier.fillMaxSize()) {
+                InputFieldOne(
                 value = uiState.scanQuery,
                 onValueChange = onScanQueryChange,
-                placeholder = "扫描目标货位/物资RFID标签",
+                placeholder = "扫描目标货位 / 物资RFID标签",
                 trailingIcon = {
                     Box(
                         modifier = Modifier
@@ -155,6 +163,13 @@ fun PutawayConfirmContent(
                     }
                 }
             }
+            }
+            ToastNotification(
+                message = uiState.notificationMessage,
+                notificationId = uiState.notificationId,
+                onDismiss = onNotificationDismiss,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 
@@ -167,6 +182,12 @@ fun PutawayConfirmContent(
             onDismiss = onClearSelectedDetail,
             title = "明细详情",
             confirmText = "关闭",
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                top = 8.dp,
+                end = 16.dp,
+                bottom = 16.dp
+            ),
             content = {
                 DetailFields(
                     fields = listOf(
@@ -211,23 +232,45 @@ private fun PutawayDetailCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .offset(y = -lift)
-            .clickable(onClick = onClick),
+            .offset(y = -lift),
         shape = RoundedCornerShape(0.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(if (row.isScanned) 2.dp else 1.dp, borderColor),
         shadowElevation = elevation
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
-            Text(
-                text = detail.description,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = detail.description,
+                    modifier = Modifier.weight(1f),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Button(
+                    onClick = onClick,
+                    modifier = Modifier
+                        .height(28.dp)
+                        .wrapContentWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
+                ) {
+                    Text(
+                        text = "查看详情",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
             DetailLine("RFID", detail.rfid)
             DetailLine("明细状态", detail.status.label)
             DetailLine("仓库", detail.warehouse)
@@ -238,7 +281,7 @@ private fun PutawayDetailCard(
 
 @Composable
 private fun DetailFields(fields: List<DisplayField>) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         fields.forEach { field ->
             DetailLine(field.label, field.value)
         }
@@ -260,7 +303,7 @@ private fun DetailLine(label: String, value: String) {
         Text(
             text = value,
             modifier = Modifier
-                .padding(start = 16.dp)
+                .padding(start = 8.dp)
                 .weight(1f),
             fontSize = 13.sp,
             color = MaterialTheme.colorScheme.onSurface,

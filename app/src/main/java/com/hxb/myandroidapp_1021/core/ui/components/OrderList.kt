@@ -1,9 +1,7 @@
 package com.hxb.myandroidapp_1021.core.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,22 +14,13 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 data class OrderProgress(val label: String, val completed: Int, val total: Int)
 
@@ -216,7 +205,6 @@ fun <T> OrderList(
     header: (@Composable () -> Unit)? = null,
     itemContent: @Composable LazyItemScope.(T) -> Unit
 ) {
-    var isDropdownExpanded by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier,
         state = listState,
@@ -225,67 +213,18 @@ fun <T> OrderList(
     ) {
         if (filterOptions.isNotEmpty()) {
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box {
-                        Row(
-                            modifier = Modifier
-                                .clickable { isDropdownExpanded = true }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = filterOptions[selectedFilterIndex],
-                                fontSize = 14.sp,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Icon(
-                                imageVector = Icons.Default.ArrowDropDown,
-                                contentDescription = "Show filter",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false },
-                            containerColor = MaterialTheme.colorScheme.surface
-                        ) {
-                            filterOptions.forEachIndexed { index, label ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = label,
-                                            fontSize = 14.sp,
-                                            color = if (index == selectedFilterIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    },
-                                    onClick = {
-                                        onFilterChange(index)
-                                        isDropdownExpanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    Text(
-                        text = "共${orders.size}张",
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                OrderFilterRow(
+                    filterOptions = filterOptions,
+                    selectedFilterIndex = selectedFilterIndex,
+                    onFilterChange = onFilterChange,
+                    countText = "共${orders.size}张"
+                )
             }
         }
         if (header != null) {
             item { header() }
         }
-        if (orders.isEmpty()) {
+        if (orders.isEmpty() && emptyText.isNotBlank()) {
             item {
                 Text(
                     text = emptyText,
@@ -297,7 +236,7 @@ fun <T> OrderList(
                         .padding(16.dp)
                 )
             }
-        } else {
+        } else if (orders.isNotEmpty()) {
             items(orders, key = key, itemContent = itemContent)
         }
     }

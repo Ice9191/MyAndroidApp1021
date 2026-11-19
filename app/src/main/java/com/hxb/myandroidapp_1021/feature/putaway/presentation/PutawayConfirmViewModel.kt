@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayDetail
 import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
 import com.hxb.myandroidapp_1021.feature.putaway.domain.repository.PutawayRepository
+import com.hxb.myandroidapp_1021.utils.SimulatedPutaway
 import com.hxb.myandroidapp_1021.utils.SimulatedRfidScan
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,13 +64,47 @@ class PutawayConfirmViewModel @Inject constructor(
     }
 
     /**
-     * 模拟一次扫描：从当前可见明细中随机选一个未扫描 RFID。
+     * 扫描：先处理同一物资全部 RFID 已扫描的明细（模拟上架成功），否则随机扫描一个未扫描 RFID。
      */
     fun onScanClick() {
+        val remaining = SimulatedPutaway.complete(
+            details = details,
+            scannedRfids = scannedRfids,
+            materialKey = ::materialKey
+        )
+        val remainingLines = remaining.map { it.lineNo }.toSet()
+        val completed = details.filterNot { it.lineNo in remainingLines }
+        if (completed.isNotEmpty()) {
+            val completedLineNos = completed.map { it.lineNo }.toSet()
+            details = remaining
+            scannedRfids = scannedRfids - completed.map { it.rfid }.toSet()
+            if (selectedLineNo?.let { it in completedLineNos } == true) selectedLineNo = null
+            _uiState.update {
+                it.copy(
+                    notificationMessage = "上架成功",
+                    notificationId = it.notificationId + 1
+                )
+            }
+            refreshDetails()
+            return
+        }
+
         val candidates = _uiState.value.visibleDetails.map { it.detail.rfid }
         val rfid = SimulatedRfidScan.scan(candidates, scannedRfids) ?: return
         scannedRfids = scannedRfids + rfid
         refreshDetails()
+    }
+
+    /**
+     * ToastNotification 自动消失后清除消息，并递增 id 以便下一次通知重新计时。
+     */
+    fun onNotificationDismiss() {
+        _uiState.update {
+            it.copy(
+                notificationMessage = null,
+                notificationId = it.notificationId + 1
+            )
+        }
     }
 
     fun selectDetail(lineNo: String) {
@@ -117,9 +152,8 @@ class PutawayConfirmViewModel @Inject constructor(
     }
 
     private fun sameMaterial(item: PutawayDetail, detail: PutawayDetail): Boolean =
-        if (detail.itemCode.isNotBlank()) {
-            item.itemCode == detail.itemCode
-        } else {
-            item.description == detail.description
-        }
+        materialKey(item) == materialKey(detail)
+
+    private fun materialKey(detail: PutawayDetail): String =
+        detail.itemCode.ifBlank { detail.description }
 }

@@ -16,10 +16,11 @@ enum class PutawayFilter(val status: PutawayOrderStatus? = null) {
 }
 
 /**
- * 上架列表页的查询、筛选和选中状态。
+ * 上架列表页的查询、筛选、刷新和选中状态。
  */
 data class PutawayListUiState(
-    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val hasLoaded: Boolean = false,
     val orders: List<PutawayOrder> = emptyList(),
     val searchQuery: String = "",
     val selectedFilter: PutawayFilter = PutawayFilter.ALL,

@@ -9,7 +9,9 @@ data class PutawayConfirmUiState(
     val hasOrder: Boolean = false,
     val scanQuery: String = "",
     val visibleDetails: List<PutawayDetailUi> = emptyList(),
-    val selectedDetail: PutawayDetailUi? = null
+    val selectedDetail: PutawayDetailUi? = null,
+    val notificationMessage: String? = null,
+    val notificationId: Int = 0
 )
 
 /**

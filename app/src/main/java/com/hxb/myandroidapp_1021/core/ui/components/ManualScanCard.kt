@@ -18,12 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 /**
  * 单张工具卡片；选中状态由页面持有，组件只上报选择事件并展示选中动画。
@@ -38,7 +40,9 @@ fun ManualScanCard(
     fields: List<DisplayField>,
     selected: Boolean,
     onSelectedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     val textGray = MaterialTheme.colorScheme.onSurfaceVariant
@@ -52,8 +56,8 @@ fun ManualScanCard(
         modifier = modifier
             .fillMaxWidth()
             .offset(y = -lift),
-        shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = shape,
+        color = containerColor,
         border = BorderStroke(
             width = if (selected) 2.dp else 1.dp,
             color = if (selected) themeBlue else MaterialTheme.colorScheme.outlineVariant
@@ -90,7 +94,7 @@ fun ManualScanCard(
                 }
             }
             Text(
-                title,
+                text = title,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

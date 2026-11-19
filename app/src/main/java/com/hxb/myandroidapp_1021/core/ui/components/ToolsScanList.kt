@@ -22,16 +22,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
 /**
  * 展示任意工具类型，字段和读取状态由调用页面映射。
  * 传入 selectedTool 与 onItemClick 时卡片可点击选中，badge 用于展示好坏件等标记。
+ * 状态胶囊默认按读取状态着色；传入 statusContentColor/statusContainerColor 可按业务状态覆盖。
  */
 @SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
@@ -44,9 +47,13 @@ fun <T> ToolsScanList(
     isRead: (T) -> Boolean,
     fields: (T) -> List<DisplayField>,
     modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(12.dp),
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     selectedTool: T? = null,
     onItemClick: ((T) -> Unit)? = null,
-    badge: ((T) -> String?)? = null
+    badge: ((T) -> String?)? = null,
+    statusContentColor: ((T) -> Color?)? = null,
+    statusContainerColor: ((T) -> Color?)? = null
 ) {
     val textGray = MaterialTheme.colorScheme.onSurfaceVariant
     LazyColumn(
@@ -66,8 +73,8 @@ fun <T> ToolsScanList(
                         if (onItemClick != null) Modifier.clickable { onItemClick(tool) }
                         else Modifier
                     ),
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = shape,
+                color = containerColor,
                 border = BorderStroke(
                     width = if (selected) 2.dp else 1.dp,
                     color = if (selected) MaterialTheme.colorScheme.primary
@@ -91,7 +98,8 @@ fun <T> ToolsScanList(
                         )
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (picked) AppColors.ReadBackground else AppColors.UnreadBackground
+                            color = statusContainerColor?.invoke(tool)
+                                ?: if (picked) AppColors.ReadBackground else AppColors.UnreadBackground
                         ) {
                             Text(
                                 text = statusText(tool),
@@ -100,7 +108,8 @@ fun <T> ToolsScanList(
                                     vertical = 2.dp
                                 ),
                                 fontSize = 11.sp,
-                                color = if (picked) AppColors.ReadText else AppColors.UnreadText
+                                color = statusContentColor?.invoke(tool)
+                                    ?: if (picked) AppColors.ReadText else AppColors.UnreadText
                             )
                         }
                     }

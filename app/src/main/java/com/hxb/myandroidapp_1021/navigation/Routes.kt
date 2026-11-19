@@ -36,22 +36,28 @@ data object OtherPickingList
 data object OtherPickingScan
 
 @Serializable
-data object OtherPickingConfirm
-
-@Serializable
 data object OtherPutawayList
 
 @Serializable
 data object OtherPutawayScan
 
 @Serializable
-data object OtherPutawayConfirm
-
-@Serializable
 data object TempBorrow
 
 @Serializable
+data object TempBorrowSearchTools
+
+@Serializable
+data object TempBorrowConfirm
+
+@Serializable
 data object TempReturn
+
+@Serializable
+data object TempReturnSearchTools
+
+@Serializable
+data object TempReturnConfirm
 
 @Serializable
 data object OverdueAlertList

@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 /**
  * 临时借还的单张卡片，样式与工单拣选的列表卡片一致：

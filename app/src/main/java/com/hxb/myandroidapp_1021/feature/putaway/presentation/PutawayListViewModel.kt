@@ -22,17 +22,20 @@ import javax.inject.Inject
 class PutawayListViewModel @Inject constructor(
     private val putawayRepository: PutawayRepository
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(PutawayListUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(PutawayListUiState())
     val uiState: StateFlow<PutawayListUiState> = _uiState.asStateFlow()
 
-    init {
-        loadData()
-    }
-
-    private fun loadData() {
+    /**
+     * 首次进入和下拉刷新都走这里；加载期间保留已有列表，完成后统一替换。
+     */
+    fun refresh() {
+        if (_uiState.value.isRefreshing) return
+        _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             val orders = putawayRepository.loadOrders()
-            _uiState.update { it.copy(isLoading = false, orders = orders) }
+            _uiState.update {
+                it.copy(isRefreshing = false, hasLoaded = true, orders = orders)
+            }
         }
     }
 

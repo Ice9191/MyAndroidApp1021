@@ -30,6 +30,12 @@ object AppColors {
     val UnreadBackground = Color(0xFFF0F2F5)
     val ReadText = Color(0xFF16763C)
     val UnreadText = Color(0xFF596575)
+
+    // 异常明细状态使用柔和的红色、橙色，避免与错误提示的纯红混用。
+    val DamagedText = Color(0xFFC0392B)
+    val DamagedBackground = Color(0xFFFBECEB)
+    val InspectionText = Color(0xFFC0650F)
+    val InspectionBackground = Color(0xFFFDF1E3)
     val Progress = Color(0xFF4B95F5)
     val DisabledContainer = Color(0xFFB0BEC5)
     val Success = Color(0xFF4CAF50)

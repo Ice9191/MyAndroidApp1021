@@ -4,10 +4,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,12 +23,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
+import com.hxb.myandroidapp_1021.core.ui.components.OrderFilterRow
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
+import com.hxb.myandroidapp_1021.core.ui.components.PullToRefresh
 import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
-import com.hxb.myandroidapp_1021.pages.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,6 +45,7 @@ fun PutawayListScreen(
         uiState = uiState,
         onSearchQueryChange = flowViewModel::onSearchQueryChange,
         onFilterChange = flowViewModel::onFilterChange,
+        onRefresh = flowViewModel::refresh,
         onBackClick = onBackClick,
         onStartPutawayClick = { order ->
             if (flowViewModel.selectOrder(order)) onStartPutawayClick()
@@ -54,11 +57,11 @@ fun PutawayListScreen(
 fun PutawayListContent(
     uiState: PutawayListUiState,
     onSearchQueryChange: (String) -> Unit,
+    onRefresh: () -> Unit,
     onBackClick: () -> Unit = {},
     onStartPutawayClick: (PutawayOrder) -> Unit = {},
     onFilterChange: (PutawayFilter) -> Unit = {}
 ) {
-    val themeBlue = MaterialTheme.colorScheme.primary
     val pageBg = MaterialTheme.colorScheme.background
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -100,39 +103,51 @@ fun PutawayListContent(
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-                // === 2. 列表 ===
-                if (uiState.isLoading) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = themeBlue)
-                    }
-                } else OrderList(
-                    orders = uiState.filteredOrders,
-                    listState = listState,
-                    emptyText = if (uiState.searchQuery.isEmpty()) "暂无数据" else "暂无匹配数据",
-                    title = { it.orderNo },
-                    statusText = { it.status.label },
-                    fields = { order ->
-                        listOf(
-                            DisplayField("入库单号", order.inboundOrderNo),
-                            DisplayField(
-                                "仓库",
-                                order.details.map { it.warehouse }.distinct().joinToString("、")
-                            ),
-                            DisplayField("上架人", order.operator.ifBlank { "-" }),
-                            DisplayField("上架时间", order.putawayTime.ifBlank { "-" })
-                        )
-                    },
-                    progress = { OrderProgress("上架进度", it.completedCount, it.details.size) },
-                    actionText = "开始上架",
-                    onActionClick = onStartPutawayClick,
-                    modifier = Modifier.fillMaxSize(),
+
+                // === 2. 状态筛选和数量，列表未加载时显示共0张 ===
+                OrderFilterRow(
                     filterOptions = PutawayFilter.entries.map { it.label },
                     selectedFilterIndex = uiState.selectedFilter.ordinal,
-                    onFilterChange = { onFilterChange(PutawayFilter.entries[it]) }
+                    onFilterChange = { onFilterChange(PutawayFilter.entries[it]) },
+                    countText = "共${uiState.filteredOrders.size}张"
                 )
+
+                // === 3. 下拉刷新 + 列表：刷新头部作为列表 header，列表数据跟随头部移动 ===
+                PullToRefresh(
+                    isRefreshing = uiState.isRefreshing,
+                    hasLoaded = uiState.hasLoaded,
+                    onRefresh = onRefresh,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) { refreshHeader ->
+                    OrderList(
+                        orders = if (uiState.hasLoaded) uiState.filteredOrders else emptyList(),
+                        listState = listState,
+                        emptyText = "",
+                        title = { it.orderNo },
+                        statusText = { it.status.label },
+                        fields = { order ->
+                            listOf(
+                                DisplayField("入库单号", order.inboundOrderNo),
+                                DisplayField(
+                                    "仓库",
+                                    order.details.map { it.warehouse }.distinct().joinToString("、")
+                                ),
+                                DisplayField("上架人", order.operator.ifBlank { "-" }),
+                                DisplayField("上架时间", order.putawayTime.ifBlank { "-" })
+                            )
+                        },
+                        header = refreshHeader,
+                        progress = { OrderProgress("上架进度", it.completedCount, it.details.size) },
+                        actionText = "开始上架",
+                        onActionClick = onStartPutawayClick,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
 
-            // === 3. 右下角悬浮按钮：回到顶部 ===
+            // === 4. 右下角悬浮按钮：回到顶部 ===
             ScrollToTopButton(
                 visible = showScrollToTopButton,
                 onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } },

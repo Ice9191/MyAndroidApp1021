@@ -201,6 +201,72 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
                     warehouse = "中心工具库"
                 )
             )
+        ),
+        PutawayOrder(
+            inboundOrderNo = "RK20261111006",
+            orderNo = "SJ20261111006",
+            status = PutawayOrderStatus.PENDING,
+            operator = "",
+            putawayTime = "",
+            details = listOf(
+                PutawayDetail(
+                    orderNo = "SJ20261111006",
+                    inboundLineNo = "1",
+                    lineNo = "1",
+                    status = PutawayDetailStatus.PENDING,
+                    batchNo = "PC009",
+                    rfid = "E280 0013",
+                    itemCode = "GJ-010",
+                    description = "万用表笔",
+                    unit = "件",
+                    warehouse = "电气工具库"
+                ),
+                PutawayDetail(
+                    orderNo = "SJ20261111006",
+                    inboundLineNo = "2",
+                    lineNo = "2",
+                    status = PutawayDetailStatus.PENDING,
+                    batchNo = "PC009",
+                    rfid = "E280 0014",
+                    itemCode = "GJ-011",
+                    description = "尖嘴钳",
+                    unit = "件",
+                    warehouse = "电气工具库"
+                )
+            )
+        ),
+        PutawayOrder(
+            inboundOrderNo = "RK20261111007",
+            orderNo = "SJ20261111007",
+            status = PutawayOrderStatus.COMPLETED,
+            operator = "赵敏",
+            putawayTime = "2026-11-11 11:10",
+            details = listOf(
+                PutawayDetail(
+                    orderNo = "SJ20261111007",
+                    inboundLineNo = "1",
+                    lineNo = "1",
+                    status = PutawayDetailStatus.COMPLETED,
+                    batchNo = "PC010",
+                    rfid = "E280 0015",
+                    itemCode = "GJ-012",
+                    description = "内六角扳手",
+                    unit = "件",
+                    warehouse = "中心工具库"
+                ),
+                PutawayDetail(
+                    orderNo = "SJ20261111007",
+                    inboundLineNo = "2",
+                    lineNo = "2",
+                    status = PutawayDetailStatus.COMPLETED,
+                    batchNo = "PC010",
+                    rfid = "E280 0016",
+                    itemCode = "GJ-013",
+                    description = "活动扳手",
+                    unit = "件",
+                    warehouse = "中心工具库"
+                )
+            )
         )
     )
     private val mockOperator = "材料员"

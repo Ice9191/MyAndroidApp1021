@@ -103,6 +103,7 @@ fun StockDetailListScreen(
     if (uiState.showFilters) {
         StockDetailFormFilter(
             filter = uiState.draftFilter,
+            categoryOptions = uiState.categoryOptions,
             error = uiState.filterError,
             onChange = viewModel::onFilterChange,
             onReset = viewModel::resetFilters,

@@ -45,13 +45,15 @@ enum class ToolCondition(val label: String) {
 
 /**
  * 前端筛选条件，日期输入格式为 yyyy-MM-dd；接口日期字段及格式待确认。
- * 筛选值为 null 表示“全部”。
+ * status、condition、category 为 null 表示“全部”，其余文本条件为空表示“不限”。
  */
 data class StockDetailFilterState(
     val status: InventoryStatus? = null,
     val condition: ToolCondition? = null,
     val warehouse: String = "",
     val location: String = "",
+    val category: String? = null,
+    val specification: String = "",
     val startDate: String = "",
     val endDate: String = ""
 )

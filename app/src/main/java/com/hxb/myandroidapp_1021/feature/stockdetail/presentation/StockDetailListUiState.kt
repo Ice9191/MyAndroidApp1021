@@ -33,9 +33,18 @@ data class StockDetailListUiState(
                     (filter.condition == null || record.condition == filter.condition.label) &&
                     record.warehouse.contains(filter.warehouse.trim(), true) &&
                     record.location.orEmpty().contains(filter.location.trim(), true) &&
+                    (filter.category == null || record.category == filter.category) &&
+                    record.specification.orEmpty().contains(filter.specification.trim(), true) &&
                     (filter.startDate.isBlank() || record.nextInspectionDate?.let { it >= filter.startDate } == true) &&
                     (filter.endDate.isBlank() || record.nextInspectionDate?.let { it <= filter.endDate } == true)
         }
+
+    /**
+     * 物资分类下拉选项：当前从已加载记录去重提取。
+     * TODO: 字段未确定：接入后端分页后应从完整分类数据获取，避免下拉框只包含当前页出现过的分类。
+     */
+    val categoryOptions: List<String>
+        get() = records.mapNotNull { it.category?.takeIf { category -> category.isNotBlank() } }.distinct()
 
     val selectedRecord: StockDetail? get() = records.find { it.rfid == selectedRfid }
     val conditionRecord: StockDetail? get() = records.find { it.rfid == conditionRfid }

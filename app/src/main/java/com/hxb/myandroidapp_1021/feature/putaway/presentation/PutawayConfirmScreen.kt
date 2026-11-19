@@ -56,7 +56,8 @@ import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 fun PutawayConfirmScreen(
     flowViewModel: PutawayListViewModel,
     viewModel: PutawayConfirmViewModel = hiltViewModel(),
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onHomeClick: () -> Unit = {}
 ) {
     val listState by flowViewModel.uiState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -71,7 +72,8 @@ fun PutawayConfirmScreen(
         onSelectDetail = viewModel::selectDetail,
         onClearSelectedDetail = viewModel::clearSelectedDetail,
         onNotificationDismiss = viewModel::onNotificationDismiss,
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        onHomeClick = onHomeClick
     )
 }
 
@@ -84,6 +86,7 @@ fun PutawayConfirmContent(
     onSelectDetail: (String) -> Unit,
     onClearSelectedDetail: () -> Unit,
     onBackClick: () -> Unit,
+    onHomeClick: () -> Unit = {},
     onNotificationDismiss: () -> Unit = {}
 ) {
     val focusManager = LocalFocusManager.current
@@ -94,7 +97,8 @@ fun PutawayConfirmContent(
         topBar = {
             TopAppBar(
                 title = "工器具上架",
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                onHomeClick = onHomeClick
             )
         }
     ) { paddingValues ->

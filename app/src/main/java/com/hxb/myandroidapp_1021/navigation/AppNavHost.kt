@@ -110,9 +110,6 @@ fun AppNavHost() {
                         launchSingleTop = true
                     }
                 },
-                onSettingsClick = {
-                    navController.navigate(ServerConfig) { launchSingleTop = true }
-                },
                 onMenuClick = { route ->
                     navController.navigate(route) { launchSingleTop = true }
                 }
@@ -168,7 +165,8 @@ fun AppNavHost() {
             val listEntry = remember(entry) { navController.getBackStackEntry<PutawayList>() }
             PutawayConfirmScreen(
                 flowViewModel = hiltViewModel<PutawayListViewModel>(listEntry),
-                onBackClick = safeBack
+                onBackClick = safeBack,
+                onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
         // 借出
@@ -189,11 +187,6 @@ fun AppNavHost() {
                 flowViewModel = hiltViewModel<PickingListViewModel>(listEntry),
                 onBackClick = safeBack,
                 onSubmittedClick = { navController.popBackStack<PickingList>(false) },
-                onSettingsClick = {
-                    navController.navigate(ServerConfig) {
-                        launchSingleTop = true
-                    }
-                },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -214,11 +207,6 @@ fun AppNavHost() {
                 viewModel = hiltViewModel<ReturnScanViewModel>(listEntry),
                 flowViewModel = hiltViewModel<ReturnListViewModel>(listEntry),
                 onBackClick = safeBack,
-                onSettingsClick = {
-                    navController.navigate(ServerConfig) {
-                        launchSingleTop = true
-                    }
-                },
                 onHomeClick = { navController.popBackStack<Dashboard>(false) }
             )
         }
@@ -229,11 +217,6 @@ fun AppNavHost() {
             TempBorrowScreen(
                 viewModel = borrowViewModel,
                 onBackClick = safeBack,
-                onHomeClick = {
-                    // 从首页再进入时始终回到列表页，不在路由里自动打开表单。
-                    borrowViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
-                },
                 onSearchToolsClick = {
                     borrowViewModel.onToolQueryChange("")
                     navController.navigate(TempBorrowSearchTools) {
@@ -283,10 +266,6 @@ fun AppNavHost() {
             TempReturnScreen(
                 viewModel = returnViewModel,
                 onBackClick = safeBack,
-                onHomeClick = {
-                    returnViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
-                },
                 onSearchToolsClick = {
                     returnViewModel.onToolQueryChange("")
                     navController.navigate(TempReturnSearchTools) {

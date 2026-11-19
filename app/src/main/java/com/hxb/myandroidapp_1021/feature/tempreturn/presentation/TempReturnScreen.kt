@@ -36,7 +36,6 @@ import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 fun TempReturnScreen(
     viewModel: TempReturnViewModel,
     onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
     onSearchToolsClick: () -> Unit,
     onSelectOrder: (String) -> Unit
 ) {
@@ -48,7 +47,6 @@ fun TempReturnScreen(
     TempReturnContent(
         state = state,
         onBackClick = back,
-        onHomeClick = onHomeClick,
         onNewOrder = viewModel::startNewOrder,
         onSelectOrder = onSelectOrder,
         onQueryChange = viewModel::onQueryChange,
@@ -68,7 +66,6 @@ fun TempReturnScreen(
 fun TempReturnContent(
     state: TempReturnUiState,
     onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
     onNewOrder: () -> Unit,
     onSelectOrder: (String) -> Unit,
     onQueryChange: (String) -> Unit,
@@ -90,7 +87,7 @@ fun TempReturnContent(
         topBar = {
             TopAppBar(
                 title = "临时归还",
-                onBackClick = onBackClick, onHomeClick = onHomeClick
+                onBackClick = onBackClick
             )
         },
         bottomBar = {

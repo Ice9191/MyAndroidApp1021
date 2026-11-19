@@ -47,7 +47,6 @@ fun PickingScanScreen(
     flowViewModel: PickingListViewModel,
     onBackClick: () -> Unit = {},
     onSubmittedClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -67,7 +66,6 @@ fun PickingScanScreen(
             onManualClick = { showManual = true },
             onBackClick = onBackClick,
             onConfirmClick = viewModel::openConfirmDrawer,
-            onSettingsClick = onSettingsClick,
             onHomeClick = onHomeClick
         )
     }
@@ -103,7 +101,6 @@ fun PickingScanContent(
     onManualClick: () -> Unit,
     onBackClick: () -> Unit = {},
     onConfirmClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val bgColor = MaterialTheme.colorScheme.background
@@ -158,8 +155,7 @@ fun PickingScanContent(
             TopAppBar(
                 title = "工单拣选",
                 onBackClick = onBackClick,
-                onHomeClick = onHomeClick,
-                onConfigClick = onSettingsClick
+                onHomeClick = onHomeClick
             )
         }
     ) { paddingValues ->

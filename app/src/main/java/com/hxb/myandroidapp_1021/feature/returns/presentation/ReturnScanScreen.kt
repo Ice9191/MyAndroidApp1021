@@ -54,7 +54,6 @@ fun ReturnScanScreen(
     viewModel: ReturnScanViewModel,
     flowViewModel: ReturnListViewModel,
     onBackClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -75,7 +74,6 @@ fun ReturnScanScreen(
             onToolClick = viewModel::selectTool,
             onNotificationDismiss = viewModel::onNotificationDismiss,
             onBackClick = onBackClick,
-            onSettingsClick = onSettingsClick,
             onHomeClick = onHomeClick
         )
     }
@@ -136,7 +134,6 @@ fun ReturnScanContent(
     onToolClick: (Int) -> Unit,
     onNotificationDismiss: () -> Unit = {},
     onBackClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onHomeClick: () -> Unit = {}
 ) {
     val bgColor = MaterialTheme.colorScheme.background
@@ -189,8 +186,7 @@ fun ReturnScanContent(
             TopAppBar(
                 title = "工单归还上架",
                 onBackClick = onBackClick,
-                onHomeClick = onHomeClick,
-                onConfigClick = onSettingsClick
+                onHomeClick = onHomeClick
             )
         }
     ) { paddingValues ->

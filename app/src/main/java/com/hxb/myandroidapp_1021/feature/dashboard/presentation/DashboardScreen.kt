@@ -41,7 +41,6 @@ import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 fun DashboardScreen(
     viewModel: DashboardViewModel = hiltViewModel(),
     onLogoutClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,7 +48,6 @@ fun DashboardScreen(
     DashboardContent(
         uiState = uiState,
         onLogoutClick = { viewModel.onLogout(onLogoutClick) },
-        onSettingsClick = onSettingsClick,
         onMenuClick = onMenuClick
     )
 }
@@ -58,7 +56,6 @@ fun DashboardScreen(
 fun DashboardContent(
     uiState: DashboardUiState,
     onLogoutClick: () -> Unit = {},
-    onSettingsClick: () -> Unit = {},
     onMenuClick: (Any) -> Unit = {}
 ) {
     val user = uiState.user
@@ -76,7 +73,6 @@ fun DashboardContent(
         topBar = {
             TopAppBar(
                 title = "",
-                onConfigClick = onSettingsClick,
                 onLogoutClick = onLogoutClick
             )
         }

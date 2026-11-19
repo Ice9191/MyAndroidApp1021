@@ -36,7 +36,6 @@ import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 fun TempBorrowScreen(
     viewModel: TempBorrowViewModel,
     onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
     onSearchToolsClick: () -> Unit,
     onSelectOrder: (String) -> Unit
 ) {
@@ -48,7 +47,6 @@ fun TempBorrowScreen(
     TempBorrowContent(
         state = state,
         onBackClick = back,
-        onHomeClick = onHomeClick,
         onNewOrder = viewModel::startNewOrder,
         onSelectOrder = onSelectOrder,
         onQueryChange = viewModel::onQueryChange,
@@ -69,7 +67,6 @@ fun TempBorrowScreen(
 fun TempBorrowContent(
     state: TempBorrowUiState,
     onBackClick: () -> Unit,
-    onHomeClick: () -> Unit,
     onNewOrder: () -> Unit,
     onSelectOrder: (String) -> Unit,
     onQueryChange: (String) -> Unit,
@@ -92,7 +89,7 @@ fun TempBorrowContent(
         topBar = {
             TopAppBar(
                 title = "临时借出",
-                onBackClick = onBackClick, onHomeClick = onHomeClick
+                onBackClick = onBackClick
             )
         },
         bottomBar = {

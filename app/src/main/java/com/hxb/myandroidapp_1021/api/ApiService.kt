@@ -22,7 +22,7 @@ interface ApiService {
      */
     @GET("question/list")
     suspend fun getQuestionList(
-        @Query("type") type: String,
+        @Query("type") type: Int,
         @Query("page") page: Int,
         @Query("pageSize") pageSize: Int,
         @Query("questionBankType") questionBankType: String?

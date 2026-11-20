@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 object HttpClient {
     // 基础地址
-    private const val BASE_URL = "https://api.example.com/"
+    private const val BASE_URL = "https://api-harmony-teach.itheima.net/hm/"
 
     // 全局存储token，token是登录后保存的凭证，每次请求都要携带上
     var token = ""
@@ -64,6 +64,6 @@ object HttpClient {
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
 
-    // 让Retrofit自动实现ApiService接口中的所有方法，最后使用apiService调用
+    // 让Retrofit自动实现ApiService接口中的  所有方法，最后使用apiService调用
     val apiService: ApiService = retrofit.create(ApiService::class.java)
 }

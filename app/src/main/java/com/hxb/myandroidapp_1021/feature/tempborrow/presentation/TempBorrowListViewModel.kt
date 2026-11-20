@@ -18,11 +18,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TempBorrowViewModel @Inject constructor(
+class TempBorrowListViewModel @Inject constructor(
     private val repository: TempBorrowRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TempBorrowUiState())
+    private val _uiState = MutableStateFlow(TempBorrowListUiState())
     val uiState = _uiState.asStateFlow()
 
     private var inventoryLocations: Map<String, String> = emptyMap()
@@ -271,6 +271,7 @@ class TempBorrowViewModel @Inject constructor(
     fun syncPicking(tasks: List<OtherPickingOrder>) {
         val orderNos = _uiState.value.orders.map { it.orderNo }.toSet()
         val pickedRfids = tasks
+            .asSequence()
             .filter { it.upstreamType == SourceType.TEMPORARY && it.upstreamNo in orderNos }
             .flatMap { it.details }
             .filter { it.status == PickingDetailStatus.PICKED }

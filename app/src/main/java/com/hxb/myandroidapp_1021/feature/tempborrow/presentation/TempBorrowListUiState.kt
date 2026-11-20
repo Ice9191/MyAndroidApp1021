@@ -18,7 +18,7 @@ enum class TempBorrowQueryField(val label: String) {
 /**
  * 临时借出页面状态：列表、新建表单与检索工器具页共用，页面只读取并通过事件回调修改。
  */
-data class TempBorrowUiState(
+data class TempBorrowListUiState(
     val orders: List<TempBorrowOrder> = emptyList(),
     val inventory: List<TempBorrowInventoryItem> = emptyList(),
     val selectedOrderNo: String? = null,

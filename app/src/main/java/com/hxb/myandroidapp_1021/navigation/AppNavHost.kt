@@ -43,13 +43,12 @@ import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanScreen
 import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.feature.serverconfig.presentation.ServerConfigScreen
 import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowConfirmScreen
-import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowScreen
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowListScreen
 import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowSearchToolsScreen
-import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowViewModel
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowListViewModel
 import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnConfirmScreen
-import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnScreen
-import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnSearchToolsScreen
-import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnViewModel
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnListScreen
+import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnListViewModel
 import com.hxb.myandroidapp_1021.feature.stockdetail.presentation.StockDetailListScreen
 
 @Composable
@@ -213,8 +212,8 @@ fun AppNavHost() {
         // 临时借还与其他作业共享首页作用域的任务列表，返回首页保留进度，退出登录后随首页销毁。
         composable<TempBorrow> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
-            TempBorrowScreen(
+            val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
+            TempBorrowListScreen(
                 viewModel = borrowViewModel,
                 onBackClick = safeBack,
                 onSearchToolsClick = {
@@ -233,7 +232,7 @@ fun AppNavHost() {
         }
         composable<TempBorrowSearchTools> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             TempBorrowSearchToolsScreen(
                 viewModel = borrowViewModel,
                 onBackClick = safeBack,
@@ -245,7 +244,7 @@ fun AppNavHost() {
         }
         composable<TempBorrowConfirm> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             TempBorrowConfirmScreen(
                 flowViewModel = borrowViewModel,
                 onBackClick = safeBack,
@@ -257,21 +256,10 @@ fun AppNavHost() {
         }
         composable<TempReturn> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
-            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
-            val borrowState by borrowViewModel.uiState.collectAsStateWithLifecycle()
-            LaunchedEffect(borrowState.orders) {
-                returnViewModel.syncBorrowedTools(borrowState.orders)
-            }
-            TempReturnScreen(
+            val returnViewModel = hiltViewModel<TempReturnListViewModel>(dashboardEntry)
+            TempReturnListScreen(
                 viewModel = returnViewModel,
                 onBackClick = safeBack,
-                onSearchToolsClick = {
-                    returnViewModel.onToolQueryChange("")
-                    navController.navigate(TempReturnSearchTools) {
-                        launchSingleTop = true
-                    }
-                },
                 onSelectOrder = { orderNo ->
                     returnViewModel.selectOrder(orderNo)
                     navController.navigate(TempReturnConfirm) {
@@ -280,21 +268,9 @@ fun AppNavHost() {
                 }
             )
         }
-        composable<TempReturnSearchTools> { entry ->
-            val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
-            TempReturnSearchToolsScreen(
-                viewModel = returnViewModel,
-                onBackClick = safeBack,
-                onHomeClick = {
-                    returnViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
-                }
-            )
-        }
         composable<TempReturnConfirm> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
-            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
+            val returnViewModel = hiltViewModel<TempReturnListViewModel>(dashboardEntry)
             TempReturnConfirmScreen(
                 flowViewModel = returnViewModel,
                 onBackClick = safeBack,
@@ -308,7 +284,7 @@ fun AppNavHost() {
         composable<OtherPickingList> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
             val listViewModel = hiltViewModel<OtherPickingListViewModel>(entry)
-            val borrowViewModel = hiltViewModel<TempBorrowViewModel>(dashboardEntry)
+            val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(Unit) {
                 borrowViewModel.pickingTasks().forEach(listViewModel::upsertTemporaryOrder)
@@ -338,7 +314,7 @@ fun AppNavHost() {
         composable<OtherPutawayList> { entry ->
             val dashboardEntry = remember(entry) { navController.getBackStackEntry<Dashboard>() }
             val listViewModel = hiltViewModel<OtherPutawayListViewModel>(entry)
-            val returnViewModel = hiltViewModel<TempReturnViewModel>(dashboardEntry)
+            val returnViewModel = hiltViewModel<TempReturnListViewModel>(dashboardEntry)
             val taskState by listViewModel.uiState.collectAsStateWithLifecycle()
             LaunchedEffect(Unit) {
                 returnViewModel.putawayTasks().forEach(listViewModel::upsertTemporaryOrder)

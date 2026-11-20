@@ -4,8 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -17,20 +20,20 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.feature.tempreturn.domain.model.TempReturnDetailStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 /**
- * 临时归还的单据确认页：展示单据与全部明细，逐条确认归还后更新明细和单据状态。
+ * 临时归还的单据确认页：展示单据与全部明细，登记归还信息后逐条确认归还。
  */
 @Composable
 fun TempReturnConfirmScreen(
-    flowViewModel: TempReturnViewModel,
+    flowViewModel: TempReturnListViewModel,
     viewModel: TempReturnConfirmViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit
@@ -44,11 +47,27 @@ fun TempReturnConfirmScreen(
         state = state,
         onBackClick = onBackClick,
         onHomeClick = onHomeClick,
+        onOpenInfoDialog = viewModel::openInfoDialog,
         onConfirmLine = { lineNo ->
             viewModel.confirmLine(lineNo, flowViewModel::updateOrder)
         },
         onNotificationDismiss = viewModel::dismissNotification
     )
+    if (state.infoDialogVisible) {
+        TempReturnInfoDialog(
+            returner = state.draftReturner,
+            workOrderNo = state.draftWorkOrderNo,
+            returnLocation = state.draftReturnLocation,
+            remark = state.draftRemark,
+            error = state.infoError,
+            onReturnerChange = viewModel::onDraftReturnerChange,
+            onWorkOrderNoChange = viewModel::onDraftWorkOrderNoChange,
+            onReturnLocationChange = viewModel::onDraftReturnLocationChange,
+            onRemarkChange = viewModel::onDraftRemarkChange,
+            onConfirm = viewModel::confirmInfo,
+            onDismiss = viewModel::dismissInfoDialog
+        )
+    }
 }
 
 @Composable
@@ -56,6 +75,7 @@ fun TempReturnConfirmContent(
     state: TempReturnConfirmUiState,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
+    onOpenInfoDialog: () -> Unit,
     onConfirmLine: (Int) -> Unit,
     onNotificationDismiss: () -> Unit
 ) {
@@ -95,27 +115,45 @@ fun TempReturnConfirmContent(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         key = { it.lineNo },
                         header = {
-                            TempListCard(
-                                title = order.orderNo,
-                                status = order.status.label,
-                                fields = listOf(
-                                    DisplayField("工单号", order.workOrderNo.ifBlank { "-" }),
-                                    DisplayField("归还人", order.returner.ifBlank { "-" }),
-                                    DisplayField(
-                                        "归还库位",
-                                        order.returnLocation.ifBlank { "-" }
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TempListCard(
+                                    title = order.orderNo,
+                                    status = order.status.label,
+                                    fields = listOf(
+                                        DisplayField(
+                                            "来源借出单号",
+                                            order.borrowOrderNo.ifBlank { "-" }
+                                        ),
+                                        DisplayField("工单号", state.workOrderNo.ifBlank { "-" }),
+                                        DisplayField("车间", order.workshop.ifBlank { "-" }),
+                                        DisplayField("工班", order.workGroup.ifBlank { "-" }),
+                                        DisplayField("借用人", order.borrower.ifBlank { "-" }),
+                                        DisplayField("归还人", state.returner.ifBlank { "-" }),
+                                        DisplayField(
+                                            "归还库位",
+                                            state.returnLocation.ifBlank { "-" }
+                                        ),
+                                        DisplayField("归还时间", order.returnTime.ifBlank { "-" }),
+                                        DisplayField("备注", state.remark.ifBlank { "-" }),
+                                        DisplayField("创建人", order.createdBy),
+                                        DisplayField("创建时间", order.createdAt)
                                     ),
-                                    DisplayField("归还时间", order.returnTime.ifBlank { "-" }),
-                                    DisplayField("备注", order.remark.ifBlank { "-" }),
-                                    DisplayField("创建人", order.createdBy),
-                                    DisplayField("创建时间", order.createdAt)
-                                ),
-                                progress = OrderProgress(
-                                    "归还进度",
-                                    order.returnedCount,
-                                    order.totalCount
+                                    progress = OrderProgress(
+                                        "归还进度",
+                                        order.returnedCount,
+                                        order.totalCount
+                                    )
                                 )
-                            )
+                                Button(
+                                    onClick = onOpenInfoDialog,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text("登记归还信息")
+                                }
+                            }
                         }
                     ) { line ->
                         TempListCard(

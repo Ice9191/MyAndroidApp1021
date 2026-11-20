@@ -22,20 +22,19 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
-import com.hxb.myandroidapp_1021.core.ui.components.QueryDialog
 import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 @Composable
-fun TempBorrowScreen(
-    viewModel: TempBorrowViewModel,
+fun TempBorrowListScreen(
+    viewModel: TempBorrowListViewModel,
     onBackClick: () -> Unit,
     onSearchToolsClick: () -> Unit,
     onSelectOrder: (String) -> Unit
@@ -45,7 +44,7 @@ fun TempBorrowScreen(
         if (state.editing) viewModel.showList() else onBackClick()
     }
     BackHandler(state.editing, back)
-    TempBorrowContent(
+    TempBorrowListContent(
         state = state,
         onBackClick = back,
         onNewOrder = viewModel::startNewOrder,
@@ -69,8 +68,8 @@ fun TempBorrowScreen(
 }
 
 @Composable
-fun TempBorrowContent(
-    state: TempBorrowUiState,
+fun TempBorrowListContent(
+    state: TempBorrowListUiState,
     onBackClick: () -> Unit,
     onNewOrder: () -> Unit,
     onSelectOrder: (String) -> Unit,

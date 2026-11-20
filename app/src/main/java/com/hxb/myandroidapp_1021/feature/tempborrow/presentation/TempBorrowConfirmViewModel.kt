@@ -5,11 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowConfirmRequest
 import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowDetailStatus
 import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowOrder
+import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowStatus
 import com.hxb.myandroidapp_1021.feature.tempborrow.domain.repository.TempBorrowRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +24,6 @@ class TempBorrowConfirmViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(TempBorrowConfirmUiState())
     val uiState = _uiState.asStateFlow()
-
-    private val mockOperator = "演示材料员"
 
     /**
      * 绑定列表页当前选中的单据；换单时清空提交与提示状态，同一单据刷新时保留提示。
@@ -59,21 +55,23 @@ class TempBorrowConfirmViewModel @Inject constructor(
         } ?: return
         _uiState.update { it.copy(isSubmitting = true) }
         viewModelScope.launch {
-            val success = repository.submitBorrow(
+            val updated = repository.submitBorrow(
                 TempBorrowConfirmRequest(orderNo = order.orderNo, lineNo = line.lineNo, rfid = line.rfid)
             )
-            if (!success) {
+            if (updated == null) {
                 _uiState.update { it.copy(isSubmitting = false) }
                 notify("确认借出失败，请重试")
                 return@launch
             }
-            val currentOrder = _uiState.value.order ?: return@launch
-            val updated = currentOrder.markBorrowed(lineNo, mockOperator, now())
             _uiState.update {
                 it.copy(
                     order = updated,
                     isSubmitting = false,
-                    notificationMessage = "已确认借出，可在临时归还中查看待还记录",
+                    notificationMessage = if (updated.status == TempBorrowStatus.BORROWED) {
+                        "已确认借出，已自动生成临时归还单"
+                    } else {
+                        "已确认借出"
+                    },
                     notificationId = it.notificationId + 1
                 )
             }
@@ -93,6 +91,4 @@ class TempBorrowConfirmViewModel @Inject constructor(
         }
     }
 
-    private fun now(): String =
-        SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
 }

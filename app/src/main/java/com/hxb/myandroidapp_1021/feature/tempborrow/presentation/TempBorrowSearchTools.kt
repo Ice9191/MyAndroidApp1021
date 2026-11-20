@@ -12,18 +12,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 /**
  * 临时借出的器具检索页：只有输入关键字后才展示可添加的库存器具，添加结果保存在共享页面状态中。
  */
 @Composable
 fun TempBorrowSearchToolsScreen(
-    viewModel: TempBorrowViewModel,
+    viewModel: TempBorrowListViewModel,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit
 ) {
@@ -39,7 +39,7 @@ fun TempBorrowSearchToolsScreen(
 
 @Composable
 fun TempBorrowSearchToolsContent(
-    state: TempBorrowUiState,
+    state: TempBorrowListUiState,
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit,
     onToolQueryChange: (String) -> Unit,

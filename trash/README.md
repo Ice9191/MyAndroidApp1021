@@ -23,3 +23,4 @@
 - `pages/returns/`：工单归还上架的独立确认页 `ReturnConfirmScreen.kt`、`ReturnConfirmViewModel.kt`，原位置 `../app/src/main/java/com/hxb/myandroidapp_1021/feature/returns/`；已改为扫描页内单条上架抽屉，路由 `ReturnConfirm` 一并删除。
 - `pages/picking/`：工单拣选的独立确认页 `PickingConfirmScreen.kt`、`PickingConfirmViewModel.kt`，原位置 `../app/src/main/java/com/hxb/myandroidapp_1021/feature/picking/`；本批次确认已改为扫描页内的抽屉，路由 `PickingConfirm` 一并删除。
 - `components/TempComponents.kt`：临时借还的共用消息提示已内联到借出/归还页面，`TempTool.fields()` 已迁入 `ui/temp/Model.kt`；原位置为源码根目录下的 `components/TempComponents.kt`。卡片外观由 `components/TempListCard.kt` 保留使用。
+- `feature/tempreturn/presentation/TempReturnSearchTools.kt`：停用的“检索待还器具”页，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/feature/tempreturn/presentation/`；归还单改为临时借出确认到最后一件时自动生成，待还器具直接展示在归还单确认页，路由 `TempReturnSearchTools` 一并删除。

@@ -15,13 +15,17 @@ enum class TempReturnDetailStatus(val label: String) {
 }
 
 /**
- * 临时归还单，details 对应“包含”关系中的临时归还明细数组。
+ * 临时归还单，由临时借出单全部明细确认借出后自动生成，数据带入来源借出单的车间、工班、借用人与器具明细。
  * returnTime 在确认归还时记录为最近一次操作时间，具体口径待后端确认。
  */
 data class TempReturnOrder(
     val orderNo: String,
+    val borrowOrderNo: String = "",
     val status: TempReturnStatus = TempReturnStatus.PENDING,
     val workOrderNo: String = "",
+    val workshop: String = "",
+    val workGroup: String = "",
+    val borrower: String = "",
     val returner: String = "",
     val returnTime: String = "",
     val returnLocation: String = "",
@@ -91,6 +95,7 @@ data class TempReturnDetail(
 
 /**
  * 确认单件归还时提交的登记字段；归还库位对应归还单的“归还库位”。
+ * TODO: 字段未确定：接口字段名需后端确认。
  */
 data class TempReturnConfirmRequest(
     val orderNo: String,
@@ -100,40 +105,4 @@ data class TempReturnConfirmRequest(
     val workOrderNo: String,
     val returnLocation: String,
     val remark: String
-)
-
-/**
- * 新建归还单时从待还器具带入的明细字段。
- * TODO: 字段未确定：接口字段名需后端确认。
- */
-data class TempReturnCreateDetail(
-    val rfid: String,
-    val itemCode: String,
-    val description: String,
-    val unit: String
-)
-
-/**
- * 新建归还单请求；明细由检索待还器具后选中的器具生成。
- */
-data class TempReturnCreateRequest(
-    val returner: String,
-    val workOrderNo: String,
-    val returnLocation: String,
-    val remark: String,
-    val details: List<TempReturnCreateDetail>
-)
-
-/**
- * 可检索的待还器具；来源于临时借出已确认的明细，仅用于展示和生成归还明细，不单独持久化。
- * TODO: 字段未确定：接口字段名需后端确认。
- */
-data class TempReturnPendingTool(
-    val borrowOrderNo: String,
-    val workOrderNo: String,
-    val borrower: String,
-    val rfid: String,
-    val itemCode: String,
-    val description: String,
-    val unit: String
 )

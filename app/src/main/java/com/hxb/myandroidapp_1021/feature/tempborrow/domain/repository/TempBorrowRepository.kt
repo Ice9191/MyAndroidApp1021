@@ -15,7 +15,11 @@ interface TempBorrowRepository {
      */
     suspend fun createOrder(request: TempBorrowCreateRequest): TempBorrowOrder
 
-    suspend fun submitBorrow(request: TempBorrowConfirmRequest): Boolean
+    /**
+     * 确认单件借出并保存整单；最后一条明细确认后同一事务生成对应归还单，返回更新后的借出单。
+     * 找不到单据时返回 null。
+     */
+    suspend fun submitBorrow(request: TempBorrowConfirmRequest): TempBorrowOrder?
 
     /**
      * 借出信息中可选的基础档案候选项；正式数据由后端基础档案接口提供。

@@ -30,7 +30,7 @@ import com.hxb.myandroidapp_1021.commonmodel.DisplayField
  */
 @Composable
 fun TempBorrowConfirmScreen(
-    flowViewModel: TempBorrowViewModel,
+    flowViewModel: TempBorrowListViewModel,
     viewModel: TempBorrowConfirmViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
     onHomeClick: () -> Unit

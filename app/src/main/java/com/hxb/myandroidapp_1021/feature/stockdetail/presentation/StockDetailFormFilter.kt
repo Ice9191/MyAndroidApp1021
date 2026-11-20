@@ -102,7 +102,7 @@ fun StockDetailFormFilter(
         InputFieldOne(
             value = filter.location,
             onValueChange = { onChange(filter.copy(location = it)) },
-            placeholder = "请输入货位编码，如 A-03-02-01",
+            placeholder = "请输入货位码",
             modifier = Modifier.fillMaxWidth(),
             showSearchIcon = false,
             horizontalPadding = 0.dp

@@ -54,9 +54,6 @@ data object TempBorrowConfirm
 data object TempReturn
 
 @Serializable
-data object TempReturnSearchTools
-
-@Serializable
 data object TempReturnConfirm
 
 @Serializable

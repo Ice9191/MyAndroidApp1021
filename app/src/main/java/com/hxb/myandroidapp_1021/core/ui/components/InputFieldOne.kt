@@ -1,6 +1,7 @@
 package com.hxb.myandroidapp_1021.core.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -35,6 +37,7 @@ import androidx.compose.ui.unit.sp
 
 /**
  * 输入值、提示和错误由调用页面传入，输入变化通过 onValueChange 上报。
+ * 传入 onClick 时输入框作为只读点击区域，由调用页面打开选择弹窗，点击不会聚焦键盘。
  * width 包含组件两侧留白，默认占满父布局可用宽度，与原布局一致。
  */
 @Composable
@@ -49,7 +52,8 @@ fun InputFieldOne(
     enabled: Boolean = true,
     width: Dp = Dp.Unspecified,
     horizontalPadding: Dp = 16.dp,
-    trailingIcon: (@Composable () -> Unit)? = null
+    trailingIcon: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     val searchInteractionSource = remember { MutableInteractionSource() }
@@ -69,6 +73,7 @@ fun InputFieldOne(
     ) {
         BasicTextField(
             enabled = enabled,
+            readOnly = onClick != null,
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier
@@ -123,5 +128,12 @@ fun InputFieldOne(
                 }
             }
         )
+        if (onClick != null) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(role = Role.Button, onClick = onClick)
+            )
+        }
     }
 }

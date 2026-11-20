@@ -26,6 +26,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
+import com.hxb.myandroidapp_1021.core.ui.components.QueryDialog
 import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
@@ -56,6 +57,10 @@ fun TempBorrowScreen(
         onWorkshopChange = viewModel::onWorkshopChange,
         onWorkGroupChange = viewModel::onWorkGroupChange,
         onRemarkChange = viewModel::onRemarkChange,
+        onQueryFieldClick = viewModel::onQueryFieldClick,
+        onQueryKeywordChange = viewModel::onQueryKeywordChange,
+        onQueryOptionSelected = viewModel::onQueryOptionSelected,
+        onCloseQueryDialog = viewModel::closeQueryDialog,
         onToggleTool = viewModel::toggleTool,
         onSaveOrder = viewModel::saveOrder,
         onSearchToolsClick = onSearchToolsClick,
@@ -76,6 +81,10 @@ fun TempBorrowContent(
     onWorkshopChange: (String) -> Unit,
     onWorkGroupChange: (String) -> Unit,
     onRemarkChange: (String) -> Unit,
+    onQueryFieldClick: (TempBorrowQueryField) -> Unit,
+    onQueryKeywordChange: (String) -> Unit,
+    onQueryOptionSelected: (String) -> Unit,
+    onCloseQueryDialog: () -> Unit,
     onToggleTool: (String) -> Unit,
     onSaveOrder: () -> Unit,
     onSearchToolsClick: () -> Unit,
@@ -138,25 +147,34 @@ fun TempBorrowContent(
                                             state.borrower,
                                             onBorrowerChange,
                                             "借用人（必填）",
-                                            showSearchIcon = false
+                                            showSearchIcon = false,
+                                            onClick = {
+                                                onQueryFieldClick(TempBorrowQueryField.BORROWER)
+                                            }
                                         )
                                         InputFieldOne(
                                             state.workOrderNo,
                                             onWorkOrderChange,
-                                            "工单号（必填）",
+                                            "工单号",
                                             showSearchIcon = false
                                         )
                                         InputFieldOne(
                                             state.workshop,
                                             onWorkshopChange,
                                             "车间",
-                                            showSearchIcon = false
+                                            showSearchIcon = false,
+                                            onClick = {
+                                                onQueryFieldClick(TempBorrowQueryField.WORKSHOP)
+                                            }
                                         )
                                         InputFieldOne(
                                             state.workGroup,
                                             onWorkGroupChange,
                                             "工班",
-                                            showSearchIcon = false
+                                            showSearchIcon = false,
+                                            onClick = {
+                                                onQueryFieldClick(TempBorrowQueryField.WORK_GROUP)
+                                            }
                                         )
                                         InputFieldOne(
                                             state.remark,
@@ -207,7 +225,7 @@ fun TempBorrowContent(
                     OrderList(
                         orders = state.visibleOrders,
                         listState = listState,
-                        emptyText = "暂无临时借出单，点击下方按钮新建",
+                        emptyText = "",
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         key = { it.orderNo }
@@ -237,5 +255,17 @@ fun TempBorrowContent(
                 onDismiss = onNotificationDismiss
             )
         }
+    }
+
+    val queryField = state.queryField
+    if (queryField != null) {
+        QueryDialog(
+            query = state.queryKeyword,
+            options = state.queryOptions,
+            searchPlaceholder = "搜索${queryField.label}",
+            onQueryChange = onQueryKeywordChange,
+            onSelect = onQueryOptionSelected,
+            onDismiss = onCloseQueryDialog
+        )
     }
 }

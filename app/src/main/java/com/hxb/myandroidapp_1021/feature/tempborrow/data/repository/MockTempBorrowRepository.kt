@@ -22,6 +22,48 @@ class MockTempBorrowRepository @Inject constructor() : TempBorrowRepository {
 
     private val mockOperator = "演示材料员"
 
+    /**
+     * 车间、工班与借用人候选项，用于新建单据时的查询弹窗；正式数据由后端基础档案提供。
+     */
+    private val mockWorkshops = listOf(
+        "检修车间",
+        "变电检修车间",
+        "总装车间",
+        "架大修一车间",
+        "架大修二车间",
+        "供电车间",
+        "信号车间",
+        "车辆车间"
+    )
+
+    private val mockWorkGroups = listOf(
+        "电气一班",
+        "电气二班",
+        "高压班",
+        "试验班",
+        "继电保护班",
+        "变电检修班",
+        "接触网班",
+        "信号检修班",
+        "机械班",
+        "综合班"
+    )
+
+    private val mockBorrowers = listOf(
+        "张伟",
+        "李强",
+        "王芳",
+        "赵敏",
+        "刘洋",
+        "陈晨",
+        "杨帆",
+        "周涛",
+        "孙磊",
+        "黄静",
+        "吴迪",
+        "郑洁"
+    )
+
     private val mockInventory = listOf(
         TempBorrowInventoryItem("E280 1001 0001", "270000000001", "活动扳手 12 寸", "把", "A0101"),
         TempBorrowInventoryItem("E280 1001 0002", "270000000001", "活动扳手 12 寸", "把", "A0102"),
@@ -96,6 +138,21 @@ class MockTempBorrowRepository @Inject constructor() : TempBorrowRepository {
     override suspend fun loadInventory(): List<TempBorrowInventoryItem> {
         delay(300.milliseconds)
         return mockInventory
+    }
+
+    override suspend fun loadWorkshops(): List<String> {
+        delay(200.milliseconds)
+        return mockWorkshops
+    }
+
+    override suspend fun loadWorkGroups(): List<String> {
+        delay(200.milliseconds)
+        return mockWorkGroups
+    }
+
+    override suspend fun loadBorrowers(): List<String> {
+        delay(200.milliseconds)
+        return mockBorrowers
     }
 
     /**

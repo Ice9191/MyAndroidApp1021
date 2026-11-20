@@ -2,20 +2,20 @@ package com.hxb.myandroidapp_1021.feature.tempborrow.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowCreateRequest
-import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowDetailStatus
-import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowOrder
-import com.hxb.myandroidapp_1021.feature.tempborrow.domain.repository.TempBorrowRepository
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.OtherPickingDetail
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.OtherPickingOrder
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.PickingDetailStatus
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.SourceType
+import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowCreateRequest
+import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowDetailStatus
+import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowOrder
+import com.hxb.myandroidapp_1021.feature.tempborrow.domain.repository.TempBorrowRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class TempBorrowViewModel @Inject constructor(
@@ -25,15 +25,25 @@ class TempBorrowViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TempBorrowUiState())
     val uiState = _uiState.asStateFlow()
 
-    // PDA 拣选任务仍需展示存放货位，货位来自库存器具，不写入临时借出明细字段。
     private var inventoryLocations: Map<String, String> = emptyMap()
 
     init {
         viewModelScope.launch {
             val inventory = repository.loadInventory()
             val orders = repository.loadOrders()
+            val workshops = repository.loadWorkshops()
+            val workGroups = repository.loadWorkGroups()
+            val borrowers = repository.loadBorrowers()
             inventoryLocations = inventory.associate { it.rfid to it.location }
-            _uiState.update { it.copy(inventory = inventory, orders = orders) }
+            _uiState.update {
+                it.copy(
+                    inventory = inventory,
+                    orders = orders,
+                    workshopOptions = workshops,
+                    workGroupOptions = workGroups,
+                    borrowerOptions = borrowers
+                )
+            }
         }
     }
 
@@ -69,6 +79,38 @@ class TempBorrowViewModel @Inject constructor(
         _uiState.update { it.copy(remark = value) }
     }
 
+    /**
+     * 打开车间/工班/借用人查询弹窗，每次打开清空上一次的搜索关键字。
+     */
+    fun onQueryFieldClick(field: TempBorrowQueryField) {
+        _uiState.update {
+            it.copy(queryField = field, queryKeyword = "", notificationMessage = null)
+        }
+    }
+
+    fun onQueryKeywordChange(value: String) {
+        _uiState.update { it.copy(queryKeyword = value) }
+    }
+
+    /**
+     * 把查询弹窗选中的候选值回填到对应字段并关闭弹窗。
+     */
+    fun onQueryOptionSelected(value: String) {
+        _uiState.update { state ->
+            val updated = when (state.queryField) {
+                TempBorrowQueryField.WORKSHOP -> state.copy(workshop = value)
+                TempBorrowQueryField.WORK_GROUP -> state.copy(workGroup = value)
+                TempBorrowQueryField.BORROWER -> state.copy(borrower = value)
+                null -> state
+            }
+            updated.copy(queryField = null, queryKeyword = "")
+        }
+    }
+
+    fun closeQueryDialog() {
+        _uiState.update { it.copy(queryField = null, queryKeyword = "") }
+    }
+
     fun startNewOrder() {
         _uiState.update {
             it.copy(
@@ -83,6 +125,8 @@ class TempBorrowViewModel @Inject constructor(
                 remark = "",
                 selectedRfids = emptySet(),
                 isSubmitting = false,
+                queryField = null,
+                queryKeyword = "",
                 notificationMessage = null
             )
         }
@@ -105,6 +149,8 @@ class TempBorrowViewModel @Inject constructor(
                 editing = false,
                 query = "",
                 toolQuery = "",
+                queryField = null,
+                queryKeyword = "",
                 notificationMessage = null
             )
         }
@@ -186,7 +232,6 @@ class TempBorrowViewModel @Inject constructor(
 
     // TODO: 字段未确定：临时借出单转临时拣选单时，拣选单号、物资编码、单位、批次号、仓库的接口字段与取值待后端确认。
     fun pickingTasks(): List<OtherPickingOrder> = _uiState.value.orders.mapNotNull { order ->
-        // 已确认借出的明细不再生成拣选任务，避免重复拣选。
         val pickedRfids = _uiState.value.pickedRfids
         val pending = order.details.filter { it.status == TempBorrowDetailStatus.PENDING }
         if (pending.isEmpty()) {

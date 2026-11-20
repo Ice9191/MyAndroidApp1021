@@ -46,11 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
 
 @Composable
 fun PutawayConfirmScreen(
@@ -109,64 +109,64 @@ fun PutawayConfirmContent(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 InputFieldOne(
-                value = uiState.scanQuery,
-                onValueChange = onScanQueryChange,
-                placeholder = "扫描目标货位 / 物资RFID标签",
-                trailingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable(role = Role.Button, onClick = onScanClick),
+                    value = uiState.scanQuery,
+                    onValueChange = onScanQueryChange,
+                    placeholder = "扫描目标货位 / 物资RFID标签",
+                    trailingIcon = {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .clickable(role = Role.Button, onClick = onScanClick),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.QrCodeScanner,
+                                contentDescription = "Scan",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                )
+                when {
+                    isLoading -> Box(
+                        Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.QrCodeScanner,
-                            contentDescription = "Scan",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+
+                    !uiState.hasOrder -> Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("请返回列表选择上架单")
+                    }
+
+                    uiState.visibleDetails.isEmpty() -> Box(
+                        Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("暂无匹配明细", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+
+                    else -> LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.visibleDetails, key = { it.detail.lineNo }) { row ->
+                            PutawayDetailCard(
+                                row = row,
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    onSelectDetail(row.detail.lineNo)
+                                }
+                            )
+                        }
                     }
                 }
-            )
-            when {
-                isLoading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
-
-                !uiState.hasOrder -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("请返回列表选择上架单")
-                }
-
-                uiState.visibleDetails.isEmpty() -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("暂无匹配明细", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-
-                else -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.visibleDetails, key = { it.detail.lineNo }) { row ->
-                        PutawayDetailCard(
-                            row = row,
-                            onClick = {
-                                focusManager.clearFocus()
-                                onSelectDetail(row.detail.lineNo)
-                            }
-                        )
-                    }
-                }
-            }
             }
             ToastNotification(
                 message = uiState.notificationMessage,
@@ -276,6 +276,7 @@ private fun PutawayDetailCard(
                 }
             }
             DetailLine("RFID", detail.rfid)
+            DetailLine("物资编码", detail.itemCode)
             DetailLine("明细状态", detail.status.label)
             DetailLine("仓库", detail.warehouse)
             DetailLine("数量", row.quantity)

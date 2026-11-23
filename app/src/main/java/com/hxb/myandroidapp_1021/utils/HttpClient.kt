@@ -2,6 +2,7 @@ package com.hxb.myandroidapp_1021.utils
 
 import android.util.Log
 import com.hxb.myandroidapp_1021.api.ApiService
+import com.hxb.myandroidapp_1021.models.ApiResponse
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -35,6 +36,8 @@ object HttpClient {
         .addInterceptor { chain ->
             // 获取请求对象，携带token(在请求发出之前携带数据)
             val request = chain.request().newBuilder() // 拿到这个请求
+                // okHttp的“身份标识”被识别为爬虫，需要加上下面这一行欺骗服务器，需要的时候才加
+                .header("User-Agent", "Mozilla/5.0")
             if (token.isNotEmpty()) {
                 request.addHeader("Authorization", "Bearer $token")
             }
@@ -65,5 +68,15 @@ object HttpClient {
         .build()
 
     // 让Retrofit自动实现ApiService接口中的  所有方法，最后使用apiService调用
+    // retrofit会根据ApiService这个接口去实现一个抽象类，类中会对所有的方法进行实现
     val apiService: ApiService = retrofit.create(ApiService::class.java)
+
+    // 封装通用的请求函数
+    suspend fun <T> request(call: suspend () -> ApiResponse<T>): T {
+        val res = call()
+        if(res.code == 10000){
+            return res.data ?: throw RuntimeException("数据为空")
+        }
+        throw RuntimeException(res.message ?: "请求失败")
+    }
 }

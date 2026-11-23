@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -37,6 +38,8 @@ android {
 }
 
 dependencies {
+    // 数据持久化
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.converter.kotlinx.serialization)
     // JSON解析
     implementation(libs.kotlinx.serialization.json)

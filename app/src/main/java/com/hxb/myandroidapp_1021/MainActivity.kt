@@ -2,13 +2,16 @@ package com.hxb.myandroidapp_1021
 
 // 导入需要用到的工具类，组件/颜色/尺寸
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.hxb.myandroidapp_1021.pages.LoginScreen
+import com.hxb.myandroidapp_1021.pages.TodoScreen
 import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
-import com.hxb.myandroidapp_1021.utils.HttpClient
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -141,16 +144,29 @@ class MainActivity : ComponentActivity() {
         //     Log.d("ccc", "会阻塞主线程")
         // }
 
-        lifecycleScope.launch {
-            val res = HttpClient.apiService.getQuestionList(
-                type = 0,
-                page = 1,
-                pageSize = 10,
-                // 如果传入null，Retrofit会自动忽略这个参数
-                questionBankType = null
-            )
-            Log.d("HttpClient", res.toString())
-        }
+        // lifecycleScope.launch {
+        //     val res = HttpClient.apiService.getQuestionList(
+        //         type = 0,
+        //         page = 1,
+        //         pageSize = 10,
+        //         // 如果传入null，Retrofit会自动忽略这个参数
+        //         questionBankType = null
+        //     )
+        //     res.data?.rows[0]?.stem?.let { Log.d("HttpClient", it) }
+        // }
+
+        // 使用request封装接口调用，更简洁
+        // lifecycleScope.launch {
+        //     val res = HttpClient.request {
+        //         HttpClient.apiService.getQuestionList(
+        //             type = 0,
+        //             page = 1,
+        //             pageSize = 10,
+        //             questionBankType = "1"
+        //         )
+        //     }
+        //     Log.d("HttpClient", res.rows[0].stem)
+        // }
 
         setContent {
             // 脚手架，现在先不用
@@ -163,8 +179,17 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            MyAndroidApp1021Theme {
-
+            var isLogin by remember { mutableStateOf(false) }
+            if (!isLogin) {
+                MyAndroidApp1021Theme {
+                    LoginScreen(onLoginSuccess = {
+                        isLogin = true
+                    })
+                }
+            } else {
+                MyAndroidApp1021Theme {
+                    TodoScreen()
+                }
             }
         }
     }

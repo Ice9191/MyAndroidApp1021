@@ -2,6 +2,7 @@ package com.hxb.myandroidapp_1021.models
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 /**
  * 开发过程中，把所有的数据模型都放在这里是没问题的
@@ -65,4 +66,21 @@ data class PageQuestionItem(
     val stem: String,             // 题目标题
     val difficulty: Int = 0,      // 难度
     val views: Int = 0            // 浏览量
+)
+
+@Serializable
+data class QuestionDetail(
+    val id: String,
+    val stem: String,        // 题目标题
+    val difficulty: Int,     // 难度
+    val views: Int,          // 浏览量
+    val content: String = "", // 题目内容
+    val answer: String = ""   // 答案
+)
+
+@Serializable
+data class TodoItems(
+    val id: String = UUID.randomUUID().toString(),
+    val text: String,
+    val isDone: Boolean = false
 )

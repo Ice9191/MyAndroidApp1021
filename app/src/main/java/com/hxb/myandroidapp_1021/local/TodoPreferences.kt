@@ -42,4 +42,15 @@ class TodoPreferences(context: Context) {
             else json.decodeFromString(ListSerializer(TodoItems.serializer()), jsonStr)
         }.first()
     }
+
+    private val NICK_NAME_KEY = stringPreferencesKey("nick_name")
+
+    suspend fun saveNickName(nickName: String) {
+        // nickName就是一个普通的字符串，直接进行保存，上面不是字符串，因此才需要反序列化
+        dataStore.edit { it[NICK_NAME_KEY] = nickName }
+    }
+
+    suspend fun getNickName(): String {
+        return dataStore.data.map { it[NICK_NAME_KEY] ?: "" }.first()
+    }
 }

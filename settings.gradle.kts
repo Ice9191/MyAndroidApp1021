@@ -1,5 +1,9 @@
 pluginManagement {
     repositories {
+        exclusiveContent {
+            forRepository { mavenCentral { name = "KspMavenCentral" } }
+            filter { includeGroup("com.google.devtools.ksp") }
+        }
         maven { url = uri("https://maven.aliyun.com/repository/google") }
         maven { url = uri("https://maven.aliyun.com/repository/releases") }
         maven { url = uri("https://maven.aliyun.com/repository/central") }

@@ -10,12 +10,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.hxb.myandroidapp_1021.pages.LoginScreen
-import com.hxb.myandroidapp_1021.pages.TodoScreen
+import com.hxb.myandroidapp_1021.pages.TodoRoomScreen
 import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
+import com.hxb.myandroidapp_1021.utils.SettingManager
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
 // 定义一个类，类继承自ComponentActivity
@@ -168,6 +170,12 @@ class MainActivity : ComponentActivity() {
         //     Log.d("HttpClient", res.rows[0].stem)
         // }
 
+        // 从本地加载昵称，阻塞式的，只有这里执行完，才能执行下面的代码
+        runBlocking {
+            SettingManager.init(this@MainActivity)
+        }
+
+
         setContent {
             // 脚手架，现在先不用
             // MyAndroidApp1021Theme {
@@ -188,7 +196,7 @@ class MainActivity : ComponentActivity() {
                 }
             } else {
                 MyAndroidApp1021Theme {
-                    TodoScreen()
+                    TodoRoomScreen()
                 }
             }
         }

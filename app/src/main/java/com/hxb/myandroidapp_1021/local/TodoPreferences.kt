@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-// 顶级声明一个实例，确保全局只有一个DataStore实例，实例的名称为 "todo_store"
+// 顶级声明一个实例，确保全局只有一个DataStore实例，挂载到Context上，实例的名称为 "todo_store"
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "todo_store")
 
 /**
@@ -28,13 +28,13 @@ class TodoPreferences(context: Context) {
     // 定义key
     private val TODO_KEY = stringPreferencesKey("todo_list")
 
-    // 保存待办列表 → 序列化成 JSON → 存入 DataStore
+    // 保存待办列表 → kotlin对象序列化成 JSON → 存入 DataStore
     suspend fun saveTodos(todos: List<TodoItems>) {
         val jsonStr = json.encodeToString(ListSerializer(TodoItems.serializer()), todos)
         dataStore.edit { it[TODO_KEY] = jsonStr }
     }
 
-    // 从 DataStore 读取 JSON → 反序列化成 List<TodoItem>
+    // 从 DataStore 读取 JSON → 反序列化成 List<TodoItem> kotlin对象
     suspend fun loadTodos(): List<TodoItems> {
         return dataStore.data.map { prefs ->
             val jsonStr = prefs[TODO_KEY] ?: ""

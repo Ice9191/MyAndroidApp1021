@@ -17,13 +17,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,13 +32,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.hxb.myandroidapp_1021.models.TodoItems
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.hxb.myandroidapp_1021.view_model.TodoViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoScreen() {
+fun TodoScreen(viewModel: TodoViewModel = viewModel()) {
     var inputText by remember { mutableStateOf("") }
-    var todos by remember { mutableStateOf(listOf<TodoItems>()) }
+    val todos by viewModel.todos.collectAsState()
 
     Scaffold { padding ->
         Column(
@@ -63,7 +63,7 @@ fun TodoScreen() {
                 Button(
                     onClick = {
                         if (inputText.isNotBlank()) {
-                            todos = todos + TodoItems(text = inputText.trim())
+                            viewModel.addTodo(inputText.trim())
                             inputText = ""
                         }
                     }
@@ -87,16 +87,14 @@ fun TodoScreen() {
                         ) {
                             Checkbox(
                                 checked = todo.isDone,
-                                onCheckedChange = { checked ->
-                                    todos = todos.map {
-                                        if (it.id == todo.id) it.copy(isDone = checked) else it
-                                    }
+                                onCheckedChange = {
+                                    viewModel.updateTodo(todo.id)
                                 }
                             )
                             Text(todo.text, modifier = Modifier.weight(1f))
                             IconButton(
                                 onClick = {
-                                    todos = todos.filter { it.id != todo.id }
+                                    viewModel.deleteTodo(todo.id)
                                 }
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "删除")

@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hxb.myandroidapp_1021.view_model.TodoViewModel
@@ -91,7 +92,12 @@ fun TodoScreen(viewModel: TodoViewModel = viewModel()) {
                                     viewModel.updateTodo(todo.id)
                                 }
                             )
-                            Text(todo.text, modifier = Modifier.weight(1f))
+                            Text(
+                                text = todo.text,
+                                modifier = Modifier.weight(1f),
+                                color = if (todo.isDone) Color.Red else Color.Unspecified,
+                                textDecoration = if (todo.isDone) TextDecoration.LineThrough else TextDecoration.None
+                            )
                             IconButton(
                                 onClick = {
                                     viewModel.deleteTodo(todo.id)

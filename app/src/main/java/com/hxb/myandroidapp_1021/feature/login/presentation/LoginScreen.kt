@@ -92,7 +92,6 @@ fun LoginContent(
     Scaffold(
         containerColor = backgroundColor,
         topBar = {
-            // 登录页顶部只保留右上角设置入口，不显示标题。
             TopAppBar(
                 title = "",
                 onConfigClick = {

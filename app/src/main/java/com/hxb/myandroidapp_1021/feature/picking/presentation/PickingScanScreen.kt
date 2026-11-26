@@ -29,6 +29,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.ScanTab
+import com.hxb.myandroidapp_1021.core.ui.common.ToolInfoRow
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.ScanControlButton
 import com.hxb.myandroidapp_1021.core.ui.components.ScanControlButtons
@@ -37,9 +40,6 @@ import com.hxb.myandroidapp_1021.core.ui.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.core.ui.components.ToolsScanList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
-import com.hxb.myandroidapp_1021.core.ui.common.ScanTab
-import com.hxb.myandroidapp_1021.core.ui.common.ToolInfoRow
 
 @Composable
 fun PickingScanScreen(
@@ -153,7 +153,7 @@ fun PickingScanContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单拣选",
+                title = "扫描拣选",
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick
             )

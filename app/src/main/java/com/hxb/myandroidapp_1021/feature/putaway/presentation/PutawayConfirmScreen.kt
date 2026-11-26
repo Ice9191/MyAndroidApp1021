@@ -96,7 +96,7 @@ fun PutawayConfirmContent(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = "工器具上架",
+                title = "扫描上架",
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick
             )

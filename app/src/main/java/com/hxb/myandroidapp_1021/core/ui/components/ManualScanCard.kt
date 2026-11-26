@@ -24,8 +24,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
 /**
  * 单张工具卡片；选中状态由页面持有，组件只上报选择事件并展示选中动画。
@@ -65,8 +65,8 @@ fun ManualScanCard(
         shadowElevation = lift * 2
     ) {
         Column(
-            modifier = selectionModifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            modifier = selectionModifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -54,17 +54,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.PullToRefresh
+import com.hxb.myandroidapp_1021.core.ui.components.QueryDialog
 import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingOrder
 import com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingStatus
-import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable
@@ -93,13 +94,22 @@ fun PickingListScreen(
     if (uiState.showFilters) {
         PickingFormFilter(
             filter = uiState.draftFilter,
-            workGroupOptions = uiState.orders.map { it.workGroup }
-                .filter { it.isNotBlank() }.distinct().sorted(),
             error = uiState.filterError,
             onChange = flowViewModel::onFilterChange,
+            onWorkGroupClick = flowViewModel::openWorkGroupQuery,
             onReset = flowViewModel::resetFilters,
             onConfirm = flowViewModel::applyFilters,
             onDismiss = flowViewModel::dismissFilters
+        )
+    }
+    if (uiState.showWorkGroupQuery) {
+        QueryDialog(
+            query = uiState.workGroupQuery,
+            options = uiState.workGroupQueryOptions,
+            searchPlaceholder = "搜索工班",
+            onQueryChange = flowViewModel::onWorkGroupQueryChange,
+            onSelect = flowViewModel::onWorkGroupQuerySelected,
+            onDismiss = flowViewModel::dismissWorkGroupQuery
         )
     }
     val closingOrder = uiState.orders.firstOrNull { it.orderNo == uiState.closingOrderNo }
@@ -256,7 +266,7 @@ fun PickingListContent(
                                             )
                                             Button(
                                                 onClick = { clearFocus(); onStartPickClick(order) },
-                                                enabled = order.status != PickingStatus.CLOSED && order.pendingCount > 0,
+                                                enabled = !selected && order.status != PickingStatus.CLOSED && order.pendingCount > 0,
                                                 modifier = Modifier
                                                     .height(30.dp)
                                                     .wrapContentWidth(),
@@ -288,7 +298,9 @@ fun PickingListContent(
                                             DisplayField("车间", order.workshop),
                                             DisplayField("工班", order.workGroup),
                                             DisplayField("借用人", order.borrower),
-                                            DisplayField("计划日期", order.plannedDate.ifBlank { "-" })
+                                            DisplayField(
+                                                "计划日期",
+                                                order.plannedDate.ifBlank { "-" })
                                         ).forEach { field ->
                                             Row(
                                                 Modifier.fillMaxWidth(),
@@ -359,7 +371,6 @@ fun PickingListContent(
                 onClick = { clearFocus(); onRequestCloseOrder() },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    // 与返回顶部按钮同尺寸，位于其上方：32dp 底距 + 40dp 按钮高度 + 12dp 间距
                     .padding(end = 16.dp, bottom = 84.dp)
             )
 

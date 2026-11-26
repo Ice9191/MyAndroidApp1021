@@ -46,7 +46,14 @@ class PickingListViewModel @Inject constructor(
     }
 
     fun dismissFilters() {
-        _uiState.update { it.copy(showFilters = false, filterError = null) }
+        _uiState.update {
+            it.copy(
+                showFilters = false,
+                filterError = null,
+                showWorkGroupQuery = false,
+                workGroupQuery = ""
+            )
+        }
     }
 
     fun onFilterChange(filter: PickingListFilter) {
@@ -55,6 +62,34 @@ class PickingListViewModel @Inject constructor(
 
     fun resetFilters() {
         _uiState.update { it.copy(draftFilter = PickingListFilter(), filterError = null) }
+    }
+
+    /**
+     * 打开工班查询弹窗，每次打开清空上一次的搜索关键字。
+     */
+    fun openWorkGroupQuery() {
+        _uiState.update { it.copy(showWorkGroupQuery = true, workGroupQuery = "") }
+    }
+
+    fun onWorkGroupQueryChange(value: String) {
+        _uiState.update { it.copy(workGroupQuery = value) }
+    }
+
+    /**
+     * 把弹窗选中的工班写回筛选草稿并关闭弹窗。
+     */
+    fun onWorkGroupQuerySelected(value: String) {
+        _uiState.update {
+            it.copy(
+                draftFilter = it.draftFilter.copy(workGroup = value),
+                showWorkGroupQuery = false,
+                workGroupQuery = ""
+            )
+        }
+    }
+
+    fun dismissWorkGroupQuery() {
+        _uiState.update { it.copy(showWorkGroupQuery = false, workGroupQuery = "") }
     }
 
     /**

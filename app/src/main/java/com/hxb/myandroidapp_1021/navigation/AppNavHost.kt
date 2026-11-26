@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,12 +73,19 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
     }
 
     val isSignedIn = state.isSignedIn
-    // 会话切换后重建返回栈，退出或失效后不能返回旧业务页面。
-    val navController = key(isSignedIn) { rememberNavController() }
+    val navController = rememberNavController()
     val showServerConfig = BASE_URL == null
     var pendingLoginMessage by rememberSaveable { mutableStateOf<String?>(null) }
     LaunchedEffect(navController, isSignedIn, state.message) {
-        if (!isSignedIn) {
+        if (isSignedIn) {
+            // 登录成功回到首页并清空登录页，返回键不会回到登录。
+            if (navController.currentDestination?.hasRoute<Login>() == true) {
+                navController.navigate(Dashboard) {
+                    popUpTo<Login> { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        } else {
             pendingLoginMessage = state.message
             if (
                 navController.currentDestination?.hasRoute<Login>() != true &&

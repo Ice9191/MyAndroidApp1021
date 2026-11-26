@@ -83,8 +83,8 @@ fun <T> ToolsScanList(
                 shadowElevation = lift * 2
             ) {
                 Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalArrangement = Arrangement.spacedBy(1.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

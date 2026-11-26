@@ -26,12 +26,27 @@ data class PickingListUiState(
     val draftFilter: PickingListFilter = PickingListFilter(),
     val showFilters: Boolean = false,
     val filterError: String? = null,
+    val showWorkGroupQuery: Boolean = false,
+    val workGroupQuery: String = "",
     val selectedOrderNo: String? = null,
     val closingOrderNo: String? = null,
     val toastMessage: String? = null,
     val toastId: Int = 0
 ) {
     val selectedOrder: PickingOrder? get() = orders.firstOrNull { it.orderNo == selectedOrderNo }
+
+    /**
+     * 工班查询弹窗候选：取自当前单据列表，去重排序后按弹窗关键字过滤；未选时由输入框占位文案提示选择。
+     */
+    val workGroupQueryOptions: List<String>
+        get() {
+            val keyword = workGroupQuery.trim()
+            return orders.map { it.workGroup }
+                .filter { it.isNotBlank() }
+                .distinct()
+                .sorted()
+                .filter { keyword.isEmpty() || it.contains(keyword, ignoreCase = true) }
+        }
 
     /**
      * 在同一份原始数据上组合搜索、状态、工班和计划日期筛选。

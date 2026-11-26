@@ -27,6 +27,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
+import com.hxb.myandroidapp_1021.core.ui.components.QueryDialog
 import com.hxb.myandroidapp_1021.core.ui.components.ScanTabs
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification

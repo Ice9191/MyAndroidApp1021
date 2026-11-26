@@ -47,7 +47,7 @@ fun PickingManualContent(
         containerColor = bgColor,
         topBar = {
             TopAppBar(
-                title = "工单拣选",
+                title = "人工拣选",
                 onBackClick = onBackClick,
                 onHomeClick = onHomeClick
             )

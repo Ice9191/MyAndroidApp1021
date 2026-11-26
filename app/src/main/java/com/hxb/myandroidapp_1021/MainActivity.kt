@@ -5,12 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import com.hxb.myandroidapp_1021.pages.LoginScreen
-import com.hxb.myandroidapp_1021.pages.TodoRoomScreen
+import com.hxb.myandroidapp_1021.rfid_write.pages.RfidWriteScreen
 import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
 import com.hxb.myandroidapp_1021.utils.SettingManager
 import kotlinx.coroutines.async
@@ -187,17 +182,8 @@ class MainActivity : ComponentActivity() {
             //     }
             // }
 
-            var isLogin by remember { mutableStateOf(false) }
-            if (!isLogin) {
-                MyAndroidApp1021Theme {
-                    LoginScreen(onLoginSuccess = {
-                        isLogin = true
-                    })
-                }
-            } else {
-                MyAndroidApp1021Theme {
-                    TodoRoomScreen()
-                }
+            MyAndroidApp1021Theme {
+                RfidWriteScreen()
             }
         }
     }

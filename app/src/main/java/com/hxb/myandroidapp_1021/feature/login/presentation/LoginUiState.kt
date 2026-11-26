@@ -10,7 +10,8 @@ data class LoginUiState(
     val password: String = "",
     val passwordVisible: Boolean = false,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null,
+    val usernameError: Boolean = false,
+    val passwordError: Boolean = false,
     val notificationMessage: String? = null,
     val notificationId: Int = 0,
     val user: LoginUser? = null

@@ -34,6 +34,9 @@ class RfidScanner {
 
     // 页面状态
     private val _status = MutableStateFlow("等待初始化")
+    val status: StateFlow<StrindniStringg> = _status.asStateFlow()
+
+    private val _status = MutableStateFlow("等待初始化")
     val status: StateFlow<String> = _status.asStateFlow()
 
     // 实体键回调状态
@@ -71,6 +74,18 @@ class RfidScanner {
             try {
                 open()
             } catch (t: Throwable) {
+                report(t)
+            }
+            if (enableHardwareKey) registerKeys()
+        }
+    }
+
+    fun init(enableHardwareKey: Boolean = true){
+        scope.launch{
+            foreground = true
+            try {
+                open()
+            }catch (t: Throwable){
                 report(t)
             }
             if (enableHardwareKey) registerKeys()

@@ -22,7 +22,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList

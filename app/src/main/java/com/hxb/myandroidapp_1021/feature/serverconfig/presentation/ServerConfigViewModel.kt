@@ -2,6 +2,7 @@ package com.hxb.myandroidapp_1021.feature.serverconfig.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hxb.myandroidapp_1021.core.network.HttpClient.NetworkException
 import com.hxb.myandroidapp_1021.feature.serverconfig.domain.model.ServerConfig
 import com.hxb.myandroidapp_1021.feature.serverconfig.domain.repository.ServerConfigRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,13 +31,23 @@ class ServerConfigViewModel @Inject constructor(
 
     fun onIpAddressChange(newIp: String) {
         _uiState.update { oldState ->
-            oldState.copy(ipAddress = newIp, connectionStatus = ConnectionStatus.UNTESTED)
+            oldState.copy(
+                ipAddress = newIp,
+                connectionStatus = ConnectionStatus.UNTESTED,
+                notificationMessage = null,
+                saveErrorMessage = null
+            )
         }
     }
 
     fun onPortChange(newPort: String) {
         _uiState.update { oldState ->
-            oldState.copy(port = newPort, connectionStatus = ConnectionStatus.UNTESTED)
+            oldState.copy(
+                port = newPort,
+                connectionStatus = ConnectionStatus.UNTESTED,
+                notificationMessage = null,
+                saveErrorMessage = null
+            )
         }
     }
 
@@ -45,33 +56,64 @@ class ServerConfigViewModel @Inject constructor(
      */
     fun testConnection() {
         val state = _uiState.value
-        if (state.isTesting) return
+        if (state.isTesting || state.isSaving) return
         val request = ServerConfig(state.ipAddress, state.port)
-        _uiState.update { it.copy(isTesting = true, connectionStatus = ConnectionStatus.TESTING) }
+        _uiState.update {
+            it.copy(
+                isTesting = true,
+                connectionStatus = ConnectionStatus.TESTING,
+                notificationMessage = null
+            )
+        }
         viewModelScope.launch {
-            val connectionSucceeded = serverConfigRepository.testConnection(request)
+            val errorMessage = serverConfigRepository.testConnection(request)
             _uiState.update { current ->
-                val configUnchanged =
-                    current.ipAddress == request.ipAddress && current.port == request.port
+                val resultIsCurrent = current.connectionStatus == ConnectionStatus.TESTING
+                val hasNewNotification = resultIsCurrent && errorMessage != null
                 current.copy(
                     isTesting = false,
                     connectionStatus = when {
-                        !configUnchanged -> ConnectionStatus.UNTESTED
-                        connectionSucceeded -> ConnectionStatus.SUCCESS
+                        !resultIsCurrent -> ConnectionStatus.UNTESTED
+                        errorMessage == null -> ConnectionStatus.SUCCESS
                         else -> ConnectionStatus.FAILURE
-                    }
+                    },
+                    notificationMessage = if (hasNewNotification) errorMessage else current.notificationMessage,
+                    notificationId = current.notificationId + if (hasNewNotification) 1 else 0
                 )
+            }
+        }
+    }
+
+    fun dismissNotification(notificationId: Int) {
+        _uiState.update { current ->
+            if (current.notificationId == notificationId) {
+                current.copy(notificationMessage = null)
+            } else {
+                current
             }
         }
     }
 
     fun saveConfig(onSaveSuccess: () -> Unit) {
         val state = _uiState.value
+        if (state.isTesting || state.isSaving) return
         val config = ServerConfig(state.ipAddress, state.port)
+        _uiState.update { it.copy(isSaving = true, saveErrorMessage = null, notificationMessage = null) }
         viewModelScope.launch {
-            serverConfigRepository.saveConfig(config)
-            _uiState.update { it.copy(savedConfig = config) }
-            onSaveSuccess()
+            try {
+                if (!serverConfigRepository.saveConfig(config)) {
+                    _uiState.update { it.copy(saveErrorMessage = "请输入有效的 IP 地址和端口号") }
+                    return@launch
+                }
+                _uiState.update { it.copy(savedConfig = config) }
+                onSaveSuccess()
+            } catch (error: NetworkException) {
+                _uiState.update {
+                    it.copy(notificationMessage = error.userMessage, notificationId = it.notificationId + 1)
+                }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
+            }
         }
     }
 }

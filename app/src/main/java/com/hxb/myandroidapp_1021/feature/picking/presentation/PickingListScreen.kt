@@ -64,7 +64,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingOrder
 import com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable

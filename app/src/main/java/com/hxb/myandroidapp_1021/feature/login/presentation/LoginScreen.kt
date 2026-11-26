@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -48,12 +49,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
+import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
-    onLoginSuccess: () -> Unit = {},
-    onSettingsClick: () -> Unit = {}
+    onSettingsClick: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -63,10 +64,12 @@ fun LoginScreen(
         onPasswordChange = viewModel::onPasswordChange,
         onTogglePasswordVisible = viewModel::togglePasswordVisible,
         onNotificationDismiss = viewModel::dismissNotification,
-        onLoginClick = { viewModel.login(onLoginSuccess) },
-        onSettingsClick = {
-            viewModel.dismissNotification()
-            onSettingsClick()
+        onLoginClick = viewModel::login,
+        onSettingsClick = onSettingsClick?.let { openSettings ->
+            {
+                viewModel.dismissNotification()
+                openSettings()
+            }
         }
     )
 }
@@ -79,24 +82,37 @@ fun LoginContent(
     onTogglePasswordVisible: () -> Unit,
     onNotificationDismiss: () -> Unit,
     onLoginClick: () -> Unit,
-    onSettingsClick: () -> Unit
+    onSettingsClick: (() -> Unit)?
 ) {
     // 状态管理
     val imageUrl = "https://img.icons8.com/color/96/000000/toolbox.png"
     val backgroundColor = MaterialTheme.colorScheme.background
     val themeBlue = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        focusedBorderColor = themeBlue,
+        cursorColor = themeBlue,
+        focusedPlaceholderColor = MaterialTheme.colorScheme.outline,
+        unfocusedPlaceholderColor = MaterialTheme.colorScheme.outline,
+        errorTextColor = errorColor,
+        errorPlaceholderColor = errorColor
+    )
     val image =
         if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
     val focusManager = LocalFocusManager.current
 
     Scaffold(
+        modifier = Modifier.imePadding(),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
                 title = "",
-                onConfigClick = {
-                    focusManager.clearFocus()
-                    onSettingsClick()
+                onConfigClick = onSettingsClick?.let { openSettings ->
+                    {
+                        focusManager.clearFocus()
+                        openSettings()
+                    }
                 }
             )
         }
@@ -164,14 +180,15 @@ fun LoginContent(
                         Text(
                             text = "账号",
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (uiState.usernameError) errorColor else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = uiState.username,
                             onValueChange = onUsernameChange,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("请输入账号", color = MaterialTheme.colorScheme.outline) },
+                            placeholder = { Text("请输入账号") },
+                            isError = uiState.usernameError,
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Person,
@@ -181,11 +198,7 @@ fun LoginContent(
                             },
                             singleLine = true,
                             shape = RoundedCornerShape(4.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                                focusedBorderColor = themeBlue,
-                                cursorColor = themeBlue
-                            )
+                            colors = fieldColors
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -194,14 +207,15 @@ fun LoginContent(
                         Text(
                             text = "密码",
                             fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = if (uiState.passwordError) errorColor else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = uiState.password,
                             onValueChange = onPasswordChange,
                             modifier = Modifier.fillMaxWidth(),
-                            placeholder = { Text("请输入密码", color = MaterialTheme.colorScheme.outline) },
+                            placeholder = { Text("请输入密码") },
+                            isError = uiState.passwordError,
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Lock,
@@ -225,18 +239,8 @@ fun LoginContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             singleLine = true,
                             shape = RoundedCornerShape(4.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-                                focusedBorderColor = themeBlue,
-                                cursorColor = themeBlue
-                            )
+                            colors = fieldColors
                         )
-
-                        // 错误提示
-                        uiState.errorMessage?.let { msg ->
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(text = msg, fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
-                        }
 
                         Spacer(modifier = Modifier.height(32.dp))
 
@@ -249,7 +253,7 @@ fun LoginContent(
                             enabled = !uiState.isLoading,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(64.dp),
+                                .height(48.dp),
                             shape = RoundedCornerShape(4.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
                         ) {
@@ -271,7 +275,8 @@ fun LoginContent(
                 message = uiState.notificationMessage,
                 notificationId = uiState.notificationId,
                 onDismiss = onNotificationDismiss,
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.align(Alignment.TopCenter),
+                duration = 3.seconds
             )
         }
     }

@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification

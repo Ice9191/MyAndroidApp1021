@@ -12,3 +12,17 @@ class InventoryFlowViewModel : ViewModel() {
         _selectedOrder.value = order
     }
 }
+
+
+fun loadDashboard(){
+    if (_uiState.value.isLoading || _uiState.value.isLoggingOut) return
+    _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+    loadJob = viewModelS\.la\
+    try {
+        val res = dashbo\.\
+        val menuSet = res.me\,toMenuS\()
+        _uiSt\.update\ {
+            it.copy
+        }
+    }
+}

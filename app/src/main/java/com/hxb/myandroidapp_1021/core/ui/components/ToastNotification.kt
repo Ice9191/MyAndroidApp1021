@@ -29,23 +29,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
- * Toast 式提示：从 TopAppBar 下方滑入，约一秒后自动消失，新通知重新计时。
+ * Toast 式提示从 TopAppBar 下方滑入，到时自动消失，新通知重新计时。
  */
 @Composable
 fun ToastNotification(
     message: String?,
     notificationId: Int,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    duration: Duration = 1.seconds
 ) {
     var displayedMessage by remember { mutableStateOf(message.orEmpty()) }
     LaunchedEffect(message, notificationId) {
         if (message != null) {
             displayedMessage = message
-            delay(1000.milliseconds)
+            delay(duration)
             onDismiss()
         }
     }

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.hxb.myandroidapp_1021.feature.dashboard.domain.model.DashboardData
+import com.hxb.myandroidapp_1021.feature.dashboard.domain.model.MenuSectionPermission
 import com.hxb.myandroidapp_1021.navigation.OtherPickingList
 import com.hxb.myandroidapp_1021.navigation.OtherPutawayList
 import com.hxb.myandroidapp_1021.navigation.OverdueAlertList
@@ -25,15 +26,14 @@ data class DashboardUiState(
     val isLoading: Boolean = false,
     val user: DashboardData? = null,
     val serverConnected: Boolean = false,
-    val menuSections: List<MenuSectionData> = emptyList()
+    val menuSections: List<MenuSectionData> = emptyList(),
+    val isLoggingOut: Boolean = false,
+    val errorMessage: String? = null
 ) {
     val serverText: String
         get() = if (serverConnected) "服务器已连接" else "服务器未连接"
 }
 
-/**
- * 本地菜单展示配置，图标和路由不由后端返回。
- */
 data class MenuItemData(
     val title: String,
     val icon: ImageVector,
@@ -45,47 +45,30 @@ data class MenuSectionData(
     val items: List<MenuItemData>
 )
 
-/**
- * 首页按业务分组的菜单配置，全部为本地展示数据。
- */
-val dashboardMenuSections: List<MenuSectionData> = listOf(
-    MenuSectionData(
-        title = "入库管理",
-        items = listOf(
-            MenuItemData("工器具上架", Icons.Filled.QrCodeScanner, PutawayList)
-        )
-    ),
-    MenuSectionData(
-        title = "工单作业",
-        items = listOf(
-            MenuItemData("工单拣选", Icons.AutoMirrored.Filled.ExitToApp, PickingList),
-            MenuItemData("工单归还上架", Icons.AutoMirrored.Filled.Login, ReturnList)
-        )
-    ),
-    MenuSectionData(
-        title = "临时借还",
-        items = listOf(
-            MenuItemData("临时借出", Icons.AutoMirrored.Filled.ExitToApp, TempBorrow),
-            MenuItemData("临时归还", Icons.AutoMirrored.Filled.Login, TempReturn)
-        )
-    ),
-    MenuSectionData(
-        title = "其他作业",
-        items = listOf(
-            MenuItemData("其他拣选", Icons.AutoMirrored.Filled.ExitToApp, OtherPickingList),
-            MenuItemData("其他上架", Icons.Filled.QrCodeScanner, OtherPutawayList)
-        )
-    ),
-    MenuSectionData(
-        title = "库存管理",
-        items = listOf(
-            MenuItemData("库存明细", Icons.AutoMirrored.Filled.ListAlt, StockDetailList)
-        )
-    ),
-    MenuSectionData(
-        title = "告警记录",
-        items = listOf(
-            MenuItemData("超期告警", Icons.Filled.Warning, OverdueAlertList)
-        )
-    )
+private val menuDestinations: Map<String, Pair<Any, ImageVector>> = mapOf(
+    "PutawayList" to (PutawayList to Icons.Filled.QrCodeScanner),
+    "PickingList" to (PickingList to Icons.AutoMirrored.Filled.ExitToApp),
+    "ReturnList" to (ReturnList to Icons.AutoMirrored.Filled.Login),
+    "TempBorrow" to (TempBorrow to Icons.AutoMirrored.Filled.ExitToApp),
+    "TempReturn" to (TempReturn to Icons.AutoMirrored.Filled.Login),
+    "OtherPickingList" to (OtherPickingList to Icons.AutoMirrored.Filled.ExitToApp),
+    "OtherPutawayList" to (OtherPutawayList to Icons.Filled.QrCodeScanner),
+    "StockDetailList" to (StockDetailList to Icons.AutoMirrored.Filled.ListAlt),
+    "OverdueAlertList" to (OverdueAlertList to Icons.Filled.Warning)
 )
+
+/**
+ * 原首页固定展示全部菜单，按系统文档“权限管理”改为同时检查模块与功能点授权。
+ * 仅展示当前版本已有对应页面的入口，保留后端返回的标题和顺序。
+ */
+internal fun List<MenuSectionPermission>.toMenuSections(): List<MenuSectionData> =
+    mapNotNull { section ->
+        if (!section.allowed) return@mapNotNull null
+
+        val items = section.items.mapNotNull item@{ item ->
+            if (!item.allowed) return@item null
+            val (route, icon) = menuDestinations[item.route] ?: return@item null
+            MenuItemData(title = item.title, icon = icon, route = route)
+        }
+        if (items.isEmpty()) null else MenuSectionData(title = section.title, items = items)
+    }

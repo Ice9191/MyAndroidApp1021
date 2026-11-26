@@ -12,7 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard

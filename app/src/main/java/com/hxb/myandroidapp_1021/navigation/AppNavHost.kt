@@ -7,21 +7,31 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.hxb.myandroidapp_1021.core.network.BASE_URL
+import com.hxb.myandroidapp_1021.core.network.HttpClient.LoginState
 import com.hxb.myandroidapp_1021.feature.dashboard.presentation.DashboardScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
-import com.hxb.myandroidapp_1021.feature.overduealert.presentation.OverdueAlertListScreen
+import com.hxb.myandroidapp_1021.feature.login.presentation.LoginViewModel
 import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingListScreen
 import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingListViewModel
 import com.hxb.myandroidapp_1021.feature.otherpicking.presentation.OtherPickingScanScreen
@@ -30,6 +40,7 @@ import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayL
 import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayListViewModel
 import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayScanScreen
 import com.hxb.myandroidapp_1021.feature.otherputaway.presentation.OtherPutawayScanViewModel
+import com.hxb.myandroidapp_1021.feature.overduealert.presentation.OverdueAlertListScreen
 import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingListScreen
 import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingListViewModel
 import com.hxb.myandroidapp_1021.feature.picking.presentation.PickingScanScreen
@@ -42,18 +53,46 @@ import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnListViewMode
 import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanScreen
 import com.hxb.myandroidapp_1021.feature.returns.presentation.ReturnScanViewModel
 import com.hxb.myandroidapp_1021.feature.serverconfig.presentation.ServerConfigScreen
+import com.hxb.myandroidapp_1021.feature.stockdetail.presentation.StockDetailListScreen
 import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowConfirmScreen
 import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowListScreen
-import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowSearchToolsScreen
 import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowListViewModel
+import com.hxb.myandroidapp_1021.feature.tempborrow.presentation.TempBorrowSearchToolsScreen
 import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnConfirmScreen
 import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnListScreen
 import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnListViewModel
-import com.hxb.myandroidapp_1021.feature.stockdetail.presentation.StockDetailListScreen
+import kotlinx.coroutines.flow.Flow
 
 @Composable
-fun AppNavHost() {
-    val navController = rememberNavController()
+internal fun AppNavHost(loginState: Flow<LoginState>) {
+    val state by loginState.collectAsStateWithLifecycle(initialValue = LoginState())
+    if (state.isRestoring) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val isSignedIn = state.isSignedIn
+    // 会话切换后重建返回栈，退出或失效后不能返回旧业务页面。
+    val navController = key(isSignedIn) { rememberNavController() }
+    val showServerConfig = BASE_URL == null
+    var pendingLoginMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(navController, isSignedIn, state.message) {
+        if (!isSignedIn) {
+            pendingLoginMessage = state.message
+            if (
+                navController.currentDestination?.hasRoute<Login>() != true &&
+                navController.previousBackStackEntry?.destination?.hasRoute<Login>() != true
+            ) {
+                navController.navigate(Login) {
+                    popUpTo<Dashboard> { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
+    }
+
     // 防止重复点击返回导致页面空白
     val safeBack: () -> Unit = {
         if (navController.previousBackStackEntry != null) {
@@ -102,17 +141,11 @@ fun AppNavHost() {
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
         ) {
-            DashboardScreen(
-                onLogoutClick = {
-                    navController.navigate(Login) {
-                        popUpTo<Dashboard> { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onMenuClick = { route ->
+            if (isSignedIn) {
+                DashboardScreen { route ->
                     navController.navigate(route) { launchSingleTop = true }
                 }
-            )
+            }
         }
         // 登录页
         composable<Login>(
@@ -121,15 +154,19 @@ fun AppNavHost() {
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
         ) {
+            val viewModel: LoginViewModel = hiltViewModel()
+            LaunchedEffect(pendingLoginMessage) {
+                pendingLoginMessage?.let { message ->
+                    viewModel.showNotification(message)
+                    pendingLoginMessage = null
+                }
+            }
             LoginScreen(
-                onLoginSuccess = {
-                    navController.navigate(Dashboard) {
-                        popUpTo<Login> { inclusive = true }
-                        launchSingleTop = true
-                    }
-                },
-                onSettingsClick = {
-                    navController.navigate(ServerConfig) { launchSingleTop = true }
+                viewModel = viewModel,
+                onSettingsClick = if (showServerConfig) {
+                    { navController.navigate(ServerConfig) { launchSingleTop = true } }
+                } else {
+                    null
                 }
             )
         }
@@ -140,12 +177,13 @@ fun AppNavHost() {
         composable<StockDetailList> {
             StockDetailListScreen(onBackClick = safeBack)
         }
-        // 服务器配置页
-        composable<ServerConfig> {
-            ServerConfigScreen(
-                onBackClick = safeBack,
-                onSaveClick = safeBack
-            )
+        if (showServerConfig) {
+            composable<ServerConfig> {
+                ServerConfigScreen(
+                    onBackClick = safeBack,
+                    onSaveClick = safeBack
+                )
+            }
         }
         // 上架
         composable<PutawayList> { entry ->

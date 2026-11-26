@@ -44,8 +44,8 @@ import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.ToolsScanList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
-import com.hxb.myandroidapp_1021.commonmodel.ScanTab
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.ScanTab
 
 /**
  * 其他上架扫描页；人工读取与单条上架抽屉都在本页完成，确认成功后留在本页继续上架。

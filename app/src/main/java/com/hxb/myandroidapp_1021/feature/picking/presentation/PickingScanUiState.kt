@@ -1,7 +1,7 @@
 package com.hxb.myandroidapp_1021.feature.picking.presentation
 
 import com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingOrder
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 拣选作业页单件器具的展示状态：业务字段来自 [com.hxb.myandroidapp_1021.feature.picking.domain.model.PickingDetail]，

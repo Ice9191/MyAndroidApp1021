@@ -1,8 +1,8 @@
 package com.hxb.myandroidapp_1021.di
 
-import com.hxb.myandroidapp_1021.feature.dashboard.data.repository.MockDashboardRepository
+import com.hxb.myandroidapp_1021.feature.dashboard.data.repository.DashboardRepositoryImpl
 import com.hxb.myandroidapp_1021.feature.dashboard.domain.repository.DashboardRepository
-import com.hxb.myandroidapp_1021.feature.login.data.repository.MockLoginRepository
+import com.hxb.myandroidapp_1021.feature.login.data.repository.LoginRepositoryImpl
 import com.hxb.myandroidapp_1021.feature.login.domain.repository.LoginRepository
 import com.hxb.myandroidapp_1021.feature.otherpicking.data.repository.MockOtherPickingRepository
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.repository.OtherPickingRepository
@@ -16,7 +16,7 @@ import com.hxb.myandroidapp_1021.feature.putaway.data.repository.MockPutawayRepo
 import com.hxb.myandroidapp_1021.feature.putaway.domain.repository.PutawayRepository
 import com.hxb.myandroidapp_1021.feature.returns.data.repository.MockReturnRepository
 import com.hxb.myandroidapp_1021.feature.returns.domain.repository.ReturnRepository
-import com.hxb.myandroidapp_1021.feature.serverconfig.data.repository.MockServerConfigRepository
+import com.hxb.myandroidapp_1021.feature.serverconfig.data.repository.ServerConfigRepositoryImpl
 import com.hxb.myandroidapp_1021.feature.serverconfig.domain.repository.ServerConfigRepository
 import com.hxb.myandroidapp_1021.feature.stockdetail.data.repository.MockStockDetailRepository
 import com.hxb.myandroidapp_1021.feature.stockdetail.domain.repository.StockDetailRepository
@@ -33,10 +33,10 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
     @Binds
-    abstract fun bindDashboardRepository(repository: MockDashboardRepository): DashboardRepository
+    abstract fun bindDashboardRepository(repository: DashboardRepositoryImpl): DashboardRepository
 
     @Binds
-    abstract fun bindLoginRepository(repository: MockLoginRepository): LoginRepository
+    abstract fun bindLoginRepository(repository: LoginRepositoryImpl): LoginRepository
 
     @Binds
     abstract fun bindOtherPickingRepository(repository: MockOtherPickingRepository): OtherPickingRepository
@@ -57,7 +57,7 @@ abstract class RepositoryModule {
     abstract fun bindReturnRepository(repository: MockReturnRepository): ReturnRepository
 
     @Binds
-    abstract fun bindServerConfigRepository(repository: MockServerConfigRepository): ServerConfigRepository
+    abstract fun bindServerConfigRepository(repository: ServerConfigRepositoryImpl): ServerConfigRepository
 
     @Binds
     abstract fun bindStockDetailRepository(repository: MockStockDetailRepository): StockDetailRepository

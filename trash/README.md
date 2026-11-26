@@ -24,3 +24,6 @@
 - `pages/picking/`：工单拣选的独立确认页 `PickingConfirmScreen.kt`、`PickingConfirmViewModel.kt`，原位置 `../app/src/main/java/com/hxb/myandroidapp_1021/feature/picking/`；本批次确认已改为扫描页内的抽屉，路由 `PickingConfirm` 一并删除。
 - `components/TempComponents.kt`：临时借还的共用消息提示已内联到借出/归还页面，`TempTool.fields()` 已迁入 `ui/temp/Model.kt`；原位置为源码根目录下的 `components/TempComponents.kt`。卡片外观由 `components/TempListCard.kt` 保留使用。
 - `feature/tempreturn/presentation/TempReturnSearchTools.kt`：停用的“检索待还器具”页，原位置 `app/src/main/java/com/hxb/myandroidapp_1021/feature/tempreturn/presentation/`；归还单改为临时借出确认到最后一件时自动生成，待还器具直接展示在归还单确认页，路由 `TempReturnSearchTools` 一并删除。
+
+- `feature/login/data/repository/MockLoginRepository.kt`：登录现由 `LoginRepositoryImpl` 发起真实请求，旧模拟仓库归档。
+- `utils/RfidScanner.kt`、`utils/TestRfidScan.kt`：当前没有调用入口的 RFID 扫描实现和硬件测试工具。重新启用时移回应用源码根目录下的 `utils/`。

@@ -1,7 +1,28 @@
 package com.hxb.myandroidapp_1021.feature.dashboard.domain.model
 
+import kotlinx.serialization.Serializable
+
 /**
- * 首页人员响应字段，依据文档“人员”“权限管理”。
- * TODO: 字段未确定：PDA 首页接口及 JSON 字段名；avatarUrl 文档未提供，暂沿用页面字段。
+ * GET /user-info 返回的当前人员资料和首页菜单权限。
  */
-data class DashboardData(val userName: String, val userRole: String, val avatarUrl: String)
+@Serializable
+data class DashboardData(
+    val userName: String,
+    val userRole: String,
+    val expiresAt: String,
+    val menuPermissions: List<MenuSectionPermission>
+)
+
+@Serializable
+data class MenuSectionPermission(
+    val title: String,
+    val allowed: Boolean,
+    val items: List<MenuItemPermission>
+)
+
+@Serializable
+data class MenuItemPermission(
+    val route: String,
+    val title: String,
+    val allowed: Boolean
+)

@@ -17,5 +17,9 @@ data class ServerConfigUiState(
     val port: String = "",
     val connectionStatus: ConnectionStatus = ConnectionStatus.UNTESTED,
     val isTesting: Boolean = false,
-    val savedConfig: ServerConfig? = null
+    val isSaving: Boolean = false,
+    val savedConfig: ServerConfig? = null,
+    val saveErrorMessage: String? = null,
+    val notificationMessage: String? = null,
+    val notificationId: Int = 0
 )

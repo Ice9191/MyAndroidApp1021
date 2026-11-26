@@ -364,9 +364,11 @@
 | --- | --- | --- | --- |
 | 请求 | username | 用户账号 | String |
 | 请求 | password | 密码 | String；传输约定不确定 |
-| 响应 | userName | 用户姓名 | String |
-| 响应 | userRole | 角色 | String |
-| 响应 | token | 认证凭证 | String?；凭证格式、有效期不确定 |
+| 响应 | data.userName | 用户姓名 | String |
+| 响应 | data.userRole | 角色 | String |
+| 响应 | data.token | 认证凭证 | String；凭证格式、有效期不确定 |
+
+登录响应的外层字段和 HTTP 状态见 [登录接口约定](login-api.md)。
 
 ### 2 查询及校验货位
 

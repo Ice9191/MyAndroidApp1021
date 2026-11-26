@@ -28,3 +28,16 @@ interface ApiService {
         @Query("questionBankType") questionBankType: String?
     ): ApiResponse<PageData<PageQuestionItem>>
 }
+
+interface ApiService {
+    @POST("login")
+    suspend fun login(@Body params: LoginParams): ApiResponse<User>
+
+    @GET("question/list")
+    suspend fun getQuestionList(
+        @Query("type") type: Int,
+        @Query("page") page: Int,
+        @Query("pageSize") pageSize: Int,
+        @Query("questionBankType") questionBankType: String?
+    ): ApiResponse<PageData<PageQuestionItem>>
+}

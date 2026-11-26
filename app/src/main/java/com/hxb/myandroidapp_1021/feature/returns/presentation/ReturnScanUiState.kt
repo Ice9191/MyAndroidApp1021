@@ -3,7 +3,7 @@ package com.hxb.myandroidapp_1021.feature.returns.presentation
 import com.hxb.myandroidapp_1021.feature.returns.domain.model.ReturnDetail
 import com.hxb.myandroidapp_1021.feature.returns.domain.model.ReturnDetailStatus
 import com.hxb.myandroidapp_1021.feature.returns.domain.model.ReturnOrder
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 归还上架扫描页状态；tools 包含当前单据未上架的明细（待上架、损坏、待送检），

@@ -46,8 +46,8 @@ import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.feature.returns.domain.model.ReturnDetailStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
-import com.hxb.myandroidapp_1021.commonmodel.ScanTab
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.ScanTab
 
 @Composable
 fun ReturnScanScreen(

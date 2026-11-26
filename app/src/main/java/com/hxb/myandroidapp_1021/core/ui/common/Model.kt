@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.commonmodel
+package com.hxb.myandroidapp_1021.core.ui.common
 
 import androidx.compose.ui.graphics.Color
 

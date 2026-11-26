@@ -37,9 +37,9 @@ import com.hxb.myandroidapp_1021.core.ui.components.ToolsInfoList
 import com.hxb.myandroidapp_1021.core.ui.components.ToolsScanList
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.components.TopInfo
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
-import com.hxb.myandroidapp_1021.commonmodel.ScanTab
-import com.hxb.myandroidapp_1021.commonmodel.ToolInfoRow
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.ScanTab
+import com.hxb.myandroidapp_1021.core.ui.common.ToolInfoRow
 
 @Composable
 fun PickingScanScreen(

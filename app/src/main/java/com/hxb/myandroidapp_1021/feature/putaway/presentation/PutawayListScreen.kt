@@ -30,7 +30,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.PullToRefresh
 import com.hxb.myandroidapp_1021.core.ui.components.ScrollToTopButton
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayOrder
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import kotlinx.coroutines.launch
 
 @Composable

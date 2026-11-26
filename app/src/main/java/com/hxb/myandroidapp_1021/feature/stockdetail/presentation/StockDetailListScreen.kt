@@ -57,7 +57,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.PullToRefresh
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.feature.stockdetail.domain.model.StockDetail
 import com.hxb.myandroidapp_1021.feature.stockdetail.domain.model.ToolCondition
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 @Composable
 fun StockDetailListScreen(

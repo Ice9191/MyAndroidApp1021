@@ -3,7 +3,7 @@ package com.hxb.myandroidapp_1021.feature.otherputaway.presentation
 import com.hxb.myandroidapp_1021.feature.otherputaway.domain.model.OtherPutawayDetail
 import com.hxb.myandroidapp_1021.feature.otherputaway.domain.model.OtherPutawayOrder
 import com.hxb.myandroidapp_1021.feature.otherputaway.domain.model.PutawayDetailStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 其他上架扫描明细；只保留待上架明细，已上架明细不进入扫描页。

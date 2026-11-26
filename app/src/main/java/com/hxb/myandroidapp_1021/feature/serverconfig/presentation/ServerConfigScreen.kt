@@ -3,19 +3,22 @@ package com.hxb.myandroidapp_1021.feature.serverconfig.presentation
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 
@@ -50,6 +54,7 @@ fun ServerConfigScreen(
         onIpAddressChange = viewModel::onIpAddressChange,
         onPortChange = viewModel::onPortChange,
         onTestClick = viewModel::testConnection,
+        onNotificationDismiss = viewModel::dismissNotification,
         onSaveClick = { viewModel.saveConfig(onSaveClick) },
         onBackClick = onBackClick
     )
@@ -61,26 +66,29 @@ fun ServerConfigContent(
     onIpAddressChange: (String) -> Unit,
     onPortChange: (String) -> Unit,
     onTestClick: () -> Unit,
+    onNotificationDismiss: (Int) -> Unit,
     onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
     val themeBlue = MaterialTheme.colorScheme.primary
     val bgColor = MaterialTheme.colorScheme.background
-    val statusText = when (uiState.connectionStatus) {
+    val connectionStatus =
+        if (uiState.isTesting) ConnectionStatus.TESTING else uiState.connectionStatus
+    val statusText = when (connectionStatus) {
         ConnectionStatus.UNTESTED -> "尚未测试"
         ConnectionStatus.TESTING -> "正在测试..."
         ConnectionStatus.SUCCESS -> "连接成功"
         ConnectionStatus.FAILURE -> "连接失败"
     }
-    val statusColor = when (uiState.connectionStatus) {
+    val statusColor = when (connectionStatus) {
         ConnectionStatus.SUCCESS -> AppColors.Success
         ConnectionStatus.FAILURE -> MaterialTheme.colorScheme.error
         else -> themeBlue
     }
+    val actionsEnabled = !uiState.isTesting && !uiState.isSaving
     val focusManager = LocalFocusManager.current
 
     Scaffold(
-        modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
                 title = "服务器配置",
@@ -109,8 +117,16 @@ fun ServerConfigContent(
                         disabledContentColor = statusColor,
                         disabledContainerColor = Color.Transparent
                     ),
-                    enabled = !uiState.isTesting
+                    enabled = actionsEnabled
                 ) {
+                    if (uiState.isTesting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = statusColor,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
                     Text(text = statusText, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 }
 
@@ -122,7 +138,8 @@ fun ServerConfigContent(
                         .fillMaxWidth()
                         .height(48.dp),
                     shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = themeBlue)
+                    colors = ButtonDefaults.buttonColors(containerColor = themeBlue),
+                    enabled = actionsEnabled
                 ) {
                     Text(text = "保存并退出", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -130,17 +147,17 @@ fun ServerConfigContent(
         },
         containerColor = bgColor
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
                 .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
         ) {
             // 连接设置区
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp)
             ) {
@@ -180,6 +197,8 @@ fun ServerConfigContent(
                     singleLine = true,
                     shape = RoundedCornerShape(4.dp),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = uiState.saveErrorMessage != null,
+                    supportingText = uiState.saveErrorMessage?.let { message -> { Text(message) } },
                     colors = OutlinedTextFieldDefaults.colors(
                         unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                         focusedBorderColor = themeBlue,
@@ -187,6 +206,12 @@ fun ServerConfigContent(
                     )
                 )
             }
+
+            ToastNotification(
+                message = uiState.notificationMessage,
+                notificationId = uiState.notificationId,
+                onDismiss = { onNotificationDismiss(uiState.notificationId) }
+            )
         }
     }
 }

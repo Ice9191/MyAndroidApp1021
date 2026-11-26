@@ -44,7 +44,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.feature.otherputaway.domain.model.OtherPutawayOrder
 import com.hxb.myandroidapp_1021.feature.otherputaway.domain.model.PutawayStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 其他上架列表页；进入页面后由下拉刷新容器自动加载，点击“开始上架”把选中的单据交给扫描页。

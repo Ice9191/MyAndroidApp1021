@@ -1,7 +1,7 @@
 package com.hxb.myandroidapp_1021.feature.otherpicking.presentation
 
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.OtherPickingOrder
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 单件器具的扫描展示状态；isRead 与 readDate 是本次人工拣选的本机状态，不回写业务模型。

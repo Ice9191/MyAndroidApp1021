@@ -45,7 +45,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.core.ui.theme.AppColors
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.OtherPickingOrder
 import com.hxb.myandroidapp_1021.feature.otherpicking.domain.model.PickingStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 其他拣选列表页；进入页面后由下拉刷新容器自动加载，点击“开始拣选”把选中的单据交给扫描页。

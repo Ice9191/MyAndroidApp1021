@@ -58,6 +58,16 @@ object HttpClient {
             }.setLevel(HttpLoggingInterceptor.Level.BODY)
         )
         .build()
+        .addInterceptor(
+            HttpLoggingInterceptor{message ->
+                Log.d("HttpClient", message)
+            }.setLevel(HttpLoggingInterceptor.Level.BODY)
+        )
+    private val retrofit = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .cliet(okHttpClient)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
 
     // 创建Retrofit实例(负责接口的具体实现，负责发送请求)
     private val retrofit = Retrofit.Builder()

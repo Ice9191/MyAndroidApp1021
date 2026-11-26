@@ -23,7 +23,7 @@ import com.hxb.myandroidapp_1021.core.ui.components.TempListCard
 import com.hxb.myandroidapp_1021.core.ui.components.ToastNotification
 import com.hxb.myandroidapp_1021.core.ui.components.TopAppBar
 import com.hxb.myandroidapp_1021.feature.tempborrow.domain.model.TempBorrowDetailStatus
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 
 /**
  * 临时借出的单据确认页：展示单据与全部明细，逐条确认借出后更新明细和单据状态。

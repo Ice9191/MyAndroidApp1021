@@ -20,7 +20,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.hxb.myandroidapp_1021.commonmodel.DisplayField
+import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.OrderList
 import com.hxb.myandroidapp_1021.core.ui.components.OrderProgress
 import com.hxb.myandroidapp_1021.core.ui.components.TempListCard

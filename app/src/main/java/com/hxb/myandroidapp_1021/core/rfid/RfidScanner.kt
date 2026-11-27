@@ -13,9 +13,9 @@ interface RfidScanner {
     fun scanEpcs(onInventoryChanged: (Boolean) -> Unit): Flow<String>
 
     /**
-     * 监听实体扫描键，返回当前按键对应的读头。所有键松开时返回 null。
+     * 每次实体键按下时发送对应的读头，松开后才能再次触发同一个键。
      */
-    fun scanKeyInput(): Flow<ScanInput?>
+    fun scanKeyInput(): Flow<ScanInput>
 }
 
 enum class ScanInput {

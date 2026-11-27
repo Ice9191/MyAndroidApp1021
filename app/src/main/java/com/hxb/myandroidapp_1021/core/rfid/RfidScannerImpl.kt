@@ -27,31 +27,25 @@ class RfidScannerImpl @Inject constructor() : RfidScanner {
     private val sessionMutex = Mutex()
     private var preparedReader: UHFService? = null
 
-    override fun scanKeyInput(): Flow<ScanInput?> = callbackFlow {
+    override fun scanKeyInput(): Flow<ScanInput> = callbackFlow {
         val keys = try {
             ScanKeyService.getInstance()
         } catch (failure: LinkageError) {
             throw IllegalStateException("当前设备不支持东集实体扫描键", failure)
         }
         val heldKeys = mutableSetOf<Int>()
-        var activeInput: ScanInput? = null
         val callback = object : IKeyEventCallback.Stub() {
-            override fun onKeyDown(keyCode: Int) = updatePressed(keyCode, true)
-
-            override fun onKeyUp(keyCode: Int) = updatePressed(keyCode, false)
-
-            private fun updatePressed(keyCode: Int, pressed: Boolean) {
+            override fun onKeyDown(keyCode: Int) {
                 if (keyCode !in scanKeyCodes) return
                 synchronized(heldKeys) {
-                    if (pressed) heldKeys.add(keyCode) else heldKeys.remove(keyCode)
-                    val input = when {
-                        barcodeKeyCode in heldKeys -> ScanInput.BARCODE
-                        heldKeys.isNotEmpty() -> ScanInput.RFID
-                        else -> null
-                    }
-                    if (input == activeInput) return
-                    activeInput = input
-                    trySend(input)
+                    if (!heldKeys.add(keyCode)) return
+                    trySend(if (keyCode == barcodeKeyCode) ScanInput.BARCODE else ScanInput.RFID)
+                }
+            }
+
+            override fun onKeyUp(keyCode: Int) {
+                synchronized(heldKeys) {
+                    heldKeys.remove(keyCode)
                 }
             }
         }
@@ -86,6 +80,7 @@ class RfidScannerImpl @Inject constructor() : RfidScanner {
                 currentCoroutineContext().ensureActive()
                 check(reader.inventoryStart()) { "无法开始 RFID 扫描" }
                 try {
+                    currentCoroutineContext().ensureActive()
                     onInventoryChanged(true)
                     val seenEpcs = mutableSetOf<String>()
                     while (true) {

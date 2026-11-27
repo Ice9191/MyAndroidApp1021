@@ -12,26 +12,16 @@ import com.hxb.myandroidapp_1021.feature.putaway.domain.model.PutawayRequest
 import com.hxb.myandroidapp_1021.feature.putaway.domain.repository.PutawayRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.time.Duration.Companion.seconds
 
 @HiltViewModel
 class PutawayConfirmViewModel @Inject constructor(
@@ -50,7 +40,6 @@ class PutawayConfirmViewModel @Inject constructor(
     private var scanKeyJob: Job? = null
     private var scanJob: Job? = null
     private var putawayJob: Job? = null
-    private var isLocationScanning = false
 
     /**
      * 绑定当前上架单；换单时清空扫描、筛选和详情抽屉状态。
@@ -102,7 +91,6 @@ class PutawayConfirmViewModel @Inject constructor(
         if (previousListener?.isActive == true) return
         scanKeyJob = viewModelScope.launch {
             previousListener?.join()
-            val rfidPressed = MutableStateFlow(false)
             val readerPreparation = launch {
                 try {
                     rfidScanner.prepareReader()
@@ -113,28 +101,34 @@ class PutawayConfirmViewModel @Inject constructor(
                 }
             }
             try {
-                rfidScanner.scanKeyInput()
-                    .onEach { input -> rfidPressed.value = input == ScanInput.RFID }
-                    .filter { input ->
-                        when (input) {
-                            ScanInput.RFID -> scanJob == null || isLocationScanning
-                            ScanInput.BARCODE -> true
-                            null -> false
-                        }
+                var activeInput: ScanInput? = null
+                rfidScanner.scanKeyInput().collect { input ->
+                    val previousScan = scanJob
+                    // 启动中的任务也算一次盘存。第二次按键先取消并等待读头停止。
+                    val stopInventory =
+                        input == ScanInput.RFID && activeInput == input && previousScan?.isActive == true
+                    previousScan?.cancelAndJoin()
+                    if (stopInventory) {
+                        scanJob = null
+                        activeInput = null
+                        return@collect
                     }
-                    .collectLatest { input ->
+                    activeInput = input
+                    scanJob = this@launch.launch {
                         when (input) {
-                            ScanInput.RFID -> scanWhilePressed(rfidPressed)
+                            ScanInput.RFID -> scanInventory()
                             ScanInput.BARCODE -> scanLocation(onPutawayConfirmed)
-                            null -> Unit
                         }
                     }
+                }
             } catch (failure: CancellationException) {
                 throw failure
             } catch (failure: Exception) {
                 showNotification(failure.message ?: "无法连接实体扫描键")
             } finally {
                 withContext(NonCancellable) {
+                    scanJob?.cancelAndJoin()
+                    scanJob = null
                     readerPreparation.cancelAndJoin()
                     rfidScanner.releaseReader()
                 }
@@ -147,10 +141,9 @@ class PutawayConfirmViewModel @Inject constructor(
     }
 
     /**
-     * 从实际盘点开始保留至少一秒读签时间。长按超过一秒时，松手后停止盘点。
-     * 按文档“上架单”流程，读到的单件等待扫码确认货位。
+     * 持续盘存并标记读到的单件，待扫货位码后提交上架。
      */
-    private suspend fun scanWhilePressed(rfidPressed: StateFlow<Boolean>) {
+    private suspend fun scanInventory() {
         if (putawayJob?.isActive == true) return
         val candidates = _uiState.value.visibleDetails
             .map { it.detail }
@@ -159,43 +152,26 @@ class PutawayConfirmViewModel @Inject constructor(
             .toSet()
         if (candidates.isEmpty()) return
 
-        scanJob = currentCoroutineContext().job
         try {
-            coroutineScope {
-                val inventoryStarted = CompletableDeferred<Unit>()
-                val inventory = launch {
-                    rfidScanner.scanEpcs { active ->
-                        _uiState.update { it.copy(isScanning = active) }
-                        if (active) inventoryStarted.complete(Unit)
-                    }.collect { epc ->
-                        val rfid = putawayRepository.findRfidByEpc(epc) ?: return@collect
-                        if (rfid !in candidates || rfid in scannedRfids) return@collect
-                        scannedRfids = scannedRfids + rfid
-                        refreshDetails()
-                    }
-                }
-                try {
-                    inventoryStarted.await()
-                    delay(1.seconds)
-                    rfidPressed.first { !it }
-                } finally {
-                    inventory.cancel()
-                }
+            rfidScanner.scanEpcs { active ->
+                _uiState.update { it.copy(isScanning = active) }
+            }.collect { epc ->
+                val rfid = putawayRepository.findRfidByEpc(epc) ?: return@collect
+                if (rfid !in candidates || rfid in scannedRfids) return@collect
+                scannedRfids = scannedRfids + rfid
+                refreshDetails()
             }
         } catch (failure: CancellationException) {
             throw failure
         } catch (failure: Exception) {
             showNotification(failure.message ?: "RFID 扫描失败")
         } finally {
-            scanJob = null
             _uiState.update { it.copy(isScanning = false) }
         }
     }
 
     private suspend fun scanLocation(onPutawayConfirmed: (PutawayRequest) -> Boolean) {
         if (orderNo == null || putawayJob?.isActive == true) return
-        scanJob = currentCoroutineContext().job
-        isLocationScanning = true
         val locationCode = try {
             barcodeScanner.scan {
                 _uiState.update { it.copy(isScanning = true) }
@@ -206,8 +182,6 @@ class PutawayConfirmViewModel @Inject constructor(
             showNotification(failure.message ?: "货位码扫描失败")
             return
         } finally {
-            scanJob = null
-            isLocationScanning = false
             _uiState.update { it.copy(isScanning = false) }
         }
         if (locationCode == null) {
@@ -220,7 +194,10 @@ class PutawayConfirmViewModel @Inject constructor(
     /**
      * 只提交扫货位前已识别的待上架明细。成功一件移除一件，失败明细留在本单方便重试。
      */
-    private fun submitScannedDetails(locationCode: String, onPutawayConfirmed: (PutawayRequest) -> Boolean) {
+    private fun submitScannedDetails(
+        locationCode: String,
+        onPutawayConfirmed: (PutawayRequest) -> Boolean
+    ) {
         val candidates = details.filter { it.rfid in scannedRfids }
         if (candidates.isEmpty()) {
             showNotification("请先扫描待上架物资的 RFID")
@@ -230,18 +207,24 @@ class PutawayConfirmViewModel @Inject constructor(
             try {
                 val operator = putawayRepository.loadOperator()
                 var failedCount = 0
-                for (detail in candidates) {
-                    val request = PutawayRequest(detail.orderNo, detail.lineNo, detail.rfid, locationCode, operator)
+                for ((orderNo, _, lineNo, _, _, rfid) in candidates) {
+                    val request = PutawayRequest(
+                        orderNo,
+                        lineNo,
+                        rfid,
+                        locationCode,
+                        operator
+                    )
                     if (putawayRepository.confirmPutaway(request) && onPutawayConfirmed(request)) {
-                        details = details.filterNot { it.lineNo == detail.lineNo }
-                        scannedRfids = scannedRfids - detail.rfid
-                        if (selectedLineNo == detail.lineNo) selectedLineNo = null
+                        details = details.filterNot { it.lineNo == lineNo }
+                        scannedRfids = scannedRfids - rfid
+                        if (selectedLineNo == lineNo) selectedLineNo = null
                         refreshDetails()
                     } else {
                         failedCount++
                     }
                 }
-                showNotification(if (failedCount == 0) "上架成功" else "${failedCount} 件上架失败，请重试")
+                showNotification(if (failedCount == 0) "上架成功" else "$failedCount 件上架失败，请重试")
             } catch (failure: CancellationException) {
                 throw failure
             } catch (failure: Exception) {

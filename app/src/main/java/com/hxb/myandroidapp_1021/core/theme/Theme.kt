@@ -1,4 +1,4 @@
-package com.hxb.myandroidapp_1021.ui.theme
+package com.hxb.myandroidapp_1021.core.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

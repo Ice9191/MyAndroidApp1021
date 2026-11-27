@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.hxb.myandroidapp_1021.ui.theme.MyAndroidApp1021Theme
+import com.hxb.myandroidapp_1021.core.theme.MyAndroidApp1021Theme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

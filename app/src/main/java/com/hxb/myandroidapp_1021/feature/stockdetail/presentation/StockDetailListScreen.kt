@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 import com.hxb.myandroidapp_1021.core.ui.components.BottomButton
 import com.hxb.myandroidapp_1021.core.ui.components.ConfirmDialog
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
@@ -348,6 +349,8 @@ private fun StockDetailBottomDrawer(
     fields: List<DisplayField>,
     onDismiss: () -> Unit
 ) {
+    if (LocalNavigationInputLocked.current) return
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),

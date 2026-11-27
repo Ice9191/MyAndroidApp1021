@@ -39,6 +39,10 @@
 
 24. 接收后端响应数据的局部变量统一命名为 `res`，例如 `val res = httpClient.request(...)`。
 
+25. 接口的实现类统一命名为 `接口名 + Impl`，例如 `RfidScanner` 的实现类命名为 `RfidScannerImpl`。
+
+26. 开发或修改 RFID 扫描逻辑时，当前 PDA 支持对应的东集 SDK 接口，就优先使用该接口。
+
 ## 注释格式
 
 单行注释：

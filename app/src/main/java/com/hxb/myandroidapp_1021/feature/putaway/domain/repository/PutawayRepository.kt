@@ -21,6 +21,11 @@ interface PutawayRepository {
     suspend fun validateLocation(code: String): PutawayLocation?
 
     /**
+     * 查询原始 EPC 绑定的业务 RFID 编码。
+     */
+    suspend fun findRfidByEpc(epc: String): String?
+
+    /**
      * 提交单件上架，返回是否成功。
      */
     suspend fun confirmPutaway(request: PutawayRequest): Boolean

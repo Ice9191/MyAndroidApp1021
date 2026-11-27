@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 
 /**
  * 筛选抽屉骨架：标题、关闭、内容区、错误提示和底部重置/确定。
@@ -62,6 +63,8 @@ fun FormFilter(
             onClosed()
         }
     }
+    if (LocalNavigationInputLocked.current) return
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,

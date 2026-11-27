@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,15 +35,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hxb.myandroidapp_1021.core.ui.common.DisplayField
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
@@ -64,11 +62,14 @@ fun PutawayConfirmScreen(
     LaunchedEffect(listState.selectedOrder) {
         viewModel.bindOrder(listState.selectedOrder)
     }
+    LifecycleResumeEffect(viewModel) {
+        viewModel.startScanKeyListener(flowViewModel::confirmItem)
+        onPauseOrDispose { viewModel.stopScanKeyListener() }
+    }
     PutawayConfirmContent(
         isLoading = listState.selectedOrder != null && !uiState.hasOrder,
         uiState = uiState,
         onScanQueryChange = viewModel::onScanQueryChange,
-        onScanClick = viewModel::onScanClick,
         onSelectDetail = viewModel::selectDetail,
         onClearSelectedDetail = viewModel::clearSelectedDetail,
         onNotificationDismiss = viewModel::onNotificationDismiss,
@@ -82,7 +83,6 @@ fun PutawayConfirmContent(
     isLoading: Boolean,
     uiState: PutawayConfirmUiState,
     onScanQueryChange: (String) -> Unit,
-    onScanClick: () -> Unit,
     onSelectDetail: (String) -> Unit,
     onClearSelectedDetail: () -> Unit,
     onBackClick: () -> Unit,
@@ -113,17 +113,26 @@ fun PutawayConfirmContent(
                     onValueChange = onScanQueryChange,
                     placeholder = "扫描目标货位 / 物资RFID标签",
                     trailingIcon = {
+                        val iconColor = if (uiState.isScanning) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                         Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .clickable(role = Role.Button, onClick = onScanClick),
+                            modifier = Modifier.size(32.dp),
                             contentAlignment = Alignment.Center
                         ) {
+                            if (uiState.isScanning) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(30.dp),
+                                    color = iconColor,
+                                    strokeWidth = 2.dp
+                                )
+                            }
                             Icon(
                                 imageVector = Icons.Filled.QrCodeScanner,
-                                contentDescription = "Scan",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                contentDescription = if (uiState.isScanning) "Scanning RFID" else "RFID scanner",
+                                tint = iconColor,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -204,8 +213,7 @@ fun PutawayConfirmContent(
                         DisplayField("明细状态", detail.status.label),
                         DisplayField("批次号", detail.batchNo),
                         DisplayField("单位", detail.unit),
-                        DisplayField("仓库", detail.warehouse),
-                        DisplayField("数量", selectedDetail.quantity)
+                        DisplayField("仓库", detail.warehouse)
                     )
                 )
             }
@@ -279,7 +287,6 @@ private fun PutawayDetailCard(
             DetailLine("物资编码", detail.itemCode)
             DetailLine("明细状态", detail.status.label)
             DetailLine("仓库", detail.warehouse)
-            DetailLine("数量", row.quantity)
         }
     }
 }

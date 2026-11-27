@@ -12,6 +12,16 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 class MockPutawayRepository @Inject constructor() : PutawayRepository {
+    // 模拟建档绑定用 EPC 中的可打印 ASCII 文本作为业务 RFID 编码。
+    private val mockRfidBindings = mapOf(
+        "475730303430303034000000" to "GW0040004",
+        "475730303430303035000000" to "GW0040005",
+        "475730303430303033000000" to "GW0040003",
+        "475730303430303032000000" to "GW0040002"
+    )
+
+    override suspend fun findRfidByEpc(epc: String): String? = mockRfidBindings[epc]
+
     private val mockOrders = listOf(
         PutawayOrder(
             inboundOrderNo = "RK20261111001",
@@ -26,7 +36,7 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
                     lineNo = "1",
                     status = PutawayDetailStatus.PENDING,
                     batchNo = "PC001",
-                    rfid = "E280 0001",
+                    rfid = "GW0040004",
                     itemCode = "GJ-001",
                     description = "绝缘扳手",
                     unit = "件",
@@ -38,7 +48,7 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
                     lineNo = "2",
                     status = PutawayDetailStatus.PENDING,
                     batchNo = "PC001",
-                    rfid = "E280 0002",
+                    rfid = "GW0040005",
                     itemCode = "GJ-001",
                     description = "绝缘扳手",
                     unit = "件",
@@ -71,7 +81,7 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
                     lineNo = "1",
                     status = PutawayDetailStatus.PENDING,
                     batchNo = "PC003",
-                    rfid = "E280 0004",
+                    rfid = "GW0040003",
                     itemCode = "GJ-003",
                     description = "验电器",
                     unit = "件",
@@ -83,7 +93,7 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
                     lineNo = "2",
                     status = PutawayDetailStatus.PENDING,
                     batchNo = "PC003",
-                    rfid = "E280 0005",
+                    rfid = "GW0040002",
                     itemCode = "GJ-004",
                     description = "绝缘手套",
                     unit = "件",
@@ -271,6 +281,7 @@ class MockPutawayRepository @Inject constructor() : PutawayRepository {
     )
     private val mockOperator = "材料员"
     private val mockLocations = listOf(
+        PutawayLocation("132222500364330582", "中心工具库"),
         PutawayLocation("A1-01", "中心工具库"),
         PutawayLocation("A1-02", "中心工具库"),
         PutawayLocation("A1-03", "中心工具库"),

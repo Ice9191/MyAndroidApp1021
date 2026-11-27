@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 
 /**
  * 调用页面控制显示状态并处理确认和取消事件，弹窗只负责展示。
@@ -41,6 +42,8 @@ fun ConfirmDialog(
     dialogPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable () -> Unit
 ) {
+    if (LocalNavigationInputLocked.current) return
+
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier.wrapContentHeight()

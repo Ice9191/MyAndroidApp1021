@@ -34,7 +34,6 @@ data class PutawayOrder(
     val details: List<PutawayDetail>
 ) {
     val completedCount: Int get() = details.count { it.isCompleted }
-    val isCompleted: Boolean get() = details.isNotEmpty() && completedCount == details.size
 }
 
 /**

@@ -20,14 +20,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hxb.myandroidapp_1021.core.network.BASE_URL
 import com.hxb.myandroidapp_1021.core.network.HttpClient.LoginState
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 import com.hxb.myandroidapp_1021.feature.dashboard.presentation.DashboardScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginScreen
 import com.hxb.myandroidapp_1021.feature.login.presentation.LoginViewModel
@@ -63,7 +66,7 @@ import com.hxb.myandroidapp_1021.feature.tempreturn.presentation.TempReturnListV
 import kotlinx.coroutines.flow.Flow
 
 @Composable
-internal fun AppNavHost(loginState: Flow<LoginState>) {
+internal fun AppNavHost(loginState: Flow<LoginState>, onInputLockChanged: (Boolean) -> Unit) {
     val state by loginState.collectAsStateWithLifecycle(initialValue = LoginState())
     if (state.isRestoring) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -99,11 +102,22 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
         }
     }
 
-    // 防止重复点击返回导致页面空白
-    val safeBack: () -> Unit = {
-        if (navController.previousBackStackEntry != null) {
-            navController.popBackStack()
+    fun safeBack(entry: NavBackStackEntry): () -> Unit = {
+        navController.runFrom(entry) {
+            if (navController.previousBackStackEntry != null) {
+                navController.popBackStack()
+            }
         }
+    }
+
+    fun backToDashboard(entry: NavBackStackEntry): () -> Unit = {
+        navController.runFrom(entry) { navController.popBackStack<Dashboard>(false) }
+    }
+
+    val pageSemantics = if (LocalNavigationInputLocked.current) {
+        Modifier.clearAndSetSemantics {}
+    } else {
+        Modifier
     }
 
     NavHost(
@@ -111,6 +125,8 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
         startDestination = Dashboard,
         modifier = Modifier
             .fillMaxSize()
+            .blockNavigationGestures(navController)
+            .then(pageSemantics)
             .background(MaterialTheme.colorScheme.background),
         // 新页面从右向左完全滑入
         enterTransition = {
@@ -146,10 +162,12 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             enterTransition = { EnterTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
-        ) {
+        ) { entry ->
             if (isSignedIn) {
                 DashboardScreen { route ->
-                    navController.navigate(route) { launchSingleTop = true }
+                    navController.runFrom(entry) {
+                        navController.navigate(route) { launchSingleTop = true }
+                    }
                 }
             }
         }
@@ -159,7 +177,7 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             exitTransition = { ExitTransition.None },
             popEnterTransition = { EnterTransition.None },
             popExitTransition = { ExitTransition.None }
-        ) {
+        ) { entry ->
             val viewModel: LoginViewModel = hiltViewModel()
             LaunchedEffect(pendingLoginMessage) {
                 pendingLoginMessage?.let { message ->
@@ -170,24 +188,30 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             LoginScreen(
                 viewModel = viewModel,
                 onSettingsClick = if (showServerConfig) {
-                    { navController.navigate(ServerConfig) { launchSingleTop = true } }
+                    {
+                        navController.runFrom(entry) {
+                            navController.navigate(ServerConfig) { launchSingleTop = true }
+                        }
+                    }
                 } else {
                     null
                 }
             )
         }
         // 超期告警仅查询展示，不在 PDA 配置参数或处理告警。
-        composable<OverdueAlertList> {
-            OverdueAlertListScreen(onBackClick = safeBack)
+        composable<OverdueAlertList> { entry ->
+            OverdueAlertListScreen(onBackClick = safeBack(entry))
         }
-        composable<StockDetailList> {
-            StockDetailListScreen(onBackClick = safeBack)
+        composable<StockDetailList> { entry ->
+            StockDetailListScreen(onBackClick = safeBack(entry))
         }
         if (showServerConfig) {
-            composable<ServerConfig> {
+            composable<ServerConfig> { entry ->
                 ServerConfigScreen(
-                    onBackClick = safeBack,
-                    onSaveClick = safeBack
+                    onBackClick = safeBack(entry),
+                    onSaveClick = navController.onCompletionFrom(entry) {
+                        if (navController.previousBackStackEntry != null) navController.popBackStack()
+                    }
                 )
             }
         }
@@ -196,10 +220,10 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val flowViewModel = hiltViewModel<PutawayListViewModel>(entry)
             PutawayListScreen(
                 flowViewModel = flowViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onStartPutawayClick = {
-                    navController.navigate(PutawayConfirm) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        navController.navigate(PutawayConfirm) { launchSingleTop = true }
                     }
                 }
             )
@@ -208,8 +232,8 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val listEntry = remember(entry) { navController.getBackStackEntry<PutawayList>() }
             PutawayConfirmScreen(
                 flowViewModel = hiltViewModel<PutawayListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+                onBackClick = safeBack(entry),
+                onHomeClick = backToDashboard(entry)
             )
         }
         // 借出
@@ -217,9 +241,11 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             PickingListScreen(
                 flowViewModel = hiltViewModel<PickingListViewModel>(entry),
                 scanViewModel = hiltViewModel<PickingScanViewModel>(entry),
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onStartPickClick = {
-                    navController.navigate(PickingScan) { launchSingleTop = true }
+                    navController.runFrom(entry) {
+                        navController.navigate(PickingScan) { launchSingleTop = true }
+                    }
                 }
             )
         }
@@ -228,9 +254,11 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             PickingScanScreen(
                 viewModel = hiltViewModel<PickingScanViewModel>(listEntry),
                 flowViewModel = hiltViewModel<PickingListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onSubmittedClick = { navController.popBackStack<PickingList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+                onBackClick = safeBack(entry),
+                onSubmittedClick = navController.onCompletionFrom(entry) {
+                    navController.popBackStack<PickingList>(false)
+                },
+                onHomeClick = backToDashboard(entry)
             )
         }
         // 归还
@@ -238,9 +266,11 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             ReturnListScreen(
                 flowViewModel = hiltViewModel<ReturnListViewModel>(entry),
                 scanViewModel = hiltViewModel<ReturnScanViewModel>(entry),
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onStartReturnClick = {
-                    navController.navigate(ReturnScan) { launchSingleTop = true }
+                    navController.runFrom(entry) {
+                        navController.navigate(ReturnScan) { launchSingleTop = true }
+                    }
                 }
             )
         }
@@ -249,8 +279,8 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             ReturnScanScreen(
                 viewModel = hiltViewModel<ReturnScanViewModel>(listEntry),
                 flowViewModel = hiltViewModel<ReturnListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+                onBackClick = safeBack(entry),
+                onHomeClick = backToDashboard(entry)
             )
         }
         // 临时借还与其他作业共享首页作用域的任务列表，返回首页保留进度，退出登录后随首页销毁。
@@ -259,17 +289,17 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             TempBorrowListScreen(
                 viewModel = borrowViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onSearchToolsClick = {
-                    borrowViewModel.onToolQueryChange("")
-                    navController.navigate(TempBorrowSearchTools) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        borrowViewModel.onToolQueryChange("")
+                        navController.navigate(TempBorrowSearchTools) { launchSingleTop = true }
                     }
                 },
                 onSelectOrder = { orderNo ->
-                    borrowViewModel.selectOrder(orderNo)
-                    navController.navigate(TempBorrowConfirm) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        borrowViewModel.selectOrder(orderNo)
+                        navController.navigate(TempBorrowConfirm) { launchSingleTop = true }
                     }
                 }
             )
@@ -279,10 +309,12 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             TempBorrowSearchToolsScreen(
                 viewModel = borrowViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onHomeClick = {
-                    borrowViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
+                    navController.runFrom(entry) {
+                        borrowViewModel.showList()
+                        navController.popBackStack<Dashboard>(false)
+                    }
                 }
             )
         }
@@ -291,10 +323,12 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val borrowViewModel = hiltViewModel<TempBorrowListViewModel>(dashboardEntry)
             TempBorrowConfirmScreen(
                 flowViewModel = borrowViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onHomeClick = {
-                    borrowViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
+                    navController.runFrom(entry) {
+                        borrowViewModel.showList()
+                        navController.popBackStack<Dashboard>(false)
+                    }
                 }
             )
         }
@@ -303,11 +337,11 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val returnViewModel = hiltViewModel<TempReturnListViewModel>(dashboardEntry)
             TempReturnListScreen(
                 viewModel = returnViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onSelectOrder = { orderNo ->
-                    returnViewModel.selectOrder(orderNo)
-                    navController.navigate(TempReturnConfirm) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        returnViewModel.selectOrder(orderNo)
+                        navController.navigate(TempReturnConfirm) { launchSingleTop = true }
                     }
                 }
             )
@@ -317,10 +351,12 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             val returnViewModel = hiltViewModel<TempReturnListViewModel>(dashboardEntry)
             TempReturnConfirmScreen(
                 flowViewModel = returnViewModel,
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onHomeClick = {
-                    returnViewModel.showList()
-                    navController.popBackStack<Dashboard>(false)
+                    navController.runFrom(entry) {
+                        returnViewModel.showList()
+                        navController.popBackStack<Dashboard>(false)
+                    }
                 }
             )
         }
@@ -337,10 +373,10 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             OtherPickingListScreen(
                 viewModel = listViewModel,
                 scanViewModel = hiltViewModel<OtherPickingScanViewModel>(entry),
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onStartClick = {
-                    navController.navigate(OtherPickingScan) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        navController.navigate(OtherPickingScan) { launchSingleTop = true }
                     }
                 }
             )
@@ -350,9 +386,11 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             OtherPickingScanScreen(
                 viewModel = hiltViewModel<OtherPickingScanViewModel>(listEntry),
                 listViewModel = hiltViewModel<OtherPickingListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onSubmittedClick = { navController.popBackStack<OtherPickingList>(false) },
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+                onBackClick = safeBack(entry),
+                onSubmittedClick = navController.onCompletionFrom(entry) {
+                    navController.popBackStack<OtherPickingList>(false)
+                },
+                onHomeClick = backToDashboard(entry)
             )
         }
         composable<OtherPutawayList> { entry ->
@@ -367,10 +405,10 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             OtherPutawayListScreen(
                 viewModel = listViewModel,
                 scanViewModel = hiltViewModel<OtherPutawayScanViewModel>(entry),
-                onBackClick = safeBack,
+                onBackClick = safeBack(entry),
                 onStartClick = {
-                    navController.navigate(OtherPutawayScan) {
-                        launchSingleTop = true
+                    navController.runFrom(entry) {
+                        navController.navigate(OtherPutawayScan) { launchSingleTop = true }
                     }
                 }
             )
@@ -380,9 +418,10 @@ internal fun AppNavHost(loginState: Flow<LoginState>) {
             OtherPutawayScanScreen(
                 viewModel = hiltViewModel<OtherPutawayScanViewModel>(listEntry),
                 listViewModel = hiltViewModel<OtherPutawayListViewModel>(listEntry),
-                onBackClick = safeBack,
-                onHomeClick = { navController.popBackStack<Dashboard>(false) }
+                onBackClick = safeBack(entry),
+                onHomeClick = backToDashboard(entry)
             )
         }
     }
+    LockNavigationInput(navController, onInputLockChanged)
 }

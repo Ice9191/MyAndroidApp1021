@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 
 /**
  * 通用下拉选择控件：外观与筛选面板的输入框一致，点击展开候选，选中值由调用页面持有。
@@ -70,6 +71,7 @@ fun <T> DropdownSelection(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        if (LocalNavigationInputLocked.current) return@Box
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },

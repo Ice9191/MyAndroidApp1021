@@ -38,6 +38,22 @@ fun TempReturnSearchToolsScreen(
 }
 
 @Composable
+fun TempReturnSearchToolsScreen(
+    viewModel:TempReturnViewModel,
+    onBackClick: () -> Unit,
+    onHomeClick: () -> Unit
+){
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TempReturnSearchToolsContent(
+        state = state,
+        onBackClick = onBackClick,
+        onHomeClick = onHomeClick,
+        onToggleTool = viewModel::onToolQueryChange,
+        onToolQueryChange = viewModel::toggleTool
+    )
+}
+
+@Composable
 fun TempReturnSearchToolsContent(
     state: TempReturnUiState,
     onBackClick: () -> Unit,

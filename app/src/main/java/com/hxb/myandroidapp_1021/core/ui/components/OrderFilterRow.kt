@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 
 /**
  * 列表筛选行：状态下拉框和当前结果数量，筛选状态和数量由调用页面提供。
@@ -64,6 +65,7 @@ fun OrderFilterRow(
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
+            if (LocalNavigationInputLocked.current) return@Box
             DropdownMenu(
                 expanded = isDropdownExpanded,
                 onDismissRequest = { isDropdownExpanded = false },

@@ -1,5 +1,7 @@
 package com.hxb.myandroidapp_1021.di
 
+import com.hxb.myandroidapp_1021.core.rfid.RfidScanner
+import com.hxb.myandroidapp_1021.core.rfid.RfidScannerImpl
 import com.hxb.myandroidapp_1021.feature.dashboard.data.repository.DashboardRepositoryImpl
 import com.hxb.myandroidapp_1021.feature.dashboard.domain.repository.DashboardRepository
 import com.hxb.myandroidapp_1021.feature.login.data.repository.LoginRepositoryImpl
@@ -28,10 +30,15 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindRfidScanner(scanner: RfidScannerImpl): RfidScanner
+
     @Binds
     abstract fun bindDashboardRepository(repository: DashboardRepositoryImpl): DashboardRepository
 

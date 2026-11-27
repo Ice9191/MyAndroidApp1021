@@ -56,6 +56,8 @@ dependencies {
     implementation(libs.androidx.material3)
     compileOnly(files("libs/uhf.jar"))
     compileOnly(files("libs/scankey.jar"))
+    // 东集 scannerapi 1.2.6 的编译接口，运行时由 PDA 系统库提供。
+    compileOnly(files("libs/scannerapi-1.2.6.jar"))
     implementation(libs.androidx.appcompat)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.navigation.compose)

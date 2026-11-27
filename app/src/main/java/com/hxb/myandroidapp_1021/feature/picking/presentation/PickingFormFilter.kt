@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 import com.hxb.myandroidapp_1021.core.ui.components.DropdownSelection
 import com.hxb.myandroidapp_1021.core.ui.components.FormFilter
 import com.hxb.myandroidapp_1021.core.ui.components.InputFieldOne
@@ -147,7 +148,7 @@ private fun DateFilterButton(
             modifier = Modifier.size(20.dp)
         )
     }
-    if (showPicker) {
+    if (showPicker && !LocalNavigationInputLocked.current) {
         val state = rememberDatePickerState(initialSelectedDateMillis = parseFilterDate(value))
         DatePickerDialog(
             onDismissRequest = { showPicker = false },

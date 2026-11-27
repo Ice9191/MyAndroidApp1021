@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.hxb.myandroidapp_1021.core.ui.common.LocalNavigationInputLocked
 
 /**
  * 通用查询弹窗：顶部输入框按关键字过滤候选列表，列表可滚动，点击条目回传选中值。
@@ -46,6 +47,8 @@ fun QueryDialog(
     searchPlaceholder: String = "输入关键字搜索",
     emptyText: String = "无匹配数据"
 ) {
+    if (LocalNavigationInputLocked.current) return
+
     BasicAlertDialog(
         onDismissRequest = onDismiss,
         modifier = modifier.imePadding()
